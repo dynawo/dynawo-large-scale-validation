@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# (c) Grupo AIA
+#     marinjl@aia.es
+#
+
+from dynawo_validation.dynaflow.pipeline import run_pipeline
+import argparse
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument("base_case")
+parser.add_argument("results_dir")
+parser.add_argument(
+    "-A",
+    "--launcherA",
+    default="dynawo.sh",
+    help="defines the launcher of simulator A",
+)
+parser.add_argument(
+    "-B",
+    "--launcherB",
+    default="dynawo.sh",
+    help="defines the launcher of simulator B",
+)
+parser.add_argument(
+    "-a",
+    "--allcontg",
+    action="store_true",
+    help="run all the contingencies",
+)
+parser.add_argument(
+    "-s",
+    "--sequential",
+    action="store_true",
+    help="run jobs sequentially (default is parallel)",
+)
+parser.add_argument(
+    "-d",
+    "--debug",
+    action="store_true",
+    help="more debug messages",
+)
+parser.add_argument(
+    "-c",
+    "--cleanup",
+    action="store_true",
+    help="delete input cases after getting the results",
+)
+parser.add_argument(
+    "-l",
+    "--regexlist",
+    default=None,
+    help="enter regular expressions or contingencies in text (.txt) form, by default, "
+    "all possible contingencies will be generated (if below MAX_NCASES; "
+    "otherwise a random sample is generated)",
+)
+parser.add_argument(
+    "-w",
+    "--weights",
+    default=None,
+    help="file containing personalized weights for computing scores (format should follow the template)",
+)
+parser.add_argument(
+    "-r",
+    "--random",
+    action="store_true",
+    help="run a different random sample of contingencies",
+)
+
+parser.add_argument(
+    "-p",
+    "--randomseed",
+    default=None,
+    help="run a different random sample of contingencies with a seed",
+)
+
+args = parser.parse_args()
+
+
+def main():
+    run_pipeline.run_pipeline(
+        args.base_case,
+        args.results_dir,
+        args.launcherA,
+        args.launcherB,
+        args.allcontg,
+        args.regexlist,
+        args.random,
+        args.sequential,
+        args.debug,
+        args.cleanup,
+        args.randomseed,
+        args.weights,
+    )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

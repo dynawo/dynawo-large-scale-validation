@@ -18,4 +18,5 @@ dist/
 
 # Exclude the recommended virtual env:
 *dwo_venv/
+*dcs_venv/
 
