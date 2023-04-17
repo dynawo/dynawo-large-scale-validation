@@ -59,7 +59,11 @@ dependencies = [
 
 # Entry points and automatic script creation:
 [project.scripts]
-xml_format_dir = "dynawo_contingencies_screening.prepare_basecase.prepare_basecase:xml_format_dir"
+xml_format_dir = "dynawo_contingencies_screening.contingencies_screening:xml_format_dir"
+run_hades_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_hades_contingencies"
+create_contingencies_ranking = "dynawo_contingencies_screening.contingencies_screening:create_contingencies_ranking"
+run_dynawo_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_dynawo_contingencies"
+run_contingencies_screening = "dynawo_contingencies_screening.contingencies_screening:run_contingencies_screening"
 
 
 

@@ -28,13 +28,21 @@ def parser(args_type):
 def xml_format_dir():
     args = parser(1)
 
-    os.system(str(Path(os.path.dirname(os.path.abspath(__file__)))) + "/xml_format_dir.sh " + str(Path(args.case_dir)))
+    os.system(
+        str(Path(os.path.dirname(os.path.abspath(__file__))))
+        + "/xml_format_dir.sh "
+        + str(Path(args.case_dir))
+    )
 
 
 def format_job_file():
     args = parser(2)
 
-    os.system(str(Path(os.path.dirname(os.path.abspath(__file__)))) + "/xml_format_dir.sh " + str(Path(args.case_dir)))
+    os.system(
+        str(Path(os.path.dirname(os.path.abspath(__file__))))
+        + "/xml_format_dir.sh "
+        + str(Path(args.case_dir))
+    )
 
 
 if __name__ == "__main__":
