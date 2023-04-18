@@ -97,12 +97,12 @@ def enable_curves(root, ns):
         # If tag does not exist, create it
         if branch.find("{%s}curves" % ns) is None:
             new_curves = etree.SubElement(branch, "{%s}curves" % ns)
-            # NOTE: Values must be changed deepending on the case
+            # NOTE: Values must be changed depending on the case
             new_curves.set("inputFile", "standard_curves.crv")
             new_curves.set("exportMode", "CSV")
         else:
             for curves_data in branch.iter("{%s}curves" % ns):
-                # NOTE: Values must be changed deepending on the case
+                # NOTE: Values must be changed depending on the case
                 curves_data.attrib["inputFile"] = "standard_curves.crv"
                 curves_data.attrib["exportMode"] = "XML"
 
@@ -121,16 +121,25 @@ def enable_pf_output(root, ns):
                 pf_data.attrib["exportDumpFile"] = "false"
 
 
-def save_xml_changes(job_tree, destination_path):
+def save_xml_changes(job_tree, destination_path, encoding, standalone=True):
     # Indent the tree, then add the xml header and save it.
     etree.indent(job_tree)
-    job_tree.write(
-        destination_path,
-        xml_declaration=True,
-        encoding="ISO-8859-1",
-        standalone=False,
-        pretty_print=True,
-    )
+
+    if not standalone:
+        job_tree.write(
+            destination_path,
+            xml_declaration=True,
+            encoding=encoding,
+            standalone=False,
+            pretty_print=True,
+        )
+    else:
+        job_tree.write(
+            destination_path,
+            xml_declaration=True,
+            encoding=encoding,
+            pretty_print=True,
+        )
 
 
 def format_job_file():
@@ -156,7 +165,7 @@ def format_job_file():
     enable_curves(xml_root, ns)
     enable_timeline(xml_root, ns)
     enable_pf_output(xml_root, ns)
-    save_xml_changes(job_tree, job_file)
+    save_xml_changes(job_tree, job_file, "ISO-8859-1")
 
     return t_event
 
@@ -186,19 +195,13 @@ def create_dyd_file(file_path):
     connect_tag.set("id1", "Disconnect my branch")
     connect_tag.set("var1", "event_state1_value")
     connect_tag.set("id2", "NETWORK")
-    # NOTE: Values must be changed deepending on the case
+    # NOTE: Values must be changed depending on the case
     connect_tag.set("var2", ".ABAN 7 .GUEN 1_state_value")
 
     # Save the new xml onto the .dyd file
     out_tree = etree.ElementTree(dyd_tree)
-    etree.indent(out_tree)
-    out_tree.write(
-        file_path + "/contingency.dyd",
-        xml_declaration=True,
-        encoding="UTF-8",
-        standalone=False,
-        pretty_print=True,
-    )
+    destination_path = file_path + "/contingency.dyd"
+    save_xml_changes(out_tree, destination_path, "UTF-8", standalone=False)
 
     return par_id
 
@@ -236,14 +239,8 @@ def create_par_file(file_path, t_event, id_par):
 
     # Save the new xml into the .par file
     out_tree = etree.ElementTree(par_tree)
-    etree.indent(out_tree)
-    out_tree.write(
-        file_path + "/contingency.par",
-        xml_declaration=True,
-        encoding="UTF-8",
-        standalone=False,
-        pretty_print=True,
-    )
+    destination_path = file_path + "/contingency.par"
+    save_xml_changes(out_tree, destination_path, "UTF-8", standalone=False)
 
 
 def create_curves_file(file_path):
@@ -262,7 +259,7 @@ def create_curves_file(file_path):
     )
 
     # Create the curve variables
-    # NOTE: Values must be changed deepending on the case
+    # NOTE: Values must be changed depending on the case
     n_curves = 4
     for i in range(n_curves + 1):  # We add the NETWORK line as well
         crv_tag = etree.SubElement(crv_tree, "curve")
@@ -294,13 +291,8 @@ def create_curves_file(file_path):
 
     # Save the new xml into the .crv file
     out_tree = etree.ElementTree(crv_tree)
-    etree.indent(out_tree)
-    out_tree.write(
-        file_path + "/standard_curves.crv",
-        xml_declaration=True,
-        encoding="UTF-8",
-        pretty_print=True,
-    )
+    destination_path = file_path + "/standard_curves.crv"
+    save_xml_changes(out_tree, destination_path, "UTF-8")
 
 
 if __name__ == "__main__":
