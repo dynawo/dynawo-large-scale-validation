@@ -14,7 +14,7 @@ This repository contains a copy of the scripts in the master branch of the proje
 folder containing the required scripts to run the simulation and analyze the load-flow results. 
 The pipeline of events that the scripts follow starts with the preparation of the specified basecase,
 then follows the selection of the two simulators to be used and once both simulations are completed,
-the resulting load-flow data is extracted so it can be analyzed by a professional.
+the resulting load-flow data is extracted, so it can be analyzed by a professional.
 
 ## Repository structure
 
