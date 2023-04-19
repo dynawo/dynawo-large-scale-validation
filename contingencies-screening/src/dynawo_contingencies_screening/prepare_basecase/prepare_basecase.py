@@ -41,19 +41,15 @@ def create_basecase_directory():
     basecase_directory = (
         data_path + "/" + str(args.case_dir).split(separator)[0] + ".BASECASE"
     )
-    os.system("cp -a " + formatted_directory + " " + basecase_directory)
+    shutil.copytree(formatted_directory, basecase_directory)
 
     # In case the JOB.xml file does not already exist, create it
     if not os.path.exists(basecase_directory + "/JOB.xml"):
-        os.system(
-            "ln -s "
-            + formatted_directory
-            + "/*.jobs "
-            + basecase_directory
-            + "/JOB.xml"
+        os.symlink(
+            formatted_directory + "/*.jobs", basecase_directory + "/JOB.xml"
         )
 
-    # Move all Dynawo files to the dynawo subdirectory
+    # Move all files from Dynawo to the dynawo subdirectory
     dynawo_directory = basecase_directory + "/dynawo"
     os.mkdir(dynawo_directory)
 
@@ -271,7 +267,9 @@ def create_curves_file(file_path, data_curves):
 
     # Create the last comment line
     crv_tree.append(
-        etree.Comment(" === below, the contingency-specific curves === ")
+        etree.Comment(
+            " === below, the contingency-specific curves === "
+        )
     )
 
     # Save the new xml into the .crv file
