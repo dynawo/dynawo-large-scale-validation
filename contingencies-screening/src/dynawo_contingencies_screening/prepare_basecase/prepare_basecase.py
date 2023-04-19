@@ -1,5 +1,4 @@
 import os
-import argparse
 from pathlib import Path
 from lxml import etree
 import shutil
