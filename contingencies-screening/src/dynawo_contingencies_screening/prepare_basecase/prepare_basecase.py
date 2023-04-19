@@ -243,7 +243,7 @@ def create_par_file(file_path, t_event, id_par):
     save_xml_changes(out_tree, destination_path, "UTF-8", standalone=False)
 
 
-def create_curves_file(file_path):
+def create_curves_file(file_path, data_curves):
     # Start by creating the main tag of
     # the .crv file and registering the namespace
     ns = "http://www.rte-france.com/dynawo"
@@ -259,30 +259,10 @@ def create_curves_file(file_path):
     )
 
     # Create the curve variables
-    # NOTE: Values must be changed depending on the case
-    n_curves = 4
-    for i in range(n_curves + 1):  # We add the NETWORK line as well
+    for value_pair in data_curves:
         crv_tag = etree.SubElement(crv_tree, "curve")
-        match i:
-            case 0:
-                crv_tag.set("model", "NETWORK")
-                crv_tag.set("variable", "BARNAP71_Upu_value")
-
-            case 1:
-                crv_tag.set("model", "PALUE7PALUET2")
-                crv_tag.set("variable", "generator_PGenPu")
-
-            case 2:
-                crv_tag.set("model", "PALUE7PALUET2")
-                crv_tag.set("variable", "generator_QGenPu")
-
-            case 3:
-                crv_tag.set("model", "PALUE7PALUET4")
-                crv_tag.set("variable", "generator_PGenPu")
-
-            case 4:
-                crv_tag.set("model", "PALUE7PALUET4")
-                crv_tag.set("variable", "generator_QGenPu")
+        crv_tag.set("model", value_pair[0])
+        crv_tag.set("variable", value_pair[1])
 
     # Create the last comment line
     crv_tree.append(
@@ -303,4 +283,11 @@ if __name__ == "__main__":
     run_add_contg_job(basecase_path)
     par_id = create_dyd_file(basecase_path)
     create_par_file(basecase_path, event_time, par_id)
-    create_curves_file(basecase_path)
+    curves_data = [
+        ("NETWORK", "BARNAP71_Upu_value"),
+        ("PALUE7PALUET2", "generator_PGenPu"),
+        ("PALUE7PALUET2", "generator_QGenPu"),
+        ("PALUE7PALUET4", "generator_PGenPu"),
+        ("PALUE7PALUET4", "generator_QGenPu"),
+    ]
+    create_curves_file(basecase_path, curves_data)
