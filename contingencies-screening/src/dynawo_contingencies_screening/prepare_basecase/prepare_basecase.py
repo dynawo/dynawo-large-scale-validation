@@ -101,10 +101,10 @@ def enable_curves(root, ns):
             new_curves.set("inputFile", "standard_curves.crv")
             new_curves.set("exportMode", "CSV")
         else:
-            for curves_data in branch.iter("{%s}curves" % ns):
+            for data_curves in branch.iter("{%s}curves" % ns):
                 # NOTE: Values must be changed depending on the case
-                curves_data.attrib["inputFile"] = "standard_curves.crv"
-                curves_data.attrib["exportMode"] = "XML"
+                data_curves.attrib["inputFile"] = "standard_curves.crv"
+                data_curves.attrib["exportMode"] = "XML"
 
 
 def enable_pf_output(root, ns):
@@ -165,7 +165,7 @@ def format_job_file():
     enable_curves(xml_root, ns)
     enable_timeline(xml_root, ns)
     enable_pf_output(xml_root, ns)
-    save_xml_changes(job_tree, job_file, "ISO-8859-1")
+    save_xml_changes(job_tree, job_file, "ISO-8859-1", standalone=False)
 
     return t_event
 
