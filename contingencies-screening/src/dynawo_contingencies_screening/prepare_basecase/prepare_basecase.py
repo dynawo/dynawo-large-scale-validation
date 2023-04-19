@@ -31,23 +31,20 @@ def create_basecase_directory():
     args = parser(1)
 
     # Copy the formatted directory onto the new basecase directory
-    data_path = str(Path(os.path.dirname(os.path.abspath(__file__))))
+    data_path = Path(str(args.case_dir))
     separator = "."
     formatted_directory = (
-        data_path + "/"
-        + str(args.case_dir).split(separator)[0]
-        + ".ORIG.FORMATTED"
+        str(data_path.absolute()).split(separator)[0] + ".ORIG.FORMATTED"
     )
-    basecase_directory = (
-        data_path + "/" + str(args.case_dir).split(separator)[0] + ".BASECASE"
-    )
+    basecase_directory = \
+        str(data_path.absolute()).split(separator)[0] + ".BASECASE"
     shutil.copytree(formatted_directory, basecase_directory)
 
     # In case the JOB.xml file does not already exist, create it
     if not os.path.exists(basecase_directory + "/JOB.xml"):
         os.symlink(
-            formatted_directory + "/*.jobs", basecase_directory + "/JOB.xml"
-        )
+            formatted_directory + "/*.jobs",
+            basecase_directory + "/JOB.xml")
 
     # Move all files from Dynawo to the dynawo subdirectory
     dynawo_directory = basecase_directory + "/dynawo"
@@ -173,7 +170,13 @@ def format_job_file(basecase_path):
 
 def run_add_contg_job(job_file_path):
     # Runs the "add_contig_job.py" script to add the neu .dyd file
-    os.system("python3 add_contg_job.py " + job_file_path + "/JOB.xml")
+    os.system(
+        "python3 "
+        + str(Path(os.path.dirname(os.path.abspath(__file__))))
+        + "/add_contg_job.py "
+        + job_file_path
+        + "/JOB.xml"
+    )
 
 
 def create_dyd_file(file_path):
