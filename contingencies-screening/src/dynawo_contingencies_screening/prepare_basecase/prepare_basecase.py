@@ -2,6 +2,7 @@ import os
 import argparse
 from pathlib import Path
 from lxml import etree
+import shutil
 
 
 def parser(args_type):
@@ -52,7 +53,19 @@ def create_basecase_directory():
             + "/JOB.xml"
         )
 
-    return basecase_directory
+    # Move all Dynawo files to the dynawo subdirectory
+    dynawo_directory = basecase_directory + "/dynawo"
+    os.mkdir(dynawo_directory)
+
+    allfiles = os.listdir(basecase_directory)
+
+    for file in allfiles:
+        if file != "Hades" and file != "dynawo":
+            src_path = os.path.join(basecase_directory, file)
+            dst_path = os.path.join(dynawo_directory, file)
+            shutil.move(src_path, dst_path)
+
+    return dynawo_directory
 
 
 def modify_stop_time(root, ns):
@@ -142,17 +155,9 @@ def save_xml_changes(job_tree, destination_path, encoding, standalone=True):
         )
 
 
-def format_job_file():
-    args = parser(1)
-
+def format_job_file(basecase_path):
     # Start by reading the JOB.xml file
-    data_path = str(Path(os.path.dirname(os.path.abspath(__file__))))
-    separator = "."
-    job_file = (
-        data_path + "/"
-        + str(args.case_dir).split(separator)[0]
-        + ".BASECASE/JOB.xml"
-    )
+    job_file = basecase_path + "/JOB.xml"
 
     # Convert the JOB.xml file to an ElementTree object
     job_tree = etree.parse(job_file)
@@ -279,7 +284,7 @@ if __name__ == "__main__":
     # Main pipeline of events
     xml_format_dir()
     basecase_path = create_basecase_directory()
-    event_time = format_job_file()
+    event_time = format_job_file(basecase_path)
     run_add_contg_job(basecase_path)
     par_id = create_dyd_file(basecase_path)
     create_par_file(basecase_path, event_time, par_id)
