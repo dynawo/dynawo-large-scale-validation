@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
-
+from dynawo_contingencies_screening.prepare_basecase import prepare_basecase
 # from dynawo_contingencies_screening.run_dynawo import run_dynaflow
 from dynawo_contingencies_screening.commons import manage_files
 
@@ -105,7 +105,10 @@ def run_dynawo_contingencies_code():
 
 def xml_format_dir():
     # TODO: Adapt it from prepare_basecase.py.  WARNING: Don't copy the code, call the function from the other file from this function
-    pass
+    # Run the BASECASE preparation pipeline
+    args = argument_parser(["input_dir", "output_dir"])
+
+    prepare_basecase.run_prepare_pipeline(args.input_dir, args.output_dir)
 
 
 def run_hades_contingencies():

@@ -5,39 +5,24 @@ from lxml import etree
 import shutil
 
 
-def parser(args_type):
-    p = argparse.ArgumentParser()
-    if args_type == 1:
-        p.add_argument(
-            "case_dir",
-            help="enter the path to the folder containing the case files",
-        )
-
-    args = p.parse_args()
-    return args
-
-
-def xml_format_dir():
-    args = parser(1)
-
+def xml_format_dir(input_dir):
     os.system(
         str(Path(os.path.dirname(os.path.abspath(__file__))))
         + "/xml_format_dir.sh "
-        + str(Path(args.case_dir))
+        + str(Path(input_dir))
     )
 
 
-def create_basecase_directory():
-    args = parser(1)
-
+def create_basecase_directory(input_dir, output_dir):
     # Copy the formatted directory onto the new basecase directory
-    data_path = Path(str(args.case_dir))
+    input_data = Path(str(input_dir))
     separator = "."
     formatted_directory = (
-        str(data_path.absolute()).split(separator)[0] + ".ORIG.FORMATTED"
+        str(input_data.absolute()).split(separator)[0] + ".ORIG.FORMATTED"
     )
+    output_data = Path(str(output_dir))
     basecase_directory = \
-        str(data_path.absolute()).split(separator)[0] + ".BASECASE"
+        str(output_data.absolute()).split(separator)[0] + ".BASECASE"
     shutil.copytree(formatted_directory, basecase_directory)
 
     # In case the JOB.xml file does not already exist, create it
@@ -281,10 +266,10 @@ def create_curves_file(file_path, data_curves):
     save_xml_changes(out_tree, destination_path, "UTF-8")
 
 
-if __name__ == "__main__":
+def run_prepare_pipeline(input_dir, output_dir):
     # Main pipeline of events
-    xml_format_dir()
-    basecase_path = create_basecase_directory()
+    xml_format_dir(input_dir)
+    basecase_path = create_basecase_directory(input_dir, output_dir)
     event_time = format_job_file(basecase_path)
     run_add_contg_job(basecase_path)
     par_id = create_dyd_file(basecase_path)
