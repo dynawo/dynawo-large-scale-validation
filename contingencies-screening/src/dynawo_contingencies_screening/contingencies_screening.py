@@ -4,7 +4,7 @@ from pathlib import Path
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
 from dynawo_contingencies_screening.prepare_basecase import prepare_basecase
-# from dynawo_contingencies_screening.run_dynawo import run_dynaflow
+from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
 
 
@@ -94,9 +94,10 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file):
     return sorted(loadflow_score_dict.items(), key=lambda x: x[1])
 
 
-def run_dynawo_contingencies_code():
+def run_dynawo_contingencies_code(input_dir, dynawo_launcher):
     # TODO: Implement it
-    pass
+    # Run the BASECASE with the specified Dynawo launcher
+    run_dynawo.run_dynaflow_basecase(input_dir, dynawo_launcher)
 
 
 # From here:
@@ -104,7 +105,8 @@ def run_dynawo_contingencies_code():
 
 
 def xml_format_dir():
-    # TODO: Adapt it from prepare_basecase.py.  WARNING: Don't copy the code, call the function from the other file from this function
+    # TODO: Adapt it from prepare_basecase.py.
+    #  WARNING: Don't copy the code, call the function from the other file from this function
     # Run the BASECASE preparation pipeline
     args = argument_parser(["input_dir", "output_dir"])
 
@@ -144,12 +146,14 @@ def create_contingencies_ranking():
 def run_dynawo_contingencies():
     args = argument_parser(["input_dir", "dynawo_launcher"])
 
-    run_dynawo_contingencies_code()
+    run_dynawo_contingencies_code(Path(args.input_dir), args.dynawo_launcher)
 
 
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(["input_dir", "output_dir", "hades_launcher"])
+
+    xml_format_dir()
 
     hades_input_file, hades_output_file = run_hades_contingencies_code(
         Path(args.input_dir) / "hades", Path(args.output_dir) / "hades", args.hades_launcher
@@ -159,4 +163,4 @@ def run_contingencies_screening():
         hades_input_file, hades_output_file
     )
 
-    run_dynawo_contingencies_code()
+    run_dynawo_contingencies()
