@@ -27,7 +27,7 @@ def create_basecase_directory(input_dir, output_dir):
     )
     shutil.copytree(formatted_directory, basecase_directory)
 
-    # Move all files from Dynawo to the dynawo subdirectory
+    # Create the dynawo subdirectory
     dynawo_directory = Path(basecase_directory / "dynawo")
     dynawo_directory.mkdir()
 
