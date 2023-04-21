@@ -1,14 +1,16 @@
-import os
 from pathlib import Path, PurePath
 from lxml import etree
 import shutil
+import subprocess
 
 
 def xml_format_dir(input_dir):
-    os.system(
-        str(PurePath(Path(__file__).absolute()).parent)
-        + "/xml_format_dir.sh "
-        + str(Path(input_dir))
+    subprocess.run(
+        [
+            (str(PurePath(Path(__file__).absolute()).parent)
+             + "/xml_format_dir.sh"),
+            str(Path(input_dir)),
+        ]
     )
 
 
@@ -159,13 +161,14 @@ def format_job_file(basecase_path):
 
 
 def run_add_contg_job(job_file_path):
-    # Runs the "add_contig_job.py" script to add the neu .dyd file
-    os.system(
-        "python3 "
-        + str(PurePath(Path(__file__).absolute()).parent)
-        + "/add_contg_job.py "
-        + str(job_file_path)
-        + "/JOB.xml"
+    # Runs the "add_contig_job.py" script to add the new .dyd file
+    subprocess.run(
+        [
+            "python3",
+            (str(PurePath(Path(__file__).absolute()).parent)
+             + "/add_contg_job.py"),
+            (str(job_file_path) + "/JOB.xml"),
+        ]
     )
 
 
