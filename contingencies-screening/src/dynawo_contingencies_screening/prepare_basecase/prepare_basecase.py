@@ -275,6 +275,9 @@ def run_prepare_pipeline(input_dir, output_dir):
     basecase_path = create_basecase_directory(input_dir, output_dir)
     event_time = format_job_file(basecase_path)
     run_add_contg_job(basecase_path)
+    # Note: create_dyd_file and create_curves_file functions are using
+    # arbitrary ID data values during the file creation, in future versions
+    # these values should be obtained depending on the contingency to evaluate.
     par_id = create_dyd_file(basecase_path)
     create_par_file(basecase_path, event_time, par_id)
     curves_data = [
