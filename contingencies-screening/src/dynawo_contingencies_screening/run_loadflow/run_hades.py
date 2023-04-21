@@ -1,6 +1,6 @@
-import os
 from pathlib import Path
 import shutil
+import subprocess
 
 
 def run_hades_basecase(hades_input_file, hades_output_file, hades_launcher):
@@ -15,8 +15,4 @@ def run_hades_basecase(hades_input_file, hades_output_file, hades_launcher):
     shutil.copy(hades_input_file, output_folder)
 
     # Run the simulation on the specified hades launcher
-    os.system(
-        hades_launcher + " "
-        + output_folder + hades_input_file
-        + " " + hades_output_file
-    )
+    subprocess.run([hades_launcher, (output_folder / hades_input_file), hades_output_file])
