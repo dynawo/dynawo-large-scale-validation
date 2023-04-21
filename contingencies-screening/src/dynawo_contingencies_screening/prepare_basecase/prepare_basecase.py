@@ -172,7 +172,7 @@ def run_add_contg_job(job_file_path):
     )
 
 
-def create_dyd_file(file_path):
+def create_dyd_file(file_path, data_dyd):
     # Start by creating the main tag of
     # the .dyd file and registering the namespace
     ns = "http://www.rte-france.com/dynawo"
@@ -193,7 +193,7 @@ def create_dyd_file(file_path):
     connect_tag.set("var1", "event_state1_value")
     connect_tag.set("id2", "NETWORK")
     # NOTE: Values must be changed depending on the case
-    connect_tag.set("var2", ".ABAN 7 .GUEN 1_state_value")
+    connect_tag.set("var2", data_dyd)
 
     # Save the new xml onto the .dyd file
     out_tree = etree.ElementTree(dyd_tree)
@@ -281,7 +281,8 @@ def run_prepare_pipeline(input_dir, output_dir):
     # Note: create_dyd_file and create_curves_file functions are using
     # arbitrary ID data values during the file creation, in future versions
     # these values should be obtained depending on the contingency to evaluate.
-    par_id = create_dyd_file(basecase_path)
+    dyd_data = ".ABAN 7 .GUEN 1_state_value"
+    par_id = create_dyd_file(basecase_path, dyd_data)
     create_par_file(basecase_path, event_time, par_id)
     curves_data = [
         ("NETWORK", "BARNAP71_Upu_value"),
