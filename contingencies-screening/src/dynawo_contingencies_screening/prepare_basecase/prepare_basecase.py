@@ -1,12 +1,12 @@
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 from lxml import etree
 import shutil
 
 
 def xml_format_dir(input_dir):
     os.system(
-        str(Path(os.path.dirname(os.path.abspath(__file__))))
+        str(PurePath(Path(__file__).absolute()).parent)
         + "/xml_format_dir.sh "
         + str(Path(input_dir))
     )
@@ -16,31 +16,37 @@ def create_basecase_directory(input_dir, output_dir):
     # Copy the formatted directory onto the new basecase directory
     input_data = Path(str(input_dir))
     separator = "."
-    formatted_directory = (
+    formatted_directory = Path(
         str(input_data.absolute()).split(separator)[0] + ".ORIG.FORMATTED"
     )
     output_data = Path(str(output_dir))
-    basecase_directory = \
+    basecase_directory = Path(
         str(output_data.absolute()).split(separator)[0] + ".BASECASE"
+    )
     shutil.copytree(formatted_directory, basecase_directory)
 
-    # In case the JOB.xml file does not already exist, create it
-    if not os.path.exists(basecase_directory + "/JOB.xml"):
-        os.symlink(
-            formatted_directory + "/*.jobs",
-            basecase_directory + "/JOB.xml")
-
     # Move all files from Dynawo to the dynawo subdirectory
-    dynawo_directory = basecase_directory + "/dynawo"
-    os.mkdir(dynawo_directory)
+    dynawo_directory = Path(basecase_directory + "/dynawo")
+    dynawo_directory.mkdir()
 
-    allfiles = os.listdir(basecase_directory)
+    # In case the JOB.xml file does not already exist, create it
+    jobs_file = list(formatted_directory.glob("*.jobs"))[0]
 
-    for file in allfiles:
-        if file != "Hades" and file != "dynawo":
-            src_path = os.path.join(basecase_directory, file)
-            dst_path = os.path.join(dynawo_directory, file)
-            shutil.move(src_path, dst_path)
+    if not (basecase_directory / "JOB.xml").exists():
+        dest_file = basecase_directory / "JOB.xml"
+        dest_file.symlink_to(Path(jobs_file))
+
+    # Move all Dynawo files into the dynawo subdirectory
+    for file in basecase_directory.iterdir():
+        if file.name != "Hades" and file.name != "dynawo":
+            src_path = PurePath(basecase_directory).joinpath(file.name)
+            dst_path = PurePath(dynawo_directory).joinpath(file.name)
+            # Check if file is the symlink
+            if file.name == "JOB.xml":
+                Path(dst_path).symlink_to(Path(jobs_file))
+                Path(src_path).unlink()
+            else:
+                shutil.move(src_path, dst_path)
 
     return dynawo_directory
 
@@ -134,7 +140,7 @@ def save_xml_changes(job_tree, destination_path, encoding, standalone=True):
 
 def format_job_file(basecase_path):
     # Start by reading the JOB.xml file
-    job_file = basecase_path + "/JOB.xml"
+    job_file = str(basecase_path) + "/JOB.xml"
 
     # Convert the JOB.xml file to an ElementTree object
     job_tree = etree.parse(job_file)
@@ -156,9 +162,9 @@ def run_add_contg_job(job_file_path):
     # Runs the "add_contig_job.py" script to add the neu .dyd file
     os.system(
         "python3 "
-        + str(Path(os.path.dirname(os.path.abspath(__file__))))
+        + str(PurePath(Path(__file__).absolute()).parent)
         + "/add_contg_job.py "
-        + job_file_path
+        + str(job_file_path)
         + "/JOB.xml"
     )
 
@@ -188,7 +194,7 @@ def create_dyd_file(file_path):
 
     # Save the new xml onto the .dyd file
     out_tree = etree.ElementTree(dyd_tree)
-    destination_path = file_path + "/contingency.dyd"
+    destination_path = file_path / "contingency.dyd"
     save_xml_changes(out_tree, destination_path, "UTF-8", standalone=False)
 
     return par_id
@@ -227,7 +233,7 @@ def create_par_file(file_path, t_event, id_par):
 
     # Save the new xml into the .par file
     out_tree = etree.ElementTree(par_tree)
-    destination_path = file_path + "/contingency.par"
+    destination_path = file_path / "contingency.par"
     save_xml_changes(out_tree, destination_path, "UTF-8", standalone=False)
 
 
@@ -254,14 +260,12 @@ def create_curves_file(file_path, data_curves):
 
     # Create the last comment line
     crv_tree.append(
-        etree.Comment(
-            " === below, the contingency-specific curves === "
-        )
+        etree.Comment(" === below, the contingency-specific curves === ")
     )
 
     # Save the new xml into the .crv file
     out_tree = etree.ElementTree(crv_tree)
-    destination_path = file_path + "/standard_curves.crv"
+    destination_path = file_path / "standard_curves.crv"
     save_xml_changes(out_tree, destination_path, "UTF-8")
 
 
