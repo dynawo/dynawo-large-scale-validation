@@ -79,8 +79,7 @@ def main():
         print(
             "\nThe optional list may include regular expressions. "
             "If the list is empty, all possible contingencies will be generated "
-            "(if below MAX_NCASES=%d; otherwise a random sample is generated).\n"
-            % MAX_NCASES
+            "(if below MAX_NCASES=%d; otherwise a random sample is generated).\n" % MAX_NCASES
         )
         return 2
     base_case = sys.argv[1]
@@ -204,10 +203,7 @@ def remove_case(dest_case):
 def dedup_save(basename, edited_case, deduped_case):
     # If the destination exists, warn and rename it to OLD
     if os.path.exists(deduped_case):
-        print(
-            "   WARNING: destination %s exists! -- renaming it to *__OLD__"
-            % deduped_case
-        )
+        print("   WARNING: destination %s exists! -- renaming it to *__OLD__" % deduped_case)
         os.rename(deduped_case, deduped_case + "__OLD__")
 
     # Save it using "deduplication" (actually, hard links)
@@ -298,9 +294,7 @@ def matching_in_astre(astre_file, dynawo_buses, verbose=False):
 
     # Match: not only the buses themselves, but also all of their neighbors
     new_list = [
-        x
-        for x in dynawo_buses.items()
-        if x[0] in astre_buses and x[1].issubset(astre_buses)
+        x for x in dynawo_buses.items() if x[0] in astre_buses and x[1].issubset(astre_buses)
     ]
     print("   (matched %d buses against Dynawo file)\n" % len(new_list))
 
@@ -382,12 +376,8 @@ def config_dynawo_bus_contingency(casedir, bus_name, bus_neighbors):
 
     # Insert the new parset with the params we need
     new_parset = etree.Element("set", id="99991234")
-    new_parset.append(
-        etree.Element("par", type="DOUBLE", name="event_tEvent", value=event_time)
-    )
-    new_parset.append(
-        etree.Element("par", type="BOOL", name="event_open", value="true")
-    )
+    new_parset.append(etree.Element("par", type="DOUBLE", name="event_tEvent", value=event_time))
+    new_parset.append(etree.Element("par", type="BOOL", name="event_open", value="true"))
     root.append(new_parset)
 
     # Write out the PAR file, preserving the XML format
@@ -415,12 +405,8 @@ def config_dynawo_bus_contingency(casedir, bus_name, bus_neighbors):
     tree = etree.parse(crv_file, etree.XMLParser(remove_blank_text=True))
     root = tree.getroot()
     for neighbor in bus_neighbors:
-        root.append(
-            etree.Element("curve", model="NETWORK", variable=neighbor + "_Upu_value")
-        )
-    root.append(
-        etree.Element("curve", model="NETWORK", variable=bus_name + "_Upu_value")
-    )
+        root.append(etree.Element("curve", model="NETWORK", variable=neighbor + "_Upu_value"))
+    root.append(etree.Element("curve", model="NETWORK", variable=bus_name + "_Upu_value"))
 
     # Write out the CRV file, preserving the XML format
     tree.write(

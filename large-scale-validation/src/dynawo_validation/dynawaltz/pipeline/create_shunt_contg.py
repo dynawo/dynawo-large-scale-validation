@@ -79,12 +79,8 @@ parser.add_argument(
     "all possible contingencies will be generated (if below MAX_NCASES; "
     "otherwise a random sample is generated)",
 )
-parser.add_argument(
-    "-v", "--verbose", help="increase output verbosity", action="store_true"
-)
-parser.add_argument(
-    "-a", "--allcontg", help="generate all the contingencies", action="store_true"
-)
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+parser.add_argument("-a", "--allcontg", help="generate all the contingencies", action="store_true")
 parser.add_argument(
     "-r",
     "--randomc",
@@ -94,8 +90,7 @@ parser.add_argument(
 parser.add_argument(
     "-l",
     "--list",
-    help="enter regular expressions or contingencies in "
-    "string form separated with pipe(|)",
+    help="enter regular expressions or contingencies in " "string form separated with pipe(|)",
 )
 parser.add_argument("base_case", help="enter base case directory")
 args = parser.parse_args()
@@ -145,9 +140,7 @@ def main():
         raise ValueError(f"Case {base_case} is neither an ast-dwo nor a dwo-dwo case")
 
     # Parse all XML files in the basecase
-    parsed_case = parse_basecase(
-        base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB
-    )
+    parsed_case = parse_basecase(base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB)
 
     # Extract the list of all (active) SHUNTS in the Dynawo case
     if astdwo:
@@ -261,10 +254,7 @@ def extract_dynawo_shunts(iidm_tree, verbose=False):
 
     print("\nFound %d ACTIVE shunts in the Dynawo IIDM file" % len(shunts))
     if verbose:
-        print(
-            "List of all ACTIVE shunts in the Dynawo DYD file: (total: %d)"
-            % len(shunts)
-        )
+        print("List of all ACTIVE shunts in the Dynawo DYD file: (total: %d)" % len(shunts))
         shunt_list = sorted(shunts.keys())
         if len(shunt_list) < 10:
             print(shunt_list)
@@ -289,10 +279,7 @@ def matching_in_astre(astre_tree, dynawo_shunts, verbose=False):
 
     print("\nFound %d shunts in Astre file" % len(processed_shuntsPQ))
     if verbose:
-        print(
-            "Sample list of all SHUNTS in Astre file: (total: %d)"
-            % len(processed_shuntsPQ)
-        )
+        print("Sample list of all SHUNTS in Astre file: (total: %d)" % len(processed_shuntsPQ))
         shunt_list = sorted(processed_shuntsPQ)
         if len(shunt_list) < 10:
             print(shunt_list)
@@ -384,13 +371,9 @@ def config_dynawo_shunt_contingency(
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent
-        )
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
     )
-    new_parset.append(
-        etree.Element("{%s}par" % ns, type="BOOL", name="event_open", value="true")
-    )
+    new_parset.append(etree.Element("{%s}par" % ns, type="BOOL", name="event_open", value="true"))
     root.append(new_parset)
 
     # Write out the PAR file, preserving the XML format
@@ -424,9 +407,7 @@ def config_dynawo_shunt_contingency(
     crv_tree = case_trees.crvTree
     root = crv_tree.getroot()
     ns = etree.QName(root).namespace
-    new_crv1 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value"
-    )
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value")
     root.append(new_crv1)
     # Write out the CRV file, preserving the XML format
     crv_tree.write(

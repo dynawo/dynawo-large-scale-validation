@@ -59,9 +59,7 @@ import argparse
 # structure all these as a package; we'd like to keep them as a collection of loose
 # Python scripts, at least for now (after all, this is not really a Python library). So
 # the following hack is ugly, but needed:
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 # Alternatively, you could set PYTHONPATH to PYTHONPATH="/<dir>/dynawo-validation-AIA"
 from dynawo_validation.dynaflow.pipeline.dwo_jobinfo import (
     is_dwohds,
@@ -84,18 +82,13 @@ parser.add_argument(
     "all possible contingencies will be generated (if below MAX_NCASES; "
     "otherwise a random sample is generated)",
 )
-parser.add_argument(
-    "-v", "--verbose", help="increase output verbosity", action="store_true"
-)
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 parser.add_argument(
     "-l",
     "--list",
-    help="enter regular expressions or contingencies in "
-    "string form separated with pipe(|)",
+    help="enter regular expressions or contingencies in " "string form separated with pipe(|)",
 )
-parser.add_argument(
-    "-a", "--allcontg", help="generate all the contingencies", action="store_true"
-)
+parser.add_argument("-a", "--allcontg", help="generate all the contingencies", action="store_true")
 parser.add_argument(
     "-r",
     "--randomc",
@@ -159,17 +152,13 @@ def main():
         raise ValueError(f"Case {base_case} is neither an dwo-hds nor a dwo-dwo case")
 
     # Parse all XML files in the basecase
-    parsed_case = parse_basecase(
-        base_case, dwo_paths, HADES_PATH, dwo_pathsA, dwo_pathsB
-    )
+    parsed_case = parse_basecase(base_case, dwo_paths, HADES_PATH, dwo_pathsA, dwo_pathsB)
 
     # Extract the list of all (active) SHUNTS in the Dynawo case
     if dwohds:
         dynawo_shunts = extract_dynawo_shunts(parsed_case.iidmTree, verbose)
         # And reduce the list to those SHUNTS that are matched in Hades
-        dynawo_shunts = matching_in_hades(
-            parsed_case.asthdsTree, dynawo_shunts, verbose
-        )
+        dynawo_shunts = matching_in_hades(parsed_case.asthdsTree, dynawo_shunts, verbose)
     else:
         dynawo_shunts = extract_dynawo_shunts(parsed_case.A.iidmTree, verbose)
         dynawo_shuntsB = extract_dynawo_shunts(parsed_case.B.iidmTree, verbose)
@@ -394,9 +383,7 @@ def matching_in_hades(hades_tree, dynawo_shunts, verbose=False):
 
     print("\nFound %d shunts in Hades file" % len(hades_shunts))
     if verbose:
-        print(
-            "Sample list of all SHUNTS in Hades file: (total: %d)" % len(hades_shunts)
-        )
+        print("Sample list of all SHUNTS in Hades file: (total: %d)" % len(hades_shunts))
         shunt_list = sorted(hades_shunts)
         if len(shunt_list) < 10:
             print(shunt_list)
@@ -493,9 +480,7 @@ def config_dynawo_shunt_contingency(
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent
-        )
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
     )
     new_parset.append(
         etree.Element("{%s}par" % ns, type="BOOL", name=param_eventname, value="true")
@@ -533,9 +518,7 @@ def config_dynawo_shunt_contingency(
     crv_tree = case_trees.crvTree
     root = crv_tree.getroot()
     ns = etree.QName(root).namespace
-    new_crv1 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value"
-    )
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value")
     root.append(new_crv1)
     # Write out the CRV file, preserving the XML format
     crv_tree.write(

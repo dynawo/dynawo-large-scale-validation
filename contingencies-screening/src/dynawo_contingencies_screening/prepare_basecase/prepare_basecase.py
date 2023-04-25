@@ -7,8 +7,7 @@ import subprocess
 def xml_format_dir(input_dir):
     subprocess.run(
         [
-            (str(PurePath(Path(__file__).absolute()).parent)
-             + "/xml_format_dir.sh"),
+            (str(PurePath(Path(__file__).absolute()).parent) + "/xml_format_dir.sh"),
             str(Path(input_dir)),
         ]
     )
@@ -16,15 +15,12 @@ def xml_format_dir(input_dir):
 
 def create_basecase_directory(input_dir, output_dir):
     # Copy the formatted directory onto the new basecase directory
+    # TODO: NO HARDCODE
     input_data = Path(str(input_dir))
     separator = "."
-    formatted_directory = Path(
-        str(input_data.absolute()).split(separator)[0] + ".ORIG.FORMATTED"
-    )
+    formatted_directory = Path(str(input_data.absolute()).split(separator)[0] + ".ORIG.FORMATTED")
     output_data = Path(str(output_dir))
-    basecase_directory = Path(
-        str(output_data.absolute()).split(separator)[0] + ".BASECASE"
-    )
+    basecase_directory = Path(str(output_data.absolute()).split(separator)[0] + ".BASECASE")
     shutil.copytree(formatted_directory, basecase_directory)
 
     # Create the dynawo subdirectory
@@ -40,6 +36,7 @@ def create_basecase_directory(input_dir, output_dir):
 
     # Move all Dynawo files into the dynawo subdirectory
     for file in basecase_directory.iterdir():
+        # TODO: Check this, Hades should be hades (or rename it)
         if file.name != "Hades" and file.name != "dynawo":
             src_path = PurePath(basecase_directory).joinpath(file.name)
             dst_path = PurePath(dynawo_directory).joinpath(file.name)
@@ -56,9 +53,7 @@ def create_basecase_directory(input_dir, output_dir):
 def modify_stop_time(root, ns):
     # Find the simulation stopTime value and double it
     for simulation_data in root.iter("{%s}simulation" % ns):
-        t_event = int(
-            simulation_data.attrib["stopTime"]
-        )  # Save value for the .par file
+        t_event = int(simulation_data.attrib["stopTime"])  # Save value for the .par file
         new_stop_time = t_event * 2
         simulation_data.attrib["stopTime"] = str(new_stop_time)
 
@@ -161,12 +156,12 @@ def format_job_file(basecase_path):
 
 
 def run_add_contg_job(job_file_path):
+    # TODO: This file doesn't exist
     # Runs the "add_contig_job.py" script to add the new .dyd file
     subprocess.run(
         [
             "python3",
-            (str(PurePath(Path(__file__).absolute()).parent)
-             + "/add_contg_job.py"),
+            (str(PurePath(Path(__file__).absolute()).parent) + "/add_contg_job.py"),
             (str(job_file_path) + "/JOB.xml"),
         ]
     )
@@ -249,10 +244,7 @@ def create_curves_file(file_path, data_curves):
 
     # Create the first comment line
     crv_tree.append(
-        etree.Comment(
-            " === Pilot bus and gens associated "
-            "to S.V.C. zone: RST_BARNAP7 === "
-        )
+        etree.Comment(" === Pilot bus and gens associated " "to S.V.C. zone: RST_BARNAP7 === ")
     )
 
     # Create the curve variables
@@ -262,9 +254,7 @@ def create_curves_file(file_path, data_curves):
         crv_tag.set("variable", value_pair[1])
 
     # Create the last comment line
-    crv_tree.append(
-        etree.Comment(" === below, the contingency-specific curves === ")
-    )
+    crv_tree.append(etree.Comment(" === below, the contingency-specific curves === "))
 
     # Save the new xml into the .crv file
     out_tree = etree.ElementTree(crv_tree)
@@ -278,6 +268,8 @@ def run_prepare_pipeline(input_dir, output_dir):
     basecase_path = create_basecase_directory(input_dir, output_dir)
     event_time = format_job_file(basecase_path)
     run_add_contg_job(basecase_path)
+
+    # TODO: Modify this
     # Note: create_dyd_file and create_curves_file functions are using
     # arbitrary ID data values during the file creation, in future versions
     # these values should be obtained depending on the contingency to evaluate.

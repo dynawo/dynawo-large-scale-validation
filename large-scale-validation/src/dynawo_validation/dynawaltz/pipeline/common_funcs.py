@@ -133,10 +133,7 @@ def remove_case(dest_case):
 def dedup_save(basename, edited_case, deduped_case):
     # If the destination exists, warn and rename it to OLD
     if os.path.exists(deduped_case):
-        print(
-            "   WARNING: destination %s exists! -- renaming it to *__OLD__"
-            % deduped_case
-        )
+        print("   WARNING: destination %s exists! -- renaming it to *__OLD__" % deduped_case)
         os.rename(deduped_case, deduped_case + "__OLD__")
 
     # Save it using "deduplication" (actually, hard links)
@@ -157,15 +154,11 @@ def dedup_save(basename, edited_case, deduped_case):
 
 
 def parse_basecase(base_case, dwo_paths, astre_path, dwo_pathsA, dwo_pathsB):
-    Parsed_case = namedtuple(
-        "Parsed_case", "astreTree iidmTree parTree dydTree crvTree"
-    )
+    Parsed_case = namedtuple("Parsed_case", "astreTree iidmTree parTree dydTree crvTree")
     Parsed_dwodwo_case = namedtuple("Parsed_dwodwo_case", "A B")
 
     if dwo_pathsA is None and dwo_pathsB is None:
-        astreTree = etree.parse(
-            base_case + astre_path, etree.XMLParser(remove_blank_text=True)
-        )
+        astreTree = etree.parse(base_case + astre_path, etree.XMLParser(remove_blank_text=True))
         iidmTree = etree.parse(
             base_case + "/" + dwo_paths.iidmFile,
             etree.XMLParser(remove_blank_text=True),

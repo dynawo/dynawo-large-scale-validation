@@ -80,10 +80,7 @@ def main():
     else:
         raise ValueError("Case %s is neither an ast-dwo nor a dwo-dwo case" % base_case)
 
-    print(
-        "Calculating diffmetrics for curves in: %s (CASE_TYPE=%s)"
-        % (crv_dir, case_type)
-    )
+    print("Calculating diffmetrics for curves in: %s (CASE_TYPE=%s)" % (crv_dir, case_type))
 
     # Get the list of curve files to process
     file_list = list_inputfiles(case_type, crv_dir, prefix)
@@ -283,9 +280,7 @@ def process_all_curves(case_type, crv_dir, file_list, start_time, t_event):
     print("Saved reduced parameters for curve data under: %s" % metrics_dir)
 
     # Record any bad cases
-    bad_cases = (
-        reduced_params["dev"].loc[~reduced_params["is_crv_time_matching"]].unique()
-    )
+    bad_cases = reduced_params["dev"].loc[~reduced_params["is_crv_time_matching"]].unique()
     np.savetxt(
         metrics_dir + "/bad_cases.csv",
         bad_cases,
@@ -328,9 +323,7 @@ def extract_crv_reduced_params(df, var, t_event):
     # Transient time (TT):
     tol = max(abs(x[idx_SSpost]) * REL_TOL, REL_TOL)
     # this assumes datapoints at least until t=t_event; otherwise it will give error:
-    idx_transientEnd = np.nonzero((t >= t_event) & (np.abs(x - x[idx_SSpost]) < tol))[
-        0
-    ][0]
+    idx_transientEnd = np.nonzero((t >= t_event) & (np.abs(x - x[idx_SSpost]) < tol))[0][0]
     TT = t[idx_transientEnd] - t_event
 
     # Post-contingency stability:
@@ -341,9 +334,7 @@ def extract_crv_reduced_params(df, var, t_event):
 
     # Pre-contingency stability:
     tol = max(abs(x[idx_SSpre]) * REL_TOL, REL_TOL)
-    idx_preTransientEnd = np.nonzero((t < t_event) & (np.abs(x - x[idx_SSpre]) < tol))[
-        0
-    ][0]
+    idx_preTransientEnd = np.nonzero((t < t_event) & (np.abs(x - x[idx_SSpre]) < tol))[0][0]
     if (t_event - t[idx_preTransientEnd]) >= STABILITY_MINTIME:
         is_preStab = True
     else:
@@ -356,10 +347,7 @@ def extract_crv_reduced_params(df, var, t_event):
         # no data: simulation bombed out right at t = t_event!
         return [dSS, dPP, TT, 0, 0, is_preStab, is_postStab]
     idx_transientStart = idxs_postEvent[0]
-    if (
-        TT < TT_MIN_FOR_PRONY
-        or (idx_transientEnd - idx_transientStart) < 2 * PRONY_ORDER
-    ):
+    if TT < TT_MIN_FOR_PRONY or (idx_transientEnd - idx_transientStart) < 2 * PRONY_ORDER:
         # transient too short for any meaningful Prony analysis
         return [dSS, dPP, TT, 0, 0, is_preStab, is_postStab]
     t_trans = t[idx_transientStart:idx_transientEnd]

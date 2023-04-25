@@ -165,15 +165,9 @@ def create_colors(data):
     pyplot.savefig("legend0.png")
     pyplot.close()
     contgcasediffs_legend = pl.imread("legend0.png")[40:170, 300:385, :]
-    addwhite0 = np.zeros(
-        (100, contgcasediffs_legend.shape[1], contgcasediffs_legend.shape[2])
-    )
-    addwhite1 = np.zeros(
-        (300, contgcasediffs_legend.shape[1], contgcasediffs_legend.shape[2])
-    )
-    contgcasediffs_legend = np.concatenate(
-        (addwhite0, contgcasediffs_legend, addwhite1), axis=0
-    )
+    addwhite0 = np.zeros((100, contgcasediffs_legend.shape[1], contgcasediffs_legend.shape[2]))
+    addwhite1 = np.zeros((300, contgcasediffs_legend.shape[1], contgcasediffs_legend.shape[2]))
+    contgcasediffs_legend = np.concatenate((addwhite0, contgcasediffs_legend, addwhite1), axis=0)
     pl.imsave("legend0.png", contgcasediffs_legend)
     return colordata
 
@@ -415,34 +409,23 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
 
             df_hades_regleurs_diff = copy.deepcopy(df_hades_regleurs_basecase)
 
-            df_hades_regleurs_diff = df_hades_regleurs_diff.rename(
-                columns={"AUT_VAL": "BC_VAL"}
-            )
+            df_hades_regleurs_diff = df_hades_regleurs_diff.rename(columns={"AUT_VAL": "BC_VAL"})
             df_hades_regleurs_diff["CG_VAL"] = df_hades_regleurs_contg["AUT_VAL"]
 
             df_hades_regleurs_diff["DIFF"] = (
-                df_hades_regleurs_contg["AUT_VAL"]
-                - df_hades_regleurs_basecase["AUT_VAL"]
+                df_hades_regleurs_contg["AUT_VAL"] - df_hades_regleurs_basecase["AUT_VAL"]
             )
 
             df_hades_regleurs_diff["ABS_DIFF"] = df_hades_regleurs_diff["DIFF"].abs()
 
-            df_hades_regleurs_diff.loc[
-                df_hades_regleurs_diff["ABS_DIFF"] != 0, "HAS_CHANGED"
-            ] = 1
-            df_hades_regleurs_diff.loc[
-                df_hades_regleurs_diff["ABS_DIFF"] == 0, "HAS_CHANGED"
-            ] = 0
+            df_hades_regleurs_diff.loc[df_hades_regleurs_diff["ABS_DIFF"] != 0, "HAS_CHANGED"] = 1
+            df_hades_regleurs_diff.loc[df_hades_regleurs_diff["ABS_DIFF"] == 0, "HAS_CHANGED"] = 0
 
             df_hades_regleurs_diff["POS_DIFF"] = df_hades_regleurs_diff["DIFF"]
-            df_hades_regleurs_diff.loc[
-                df_hades_regleurs_diff["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_hades_regleurs_diff.loc[df_hades_regleurs_diff["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_hades_regleurs_diff["NEG_DIFF"] = df_hades_regleurs_diff["DIFF"]
-            df_hades_regleurs_diff.loc[
-                df_hades_regleurs_diff["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_hades_regleurs_diff.loc[df_hades_regleurs_diff["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             return df_hades_regleurs_diff
 
@@ -455,9 +438,7 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
                     if dephaseur_id not in hades_dephaseurs_contg:
                         hades_dephaseurs_contg[dephaseur_id] = int(variable.get("plot"))
                     else:
-                        raise ValueError(
-                            f"Tap ID repeated (dephaseur_id={dephaseur_id})"
-                        )
+                        raise ValueError(f"Tap ID repeated (dephaseur_id={dephaseur_id})")
 
             df_hades_dephaseurs_basecase = pd.read_csv(
                 save_path + "df_hades_dephaseurs_basecase.csv", sep=";", index_col=0
@@ -477,13 +458,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             df_hades_dephaseurs_diff["CG_VAL"] = df_hades_dephaseurs_contg["AUT_VAL"]
 
             df_hades_dephaseurs_diff["DIFF"] = (
-                df_hades_dephaseurs_contg["AUT_VAL"]
-                - df_hades_dephaseurs_basecase["AUT_VAL"]
+                df_hades_dephaseurs_contg["AUT_VAL"] - df_hades_dephaseurs_basecase["AUT_VAL"]
             )
 
-            df_hades_dephaseurs_diff["ABS_DIFF"] = df_hades_dephaseurs_diff[
-                "DIFF"
-            ].abs()
+            df_hades_dephaseurs_diff["ABS_DIFF"] = df_hades_dephaseurs_diff["DIFF"].abs()
 
             df_hades_dephaseurs_diff.loc[
                 df_hades_dephaseurs_diff["ABS_DIFF"] != 0, "HAS_CHANGED"
@@ -493,14 +471,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_hades_dephaseurs_diff["POS_DIFF"] = df_hades_dephaseurs_diff["DIFF"]
-            df_hades_dephaseurs_diff.loc[
-                df_hades_dephaseurs_diff["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_hades_dephaseurs_diff["NEG_DIFF"] = df_hades_dephaseurs_diff["DIFF"]
-            df_hades_dephaseurs_diff.loc[
-                df_hades_dephaseurs_diff["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             return df_hades_dephaseurs_diff
 
@@ -539,16 +513,14 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
                 data=data_list, index=data_keys, columns=["TAP_VAL"]
             )
 
-            df_dynawo_ratioTapChanger_diff = copy.deepcopy(
-                df_dynawo_ratioTapChanger_basecase
-            )
+            df_dynawo_ratioTapChanger_diff = copy.deepcopy(df_dynawo_ratioTapChanger_basecase)
 
             df_dynawo_ratioTapChanger_diff = df_dynawo_ratioTapChanger_diff.rename(
                 columns={"TAP_VAL": "BC_VAL"}
             )
-            df_dynawo_ratioTapChanger_diff[
-                "CG_VAL"
-            ] = df_dynawo_ratioTapChanger_contgcase["TAP_VAL"]
+            df_dynawo_ratioTapChanger_diff["CG_VAL"] = df_dynawo_ratioTapChanger_contgcase[
+                "TAP_VAL"
+            ]
 
             df_dynawo_ratioTapChanger_diff["DIFF"] = (
                 df_dynawo_ratioTapChanger_contgcase["TAP_VAL"]
@@ -566,16 +538,12 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
                 df_dynawo_ratioTapChanger_diff["ABS_DIFF"] == 0, "HAS_CHANGED"
             ] = 0
 
-            df_dynawo_ratioTapChanger_diff["POS_DIFF"] = df_dynawo_ratioTapChanger_diff[
-                "DIFF"
-            ]
+            df_dynawo_ratioTapChanger_diff["POS_DIFF"] = df_dynawo_ratioTapChanger_diff["DIFF"]
             df_dynawo_ratioTapChanger_diff.loc[
                 df_dynawo_ratioTapChanger_diff["DIFF"] <= 0, "POS_DIFF"
             ] = 0
 
-            df_dynawo_ratioTapChanger_diff["NEG_DIFF"] = df_dynawo_ratioTapChanger_diff[
-                "DIFF"
-            ]
+            df_dynawo_ratioTapChanger_diff["NEG_DIFF"] = df_dynawo_ratioTapChanger_diff["DIFF"]
             df_dynawo_ratioTapChanger_diff.loc[
                 df_dynawo_ratioTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"
             ] = 0
@@ -605,15 +573,13 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
                 data=data_list, index=data_keys, columns=["PSTAP_VAL"]
             )
 
-            df_dynawo_phaseTapChanger_diff = copy.deepcopy(
-                df_dynawo_phaseTapChanger_basecase
-            )
+            df_dynawo_phaseTapChanger_diff = copy.deepcopy(df_dynawo_phaseTapChanger_basecase)
             df_dynawo_phaseTapChanger_diff = df_dynawo_phaseTapChanger_diff.rename(
                 columns={"PSTAP_VAL": "BC_VAL"}
             )
-            df_dynawo_phaseTapChanger_diff[
-                "CG_VAL"
-            ] = df_dynawo_phaseTapChanger_contgcase["PSTAP_VAL"]
+            df_dynawo_phaseTapChanger_diff["CG_VAL"] = df_dynawo_phaseTapChanger_contgcase[
+                "PSTAP_VAL"
+            ]
 
             df_dynawo_phaseTapChanger_diff["DIFF"] = (
                 df_dynawo_phaseTapChanger_contgcase["PSTAP_VAL"]
@@ -631,16 +597,12 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
                 df_dynawo_phaseTapChanger_diff["ABS_DIFF"] == 0, "HAS_CHANGED"
             ] = 0
 
-            df_dynawo_phaseTapChanger_diff["POS_DIFF"] = df_dynawo_phaseTapChanger_diff[
-                "DIFF"
-            ]
+            df_dynawo_phaseTapChanger_diff["POS_DIFF"] = df_dynawo_phaseTapChanger_diff["DIFF"]
             df_dynawo_phaseTapChanger_diff.loc[
                 df_dynawo_phaseTapChanger_diff["DIFF"] <= 0, "POS_DIFF"
             ] = 0
 
-            df_dynawo_phaseTapChanger_diff["NEG_DIFF"] = df_dynawo_phaseTapChanger_diff[
-                "DIFF"
-            ]
+            df_dynawo_phaseTapChanger_diff["NEG_DIFF"] = df_dynawo_phaseTapChanger_diff["DIFF"]
             df_dynawo_phaseTapChanger_diff.loc[
                 df_dynawo_phaseTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"
             ] = 0
@@ -675,9 +637,7 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
 
             df_dynawo_shunt_diff = copy.deepcopy(df_dynawo_shunt_basecase)
 
-            df_dynawo_shunt_diff = df_dynawo_shunt_diff.rename(
-                columns={"SHUNT_CHG_VAL": "BC_VAL"}
-            )
+            df_dynawo_shunt_diff = df_dynawo_shunt_diff.rename(columns={"SHUNT_CHG_VAL": "BC_VAL"})
             df_dynawo_shunt_diff["CG_VAL"] = df_dynawo_shunt_contgcase["SHUNT_CHG_VAL"]
 
             df_dynawo_shunt_diff["DIFF"] = (
@@ -687,12 +647,8 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
 
             df_dynawo_shunt_diff["ABS_DIFF"] = df_dynawo_shunt_diff["DIFF"].abs()
 
-            df_dynawo_shunt_diff.loc[
-                df_dynawo_shunt_diff["ABS_DIFF"] != 0, "HAS_CHANGED"
-            ] = 1
-            df_dynawo_shunt_diff.loc[
-                df_dynawo_shunt_diff["ABS_DIFF"] == 0, "HAS_CHANGED"
-            ] = 0
+            df_dynawo_shunt_diff.loc[df_dynawo_shunt_diff["ABS_DIFF"] != 0, "HAS_CHANGED"] = 1
+            df_dynawo_shunt_diff.loc[df_dynawo_shunt_diff["ABS_DIFF"] == 0, "HAS_CHANGED"] = 0
 
             df_dynawo_shunt_diff["POS_DIFF"] = df_dynawo_shunt_diff["DIFF"]
             df_dynawo_shunt_diff.loc[df_dynawo_shunt_diff["DIFF"] <= 0, "POS_DIFF"] = 0
@@ -762,18 +718,14 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             df_dynawo_branch_diff_1 = df_dynawo_branch_diff_1.rename(
                 columns={"TOPO_CHG_VAL_1": "BC_VAL_1"}
             )
-            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1[
-                "TOPO_CHG_VAL_1"
-            ]
+            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
 
             df_dynawo_branch_diff_2 = copy.deepcopy(df_dynawo_branch_basecase_bus2)
 
             df_dynawo_branch_diff_2 = df_dynawo_branch_diff_2.rename(
                 columns={"TOPO_CHG_VAL_2": "BC_VAL_2"}
             )
-            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2[
-                "TOPO_CHG_VAL_2"
-            ]
+            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
 
             df_dynawo_branch_diff_1["DIFF"] = (
                 df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
@@ -790,14 +742,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_1["POS_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_1["NEG_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             df_dynawo_branch_diff_2["DIFF"] = (
                 df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
@@ -814,14 +762,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_2["POS_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_2["NEG_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             return df_dynawo_branch_diff_1
 
@@ -885,18 +829,14 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             df_dynawo_branch_diff_1 = df_dynawo_branch_diff_1.rename(
                 columns={"TOPO_CHG_VAL_1": "BC_VAL_1"}
             )
-            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1[
-                "TOPO_CHG_VAL_1"
-            ]
+            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
 
             df_dynawo_branch_diff_2 = copy.deepcopy(df_dynawo_branch_basecase_bus2)
 
             df_dynawo_branch_diff_2 = df_dynawo_branch_diff_2.rename(
                 columns={"TOPO_CHG_VAL_2": "BC_VAL_2"}
             )
-            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2[
-                "TOPO_CHG_VAL_2"
-            ]
+            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
 
             df_dynawo_branch_diff_1["DIFF"] = (
                 df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
@@ -913,14 +853,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_1["POS_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_1["NEG_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             df_dynawo_branch_diff_2["DIFF"] = (
                 df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
@@ -937,14 +873,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_2["POS_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_2["NEG_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             return df_dynawo_branch_diff_2
 
@@ -1008,18 +940,14 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             df_dynawo_branch_diff_1 = df_dynawo_branch_diff_1.rename(
                 columns={"TOPO_CHG_VAL_1": "BC_VAL_1"}
             )
-            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1[
-                "TOPO_CHG_VAL_1"
-            ]
+            df_dynawo_branch_diff_1["CG_VAL_1"] = df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
 
             df_dynawo_branch_diff_2 = copy.deepcopy(df_dynawo_branch_basecase_bus2)
 
             df_dynawo_branch_diff_2 = df_dynawo_branch_diff_2.rename(
                 columns={"TOPO_CHG_VAL_2": "BC_VAL_2"}
             )
-            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2[
-                "TOPO_CHG_VAL_2"
-            ]
+            df_dynawo_branch_diff_2["CG_VAL_2"] = df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
 
             df_dynawo_topo_diff = copy.deepcopy(df_dynawo_branch_basecase_bus1)
             df_dynawo_topo_diff = df_dynawo_topo_diff.rename(
@@ -1027,12 +955,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             )
 
             df_dynawo_topo_diff["BC_VAL_TOPO"] = (
-                df_dynawo_branch_diff_1["BC_VAL_1"]
-                + df_dynawo_branch_diff_2["BC_VAL_2"]
+                df_dynawo_branch_diff_1["BC_VAL_1"] + df_dynawo_branch_diff_2["BC_VAL_2"]
             )
             df_dynawo_topo_diff["CG_VAL_TOPO"] = (
-                df_dynawo_branch_diff_1["CG_VAL_1"]
-                + df_dynawo_branch_diff_2["CG_VAL_2"]
+                df_dynawo_branch_diff_1["CG_VAL_1"] + df_dynawo_branch_diff_2["CG_VAL_2"]
             )
 
             df_dynawo_branch_diff_1["DIFF"] = (
@@ -1050,14 +976,10 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_1["POS_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_1["NEG_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
-            df_dynawo_branch_diff_1.loc[
-                df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             df_dynawo_branch_diff_2["DIFF"] = (
                 df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
@@ -1074,35 +996,24 @@ def create_aut_df(results_dir, A_B, contgcase, prefix, basecase, dwo_dwo, var_va
             ] = 0
 
             df_dynawo_branch_diff_2["POS_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"] = 0
 
             df_dynawo_branch_diff_2["NEG_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
-            df_dynawo_branch_diff_2.loc[
-                df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"
-            ] = 0
+            df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] >= 0, "NEG_DIFF"] = 0
 
             df_dynawo_topo_diff["DIFF1"] = df_dynawo_branch_diff_1["DIFF"]
             df_dynawo_topo_diff["DIFF2"] = df_dynawo_branch_diff_2["DIFF"]
 
             df_dynawo_topo_diff["DIFF"] = np.select(
-                [
-                    (df_dynawo_topo_diff["DIFF1"] != 0)
-                    | (df_dynawo_topo_diff["DIFF2"] != 0)
-                ],
+                [(df_dynawo_topo_diff["DIFF1"] != 0) | (df_dynawo_topo_diff["DIFF2"] != 0)],
                 [1],
                 default=0,
             )
 
             df_dynawo_topo_diff["ABS_DIFF"] = df_dynawo_topo_diff["DIFF"].abs()
 
-            df_dynawo_topo_diff.loc[
-                df_dynawo_topo_diff["ABS_DIFF"] != 0, "HAS_CHANGED"
-            ] = 1
-            df_dynawo_topo_diff.loc[
-                df_dynawo_topo_diff["ABS_DIFF"] == 0, "HAS_CHANGED"
-            ] = 0
+            df_dynawo_topo_diff.loc[df_dynawo_topo_diff["ABS_DIFF"] != 0, "HAS_CHANGED"] = 1
+            df_dynawo_topo_diff.loc[df_dynawo_topo_diff["ABS_DIFF"] == 0, "HAS_CHANGED"] = 0
 
             df_dynawo_topo_diff["POS_DIFF"] = df_dynawo_topo_diff["DIFF"]
             df_dynawo_topo_diff.loc[df_dynawo_topo_diff["DIFF"] <= 0, "POS_DIFF"] = 0
@@ -1283,9 +1194,7 @@ def create_containers(
     netwgraph_legend1widget,
     netwgraph_legend2widget,
 ):
-    globaldiffs_container = widgets.HBox(
-        [globaldiffs_dropdownvarx, globaldiffs_dropdownvary]
-    )
+    globaldiffs_container = widgets.HBox([globaldiffs_dropdownvarx, globaldiffs_dropdownvary])
 
     contgcasediffs_container = widgets.HBox(
         [
@@ -1324,9 +1233,7 @@ def create_containers(
         [contgcasediffs_individualtrace, contgcasediffs_legendwidget]
     )
 
-    netwgraph_legendcontainer = widgets.HBox(
-        [netwgraph_legend1widget, netwgraph_legend2widget]
-    )
+    netwgraph_legendcontainer = widgets.HBox([netwgraph_legend1widget, netwgraph_legend2widget])
     return (
         globaldiffs_container,
         contgcasediffs_container,
@@ -1344,9 +1251,7 @@ def create_buttons():
         False: "Apply selection below",
         True: "Apply selection below",
     }
-    globaltap_button_aut = widgets.ToggleButton(
-        False, description=button_descriptions_aut[False]
-    )
+    globaltap_button_aut = widgets.ToggleButton(False, description=button_descriptions_aut[False])
 
     button_descriptions_case = {
         False: "Apply selection below",
@@ -1498,17 +1403,10 @@ def paint_graph(
 
     data1_max -= data1_min
     for node in C.nodes:
-        if (
-            len(
-                list(data1.loc[(data1.ID == node["id"])][netwgraph_nodemetrictype_drop])
-            )
-            != 0
-        ):
+        if len(list(data1.loc[(data1.ID == node["id"])][netwgraph_nodemetrictype_drop])) != 0:
             plasma = cm.get_cmap("plasma", 12)
             c = (
-                list(
-                    data1.loc[(data1.ID == node["id"])][netwgraph_nodemetrictype_drop]
-                )[0]
+                list(data1.loc[(data1.ID == node["id"])][netwgraph_nodemetrictype_drop])[0]
                 - data1_min
             )
             c = c / data1_max
@@ -1532,25 +1430,16 @@ def paint_graph(
     pl.close()
 
     # Edge color
-    data2 = data.loc[
-        (data.VAR == netwgraph_edgetype_drop) & (data.ELEMENT_TYPE != "bus")
-    ]
+    data2 = data.loc[(data.VAR == netwgraph_edgetype_drop) & (data.ELEMENT_TYPE != "bus")]
     data2_max = data2[netwgraph_edgemetrictype_drop].max()
     data2_min = data2[netwgraph_edgemetrictype_drop].min()
 
     data2_max -= data2_min
     for edge in C.edges:
-        if (
-            len(
-                list(data2.loc[(data2.ID == edge["id"])][netwgraph_edgemetrictype_drop])
-            )
-            != 0
-        ):
+        if len(list(data2.loc[(data2.ID == edge["id"])][netwgraph_edgemetrictype_drop])) != 0:
             viridis = cm.get_cmap("viridis", 12)
             c = (
-                list(
-                    data2.loc[(data2.ID == edge["id"])][netwgraph_edgemetrictype_drop]
-                )[0]
+                list(data2.loc[(data2.ID == edge["id"])][netwgraph_edgemetrictype_drop])[0]
                 - data2_min
             )
             c = c / data2_max
@@ -1566,26 +1455,16 @@ def paint_graph(
                 enter = False
                 for edge_sp in edge_split:
                     if (
-                        len(
-                            list(
-                                data2.loc[(data2.ID == edge_sp)][
-                                    netwgraph_edgemetrictype_drop
-                                ]
-                            )
-                        )
+                        len(list(data2.loc[(data2.ID == edge_sp)][netwgraph_edgemetrictype_drop]))
                         != 0
                     ):
                         if abs(max_edge) < abs(
-                            list(
-                                data2.loc[(data2.ID == edge_sp)][
-                                    netwgraph_edgemetrictype_drop
-                                ]
-                            )[0]
+                            list(data2.loc[(data2.ID == edge_sp)][netwgraph_edgemetrictype_drop])[
+                                0
+                            ]
                         ):
                             max_edge = list(
-                                data2.loc[(data2.ID == edge_sp)][
-                                    netwgraph_edgemetrictype_drop
-                                ]
+                                data2.loc[(data2.ID == edge_sp)][netwgraph_edgemetrictype_drop]
                             )[0]
                             enter = True
                 if enter:
@@ -1810,9 +1689,7 @@ def show_displays(
         )
     )
     if contgcasetap_groups_traceB is not None:
-        containergroup = widgets.HBox(
-            [contgcasetap_groups_traceA, contgcasetap_groups_traceB]
-        )
+        containergroup = widgets.HBox([contgcasetap_groups_traceA, contgcasetap_groups_traceB])
     else:
         containergroup = widgets.HBox([contgcasetap_groups_traceA])
     display(containergroup)
@@ -1988,9 +1865,7 @@ def run_all(
 
         # PERF: Plotly starts showing horrible performance with more than 5,000 points
         if df1.shape[0] > DATA_LIMIT:
-            df1 = df1.reindex(
-                df1[globaldiffs_dropdownvary.value].abs().sort_values().index
-            )
+            df1 = df1.reindex(df1[globaldiffs_dropdownvary.value].abs().sort_values().index)
             df1 = df1[-DATA_LIMIT:]
 
         with globaldiffs_generaltrace.batch_update():
@@ -2023,9 +1898,7 @@ def run_all(
                     contgcasediffs_elementdropdown.value != "ALL"
                     and contgcasediffs_vardropdown.value == "ALL"
                 ):
-                    df1 = df1.loc[
-                        (df1.ELEMENT_TYPE == contgcasediffs_elementdropdown.value)
-                    ]
+                    df1 = df1.loc[(df1.ELEMENT_TYPE == contgcasediffs_elementdropdown.value)]
                 else:
                     if (
                         contgcasediffs_elementdropdown.value == "ALL"
@@ -2035,24 +1908,16 @@ def run_all(
 
             contgcasediffs_individualgrid.data = df1.sort_values("ID")
             # PERF: Plotly starts showing horrible performance with more than 5,000 points
-            contgcasediffs_individualtrace.data[0].x = df1[
-                contgcasediffs_dropdownx.value
-            ]
-            contgcasediffs_individualtrace.data[0].y = df1[
-                contgcasediffs_dropdowny.value
-            ]
+            contgcasediffs_individualtrace.data[0].x = df1[contgcasediffs_dropdownx.value]
+            contgcasediffs_individualtrace.data[0].y = df1[contgcasediffs_dropdowny.value]
             contgcasediffs_individualtrace.data[0].name = (
                 contgcasediffs_dropdownx.value + "_" + contgcasediffs_dropdowny.value
             )
             contgcasediffs_individualtrace.data[0].text = df1["ID"]
             colordata = create_colors(df1)
             contgcasediffs_individualtrace.data[0].marker = dict(color=colordata)
-            contgcasediffs_individualtrace.layout.xaxis.title = (
-                contgcasediffs_dropdownx.value
-            )
-            contgcasediffs_individualtrace.layout.yaxis.title = (
-                contgcasediffs_dropdowny.value
-            )
+            contgcasediffs_individualtrace.layout.xaxis.title = contgcasediffs_dropdownx.value
+            contgcasediffs_individualtrace.layout.yaxis.title = contgcasediffs_dropdowny.value
             contgcasediffs_individualtrace.layout.title.text = "Case: " + case
             contgcasediffs_dropdowndev.value = case
 
@@ -2127,13 +1992,11 @@ def run_all(
         )
 
         if contgcasetap_checka.value:
-            contgcasetap_aut_diff_dfA_contgcase = (
-                contgcasetap_aut_diff_dfA_contgcase.loc[
-                    (contgcasetap_aut_diff_dfA_contgcase.HAS_CHANGED != 0)
-                ]
-            )
-            contgcasetap_aut_diff_dfA_contgcase = (
-                contgcasetap_aut_diff_dfA_contgcase.drop(columns=["HAS_CHANGED"])
+            contgcasetap_aut_diff_dfA_contgcase = contgcasetap_aut_diff_dfA_contgcase.loc[
+                (contgcasetap_aut_diff_dfA_contgcase.HAS_CHANGED != 0)
+            ]
+            contgcasetap_aut_diff_dfA_contgcase = contgcasetap_aut_diff_dfA_contgcase.drop(
+                columns=["HAS_CHANGED"]
             )
 
         contgcasetap_aut_diff_dfA_grid.data = contgcasetap_aut_diff_dfA_contgcase
@@ -2153,13 +2016,11 @@ def run_all(
         )
 
         if contgcasetap_checkb.value:
-            contgcasetap_aut_diff_dfB_contgcase = (
-                contgcasetap_aut_diff_dfB_contgcase.loc[
-                    (contgcasetap_aut_diff_dfB_contgcase.HAS_CHANGED != 0)
-                ]
-            )
-            contgcasetap_aut_diff_dfB_contgcase = (
-                contgcasetap_aut_diff_dfB_contgcase.drop(columns=["HAS_CHANGED"])
+            contgcasetap_aut_diff_dfB_contgcase = contgcasetap_aut_diff_dfB_contgcase.loc[
+                (contgcasetap_aut_diff_dfB_contgcase.HAS_CHANGED != 0)
+            ]
+            contgcasetap_aut_diff_dfB_contgcase = contgcasetap_aut_diff_dfB_contgcase.drop(
+                columns=["HAS_CHANGED"]
             )
 
         contgcasetap_aut_diff_dfB_grid.data = contgcasetap_aut_diff_dfB_contgcase
@@ -2172,14 +2033,14 @@ def run_all(
         # In order to solve this, a button is created and it takes the value of the buffer and applies the changes
         # manually.
         if len(globaltap_aut_diffs_A_grid.selections) != 0:
-            contgcasetap_aut_diff_case.value = (
-                globaltap_aut_diffs_A_grid.selected_cell_values[4][len(PREFIX) + 1 :]
-            )
+            contgcasetap_aut_diff_case.value = globaltap_aut_diffs_A_grid.selected_cell_values[4][
+                len(PREFIX) + 1 :
+            ]
 
         elif len(globaltap_aut_diffs_B_grid.selections) != 0:
-            contgcasetap_aut_diff_case.value = (
-                globaltap_aut_diffs_B_grid.selected_cell_values[4][len(PREFIX) + 1 :]
-            )
+            contgcasetap_aut_diff_case.value = globaltap_aut_diffs_B_grid.selected_cell_values[4][
+                len(PREFIX) + 1 :
+            ]
 
         contgcasetap_response_aut("")
 
@@ -2206,23 +2067,19 @@ def run_all(
         )
 
         if contgcasetap_checka.value:
-            contgcasetap_aut_diff_dfA_contgcase = (
-                contgcasetap_aut_diff_dfA_contgcase.loc[
-                    (contgcasetap_aut_diff_dfA_contgcase.HAS_CHANGED != 0)
-                ]
-            )
-            contgcasetap_aut_diff_dfA_contgcase = (
-                contgcasetap_aut_diff_dfA_contgcase.drop(columns=["HAS_CHANGED"])
+            contgcasetap_aut_diff_dfA_contgcase = contgcasetap_aut_diff_dfA_contgcase.loc[
+                (contgcasetap_aut_diff_dfA_contgcase.HAS_CHANGED != 0)
+            ]
+            contgcasetap_aut_diff_dfA_contgcase = contgcasetap_aut_diff_dfA_contgcase.drop(
+                columns=["HAS_CHANGED"]
             )
 
         if contgcasetap_checkb.value:
-            contgcasetap_aut_diff_dfB_contgcase = (
-                contgcasetap_aut_diff_dfB_contgcase.loc[
-                    (contgcasetap_aut_diff_dfB_contgcase.HAS_CHANGED != 0)
-                ]
-            )
-            contgcasetap_aut_diff_dfB_contgcase = (
-                contgcasetap_aut_diff_dfB_contgcase.drop(columns=["HAS_CHANGED"])
+            contgcasetap_aut_diff_dfB_contgcase = contgcasetap_aut_diff_dfB_contgcase.loc[
+                (contgcasetap_aut_diff_dfB_contgcase.HAS_CHANGED != 0)
+            ]
+            contgcasetap_aut_diff_dfB_contgcase = contgcasetap_aut_diff_dfB_contgcase.drop(
+                columns=["HAS_CHANGED"]
             )
 
         contgcasetap_aut_diff_dfA_grid.data = contgcasetap_aut_diff_dfA_contgcase
@@ -2426,9 +2283,7 @@ def run_all(
     contgcasediffs_contgcaseinit = contg_cases[0]
 
     # Read the first contingency to put default data
-    contgcasediffs_data_first_case = read_case(
-        contgcasediffs_contgcaseinit, PF_SOL_DIR, PREFIX
-    )
+    contgcasediffs_data_first_case = read_case(contgcasediffs_contgcaseinit, PF_SOL_DIR, PREFIX)
 
     # Read the groups of the different automatas
     (
@@ -2451,9 +2306,7 @@ def run_all(
     )
 
     # Read global aut df and create the trace
-    globaltap_df_aut = read_aut_case(
-        RESULTS_DIR + "/" + PREFIX + "/aut/", "ratioTapChanger"
-    )
+    globaltap_df_aut = read_aut_case(RESULTS_DIR + "/" + PREFIX + "/aut/", "ratioTapChanger")
     globaltap_trace = create_tap_trace(globaltap_df_aut, HEIGHT)
 
     # Get all the dropdowns
@@ -2515,9 +2368,7 @@ def run_all(
         compscore_p95_n_pass,
         compscore_mean_n_pass,
         compscore_total_n_pass,
-    ) = calc_global_score(
-        globaldiffs_df, W_V, W_P, W_Q, W_T, MAX_THRESH, MEAN_THRESH, P95_THRESH
-    )
+    ) = calc_global_score(globaldiffs_df, W_V, W_P, W_Q, W_T, MAX_THRESH, MEAN_THRESH, P95_THRESH)
 
     # Paint score grid
     compscore_renderers = get_renderers(MAX_THRESH, P95_THRESH, MEAN_THRESH)
@@ -2529,15 +2380,9 @@ def run_all(
     )
 
     # Individual trace for contingency diffs with filters
-    if (
-        contgcasediffs_elementdropdown.value != "ALL"
-        and contgcasediffs_vardropdown.value != "ALL"
-    ):
+    if contgcasediffs_elementdropdown.value != "ALL" and contgcasediffs_vardropdown.value != "ALL":
         contgcasediffs_data_first_case_filter = contgcasediffs_data_first_case.loc[
-            (
-                contgcasediffs_data_first_case.ELEMENT_TYPE
-                == contgcasediffs_elementdropdown.value
-            )
+            (contgcasediffs_data_first_case.ELEMENT_TYPE == contgcasediffs_elementdropdown.value)
             & (contgcasediffs_data_first_case.VAR == contgcasediffs_vardropdown.value)
         ]
     else:
@@ -2556,14 +2401,9 @@ def run_all(
                 contgcasediffs_elementdropdown.value == "ALL"
                 and contgcasediffs_vardropdown.value != "ALL"
             ):
-                contgcasediffs_data_first_case_filter = (
-                    contgcasediffs_data_first_case.loc[
-                        (
-                            contgcasediffs_data_first_case.VAR
-                            == contgcasediffs_vardropdown.value
-                        )
-                    ]
-                )
+                contgcasediffs_data_first_case_filter = contgcasediffs_data_first_case.loc[
+                    (contgcasediffs_data_first_case.VAR == contgcasediffs_vardropdown.value)
+                ]
 
     contgcasediffs_current_individual_trace = create_individual_trace(
         contgcasediffs_data_first_case_filter,
@@ -2610,9 +2450,7 @@ def run_all(
         )
     contgcasetap_aut_diff_dfA_grid = ipydatagrid.DataGrid(
         contgcasetap_aut_diff_dfA_contgcase,
-        base_column_size=int(
-            (WIDTH / 2 / 1.1) / len(contgcasetap_aut_diff_dfA_contgcase.columns)
-        ),
+        base_column_size=int((WIDTH / 2 / 1.1) / len(contgcasetap_aut_diff_dfA_contgcase.columns)),
     )
 
     if contgcasetap_checkb.value:
@@ -2624,33 +2462,23 @@ def run_all(
         )
     contgcasetap_aut_diff_dfB_grid = ipydatagrid.DataGrid(
         contgcasetap_aut_diff_dfB_contgcase,
-        base_column_size=int(
-            (WIDTH / 2 / 1.1) / len(contgcasetap_aut_diff_dfB_contgcase.columns)
-        ),
+        base_column_size=int((WIDTH / 2 / 1.1) / len(contgcasetap_aut_diff_dfB_contgcase.columns)),
     )
 
     # Global grid for contingency taps
     if globaltap_checka.value:
-        globaltap_aut_diffs_A = globaltap_aut_diffs_A.loc[
-            (globaltap_aut_diffs_A.NUM_CHANGES != 0)
-        ]
+        globaltap_aut_diffs_A = globaltap_aut_diffs_A.loc[(globaltap_aut_diffs_A.NUM_CHANGES != 0)]
         globaltap_aut_diffs_A_grid = ipydatagrid.DataGrid(
             globaltap_aut_diffs_A,
-            base_column_size=int(
-                (WIDTH / 2 / 1.1) / len(globaltap_aut_diffs_A.columns)
-            ),
+            base_column_size=int((WIDTH / 2 / 1.1) / len(globaltap_aut_diffs_A.columns)),
             selection_mode="row",
         )
 
     if globaltap_checkb.value:
-        globaltap_aut_diffs_B = globaltap_aut_diffs_B.loc[
-            (globaltap_aut_diffs_B.NUM_CHANGES != 0)
-        ]
+        globaltap_aut_diffs_B = globaltap_aut_diffs_B.loc[(globaltap_aut_diffs_B.NUM_CHANGES != 0)]
         globaltap_aut_diffs_B_grid = ipydatagrid.DataGrid(
             globaltap_aut_diffs_B,
-            base_column_size=int(
-                (WIDTH / 2 / 1.1) / len(globaltap_aut_diffs_B.columns)
-            ),
+            base_column_size=int((WIDTH / 2 / 1.1) / len(globaltap_aut_diffs_B.columns)),
             selection_mode="row",
         )
 
@@ -2686,15 +2514,11 @@ def run_all(
     # Get manual legend for contgcasediffs_individualtrace
     contgcasediffs_filelegend = open("legend0.png", "rb")
     contgcasediffs_legend = contgcasediffs_filelegend.read()
-    contgcasediffs_legendwidget = widgets.Image(
-        value=contgcasediffs_legend, format="png"
-    )
+    contgcasediffs_legendwidget = widgets.Image(value=contgcasediffs_legend, format="png")
 
     contgcasediffs_individualgrid = ipydatagrid.DataGrid(
         contgcasediffs_data_first_case_filter,
-        base_column_size=int(
-            (WIDTH / 1.03) / len(contgcasediffs_data_first_case_filter.columns)
-        ),
+        base_column_size=int((WIDTH / 1.03) / len(contgcasediffs_data_first_case_filter.columns)),
     )
 
     # Graph creation

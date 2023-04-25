@@ -168,9 +168,7 @@ def get_tparams(case, dwo_jobpaths):
             "No tEvent found in Dynawo PAR file %s (for parID=%s)" % (par_file, parId)
         )
 
-    return Dwo_tparams(
-        startTime=startTime, stopTime=stopTime, event_tEvent=event_tEvent
-    )
+    return Dwo_tparams(startTime=startTime, stopTime=stopTime, event_tEvent=event_tEvent)
 
 
 def get_dwo_jobpaths(case):

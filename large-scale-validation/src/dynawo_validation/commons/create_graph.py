@@ -172,10 +172,7 @@ def insert_transformers(iidm_tree, G, n_edges):
                         imp=1 / (adm + prev_dict["value"]),
                     )
 
-    print(
-        "Number of transformers found in the iidm file: %d\n"
-        % (G.number_of_edges() - n_edges)
-    )
+    print("Number of transformers found in the iidm file: %d\n" % (G.number_of_edges() - n_edges))
     return G
 
 
@@ -209,9 +206,7 @@ def insert_HVDCLines(iidm_tree, G, n_edges):
                         adm = 1 / float(hvdc.get("r"))
                         hvdc_id = hvdc.get("id")
                         if (bus1, bus2) not in G.edges:
-                            G.add_edge(
-                                bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm
-                            )
+                            G.add_edge(bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm)
                         else:
                             prev_dict = G.get_edge_data(bus1, bus2)
                             G.add_edge(
@@ -223,10 +218,7 @@ def insert_HVDCLines(iidm_tree, G, n_edges):
                                 imp=1 / (adm + prev_dict["value"]),
                             )
 
-    print(
-        "Number of HVDCLines found in the iidm file: %d\n"
-        % (G.number_of_edges() - n_edges)
-    )
+    print("Number of HVDCLines found in the iidm file: %d\n" % (G.number_of_edges() - n_edges))
     return G
 
 
@@ -282,9 +274,7 @@ def make_subgraph(G, id_node_subgraph, subgraph_type, subgraph_value):
 
             str_rgb = "rgb(" + str(r) + "," + str(g) + "," + str(b) + ")"
 
-            C.add_edge(
-                s, d, value=prev_dict["value"], id=prev_dict["id"], color=str_rgb
-            )
+            C.add_edge(s, d, value=prev_dict["value"], id=prev_dict["id"], color=str_rgb)
 
         print("Subgraph buses:", nearnodes, "\n")
         for n in nearnodes:
@@ -311,9 +301,7 @@ def make_subgraph(G, id_node_subgraph, subgraph_type, subgraph_value):
     if subgraph_type == 1:
         # Dijkstra
         nearnodes = dict()
-        shortest_paths = nx.shortest_path_length(
-            G, source=id_node_subgraph, weight="imp"
-        )
+        shortest_paths = nx.shortest_path_length(G, source=id_node_subgraph, weight="imp")
 
         for k, v in shortest_paths.items():
             if v <= subgraph_value:
@@ -356,9 +344,7 @@ def make_subgraph(G, id_node_subgraph, subgraph_type, subgraph_value):
 
             str_rgb = "rgb(" + str(r) + "," + str(g) + "," + str(b) + ")"
 
-            C.add_edge(
-                s, d, value=prev_dict["value"], id=prev_dict["id"], color=str_rgb
-            )
+            C.add_edge(s, d, value=prev_dict["value"], id=prev_dict["id"], color=str_rgb)
 
         print("Subgraph buses:", list(nearnodes.keys()), "\n")
         for n, v in nearnodes.items():

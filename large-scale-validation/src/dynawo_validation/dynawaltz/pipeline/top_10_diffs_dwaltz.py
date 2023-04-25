@@ -21,9 +21,7 @@ import copy
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "crv_reducedparams_dir", help="enter crv_reducedparams_dir directory"
-)
+parser.add_argument("crv_reducedparams_dir", help="enter crv_reducedparams_dir directory")
 args = parser.parse_args()
 
 
@@ -38,12 +36,10 @@ def main():
     # Reading the cases and organizing the values ​​according to the different metrics
     # Removing columns that are not part of the selected metric
     data = read_case(crv_reducedparams_dir)
-    
-    data = data.rename(columns={"dev":"CONTG_CASE"})
 
-    datafirstfalse = data.loc[
-        (data.is_preStab_ast == "False") | (data.is_preStab_dwo == "False")
-    ]
+    data = data.rename(columns={"dev": "CONTG_CASE"})
+
+    datafirstfalse = data.loc[(data.is_preStab_ast == "False") | (data.is_preStab_dwo == "False")]
     datafirstfalsesorted = datafirstfalse.sort_values("CONTG_CASE", ascending=False)
     datafirstfalsesorted = datafirstfalsesorted.drop(
         [
@@ -117,9 +113,7 @@ def main():
     data_levelK_value_fil = data_levelK_value.loc[
         lambda x: x["vars"].str.contains(r"levelK_value", regex=True)
     ]
-    data_levelK_valuesorted = data_levelK_value_fil.sort_values(
-        "DIFF_dPP_levelK", ascending=False
-    )
+    data_levelK_valuesorted = data_levelK_value_fil.sort_values("DIFF_dPP_levelK", ascending=False)
     data_levelK_valuesorted = data_levelK_valuesorted.drop(
         [
             "dSS_ast",
@@ -141,9 +135,7 @@ def main():
 
     PGen_value = copy.deepcopy(data)
     PGen_value["DIFF_dSS_PGen"] = (PGen_value["dSS_ast"] - PGen_value["dSS_dwo"]).abs()
-    PGen_value_fil = PGen_value.loc[
-        lambda x: x["vars"].str.contains(r"_PGen", regex=True)
-    ]
+    PGen_value_fil = PGen_value.loc[lambda x: x["vars"].str.contains(r"_PGen", regex=True)]
     PGen_valuesorted = PGen_value_fil.sort_values("DIFF_dSS_PGen", ascending=False)
     PGen_valuesorted = PGen_valuesorted.drop(
         [
@@ -166,9 +158,7 @@ def main():
 
     QGen_value = copy.deepcopy(data)
     QGen_value["DIFF_dSS_QGen"] = (QGen_value["dSS_ast"] - QGen_value["dSS_dwo"]).abs()
-    QGen_value_fil = QGen_value.loc[
-        lambda x: x["vars"].str.contains(r"_QGen", regex=True)
-    ]
+    QGen_value_fil = QGen_value.loc[lambda x: x["vars"].str.contains(r"_QGen", regex=True)]
     QGen_valuesorted = QGen_value_fil.sort_values("DIFF_dSS_QGen", ascending=False)
     QGen_valuesorted = QGen_valuesorted.drop(
         [
@@ -206,9 +196,7 @@ def main():
 
 # Read a specific contingency
 def read_case(crv_reducedparams_dir):
-    data = pd.read_csv(
-        crv_reducedparams_dir, sep=";", index_col=False, compression="infer"
-    )
+    data = pd.read_csv(crv_reducedparams_dir, sep=";", index_col=False, compression="infer")
     return data
 
 

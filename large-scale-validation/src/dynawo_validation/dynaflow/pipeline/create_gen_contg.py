@@ -60,9 +60,7 @@ import argparse
 # structure all these as a package; we'd like to keep them as a collection of loose
 # Python scripts, at least for now (after all, this is not really a Python library). So
 # the following hack is ugly, but needed:
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 # Alternatively, you could set PYTHONPATH to PYTHONPATH="/<dir>/dynawo-validation-AIA"
 from dynawo_validation.dynaflow.pipeline.dwo_jobinfo import (
     is_dwohds,
@@ -85,18 +83,13 @@ parser.add_argument(
     "all possible contingencies will be generated (if below MAX_NCASES; "
     "otherwise a random sample is generated)",
 )
-parser.add_argument(
-    "-v", "--verbose", help="increase output verbosity", action="store_true"
-)
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 parser.add_argument(
     "-l",
     "--list",
-    help="enter regular expressions or contingencies in "
-    "string form separated with pipe(|)",
+    help="enter regular expressions or contingencies in " "string form separated with pipe(|)",
 )
-parser.add_argument(
-    "-a", "--allcontg", help="generate all the contingencies", action="store_true"
-)
+parser.add_argument("-a", "--allcontg", help="generate all the contingencies", action="store_true")
 parser.add_argument(
     "-r",
     "--randomc",
@@ -162,9 +155,7 @@ def main():
         raise ValueError(f"Case {base_case} is neither an dwo-hds nor a dwo-dwo case")
 
     # Parse all XML files in the basecase
-    parsed_case = parse_basecase(
-        base_case, dwo_paths, HADES_PATH, dwo_pathsA, dwo_pathsB
-    )
+    parsed_case = parse_basecase(base_case, dwo_paths, HADES_PATH, dwo_pathsA, dwo_pathsB)
 
     # Extract the list of all (active) GENS in the Dynawo case
     if dwohds:
@@ -441,9 +432,7 @@ def matching_in_dwoB(dynawo_gensA, dynawo_gensB):
     return dict(new_list)
 
 
-def config_dynawo_gen_contingency(
-    casedir, case_trees, dwo_paths, dwo_tparams, gen_name, gen_info
-):
+def config_dynawo_gen_contingency(casedir, case_trees, dwo_paths, dwo_tparams, gen_name, gen_info):
     ###########################################################
     # DYD file: configure an event model for the disconnection
     ###########################################################
@@ -461,10 +450,7 @@ def config_dynawo_gen_contingency(
     param_eventname = "event_open"
     for dyn_gen in root.iterfind(f"./{{{ns}}}blackBoxModel"):
         # Note we rely on dynamic model names *starting* with "Generator"
-        if (
-            dyn_gen.get("lib")[0:9] == "Generator"
-            and dyn_gen.get("staticId") == gen_name
-        ):
+        if dyn_gen.get("lib")[0:9] == "Generator" and dyn_gen.get("staticId") == gen_name:
             disconn_eventmodel = "EventSetPointBoolean"
             cnx_id2 = dyn_gen.get("id")
             cnx_var2 = "generator_switchOffSignal2_value"
@@ -532,9 +518,7 @@ def config_dynawo_gen_contingency(
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent
-        )
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
     )
     new_parset.append(
         etree.Element("{%s}par" % ns, type="BOOL", name=param_eventname, value="true")
@@ -572,9 +556,7 @@ def config_dynawo_gen_contingency(
     crv_tree = case_trees.crvTree
     root = crv_tree.getroot()
     ns = etree.QName(root).namespace
-    new_crv1 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value"
-    )
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value")
     root.append(new_crv1)
     # Write out the CRV file, preserving the XML format
     crv_tree.write(
@@ -673,9 +655,7 @@ def save_total_genpq(dirname, dwohds, dynawo_gens, processed_gens):
         )
 
     df = pd.DataFrame(data_list, columns=column_list)
-    df.sort_values(
-        by=["sumPQdiff_pct"], inplace=True, ascending=False, na_position="first"
-    )
+    df.sort_values(by=["sumPQdiff_pct"], inplace=True, ascending=False, na_position="first")
     df.to_csv(file_name, index=False, sep=";", float_format="%.3f", encoding="utf-8")
 
     return 0

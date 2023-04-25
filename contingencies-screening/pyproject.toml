@@ -44,6 +44,7 @@ urls = {"Code repo"="https://github.com/grupoaia/dynawo_contingencies_screening"
 # Required packages:
 dependencies = [
     "lxml>=4.6.3",
+    "pandas>=2.0.0",
 ]
 
 
@@ -59,7 +60,7 @@ dependencies = [
 
 # Entry points and automatic script creation:
 [project.scripts]
-xml_format_dir = "dynawo_contingencies_screening.contingencies_screening:xml_format_dir"
+prepare_basecase_dir = "dynawo_contingencies_screening.contingencies_screening:prepare_basecase_dir"
 run_hades_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_hades_contingencies"
 create_contingencies_ranking = "dynawo_contingencies_screening.contingencies_screening:create_contingencies_ranking"
 run_dynawo_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_dynawo_contingencies"

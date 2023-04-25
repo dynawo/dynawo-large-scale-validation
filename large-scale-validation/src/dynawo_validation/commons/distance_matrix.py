@@ -135,10 +135,7 @@ def insert_transformers(iidm_tree, G, n_edges):
                         imp=1 / (adm + prev_dict["value"]),
                     )
 
-    print(
-        "Number of transformers found in the iidm file: %d\n"
-        % (G.number_of_edges() - n_edges)
-    )
+    print("Number of transformers found in the iidm file: %d\n" % (G.number_of_edges() - n_edges))
     return G
 
 
@@ -172,9 +169,7 @@ def insert_HVDCLines(iidm_tree, G, n_edges):
                         adm = 1 / float(hvdc.get("r"))
                         hvdc_id = hvdc.get("id")
                         if (bus1, bus2) not in G.edges:
-                            G.add_edge(
-                                bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm
-                            )
+                            G.add_edge(bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm)
                         else:
                             prev_dict = G.get_edge_data(bus1, bus2)
                             G.add_edge(
@@ -186,10 +181,7 @@ def insert_HVDCLines(iidm_tree, G, n_edges):
                                 imp=1 / (adm + prev_dict["value"]),
                             )
 
-    print(
-        "Number of HVDCLines found in the iidm file: %d\n"
-        % (G.number_of_edges() - n_edges)
-    )
+    print("Number of HVDCLines found in the iidm file: %d\n" % (G.number_of_edges() - n_edges))
     return G
 
 

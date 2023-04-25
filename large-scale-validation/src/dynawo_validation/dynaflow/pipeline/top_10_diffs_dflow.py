@@ -227,14 +227,10 @@ def main():
                     break
 
     if first_iteration:
-        raise ValueError(
-            f"Neither regular expression matches or there are no cases defined"
-        )
+        raise ValueError(f"Neither regular expression matches or there are no cases defined")
 
     df_metrics = pd.read_csv(pf_metrics_dir + "metrics.csv.xz", index_col=0)
-    df_weights = pd.read_csv(
-        pf_metrics_dir + "../../score_weights.csv", sep=";", index_col=0
-    )
+    df_weights = pd.read_csv(pf_metrics_dir + "../../score_weights.csv", sep=";", index_col=0)
 
     datascore, max_n_pass, p95_n_pass, mean_n_pass, total_n_pass = calc_global_score(
         df_metrics,
