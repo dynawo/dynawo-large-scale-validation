@@ -1,7 +1,6 @@
 import os
 import shutil
 import argparse
-import pandas as pd
 from pathlib import Path
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
@@ -153,12 +152,10 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
 # command line executables
 
 
-def prepare_basecase_dir():
+def prepare_basecase_dir(input_dir, output_dir):
     # Run the BASECASE preparation pipeline
-    args = argument_parser(["input_dir", "output_dir"])
-
     prepare_basecase.run_prepare_pipeline(
-        Path(args.input_dir).absolute(), Path(args.output_dir).absolute()
+        Path(input_dir).absolute(), Path(output_dir).absolute()
     )
 
 
@@ -216,6 +213,8 @@ def run_contingencies_screening():
 
     dir_exists(Path(args.output_dir).absolute())
 
+    prepare_basecase_dir(args.input_dir, args.output_dir)
+
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
     dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
 
@@ -236,3 +235,6 @@ def run_contingencies_screening():
         Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         dynawo_launcher_solved,
     )
+
+if __name__ == "__main__":
+    run_contingencies_screening()

@@ -7,38 +7,35 @@ import subprocess
 def xml_format_dir(input_dir):
     subprocess.run(
         [
-            (str(PurePath(Path(__file__).absolute()).parent) + "/xml_format_dir.sh"),
-            str(Path(input_dir)),
+            str(PurePath(Path(__file__).absolute()).parent / "xml_format_dir.sh"),
+            str(input_dir)
         ]
     )
 
 
 def create_basecase_directory(input_dir, output_dir):
     # Copy the formatted directory onto the new basecase directory
-    # TODO: NO HARDCODE
-    input_data = Path(str(input_dir))
-    separator = "."
-    formatted_directory = Path(str(input_data.absolute()).split(separator)[0] + ".ORIG.FORMATTED")
-    output_data = Path(str(output_dir))
-    basecase_directory = Path(str(output_data.absolute()).split(separator)[0] + ".BASECASE")
-    shutil.copytree(formatted_directory, basecase_directory)
+    # xml_format_dir.sh adds .FORMATTED suffix in the input directory name
+    formatted_directory = Path(str(input_dir) + ".FORMATTED")
+    shutil.copytree(formatted_directory, output_dir)
 
     # Create the dynawo subdirectory
-    dynawo_directory = Path(basecase_directory / "dynawo")
-    dynawo_directory.mkdir()
+    dynawo_directory = Path(output_dir / "dynawo")
+
+    if not dynawo_directory.exists():
+        dynawo_directory.mkdir()
 
     # In case the JOB.xml file does not already exist, create it
     jobs_file = list(formatted_directory.glob("*.jobs"))[0]
 
-    if not (basecase_directory / "JOB.xml").exists():
-        dest_file = basecase_directory / "JOB.xml"
+    if not (output_dir / "JOB.xml").exists():
+        dest_file = output_dir / "JOB.xml"
         dest_file.symlink_to(Path(jobs_file))
 
     # Move all Dynawo files into the dynawo subdirectory
-    for file in basecase_directory.iterdir():
-        # TODO: Check this, Hades should be hades (or rename it)
-        if file.name != "Hades" and file.name != "dynawo":
-            src_path = PurePath(basecase_directory).joinpath(file.name)
+    for file in output_dir.iterdir():
+        if file.name != "Hades" and file.name != "hades" and file.name != "dynawo":
+            src_path = PurePath(output_dir).joinpath(file.name)
             dst_path = PurePath(dynawo_directory).joinpath(file.name)
             # Check if file is the symlink
             if file.name == "JOB.xml":
@@ -46,6 +43,9 @@ def create_basecase_directory(input_dir, output_dir):
                 Path(src_path).unlink()
             else:
                 shutil.move(src_path, dst_path)
+        # Check if hades folder needs to be renamed
+        if file.name == "Hades":
+            file.rename(PurePath(file.absolute()).parent / "hades")
 
     return dynawo_directory
 
@@ -156,15 +156,31 @@ def format_job_file(basecase_path):
 
 
 def run_add_contg_job(job_file_path):
-    # TODO: This file doesn't exist
-    # Runs the "add_contig_job.py" script to add the new .dyd file
-    subprocess.run(
-        [
-            "python3",
-            (str(PurePath(Path(__file__).absolute()).parent) + "/add_contg_job.py"),
-            (str(job_file_path) + "/JOB.xml"),
-        ]
-    )
+    # Runs the "add_contig_job.py" code to add the new .dyd file
+    tree = etree.parse(str(job_file_path), etree.XMLParser(remove_blank_text=True))
+    root = tree.getroot()
+    ns = etree.QName(root).namespace
+
+    for dyd_file in root.iter(f"{{{ns}}}dynModels"):
+        dir_dyd_file = dyd_file.get("dydFile")
+        dir_dyd = PurePath(dir_dyd_file).parent
+        if len(str(dir_dyd)) != 0:
+            dir_dyd = (dir_dyd / "")
+        dir_dyd_contg = (dir_dyd / "contingency.dyd")
+        event = etree.SubElement(dyd_file.getparent(), f"{{{ns}}}dynModels")
+        event.set("dydFile", dir_dyd_contg)
+
+    find = False
+    for crv_file in root.iter(f"{{{ns}}}curves"):
+        find = True
+
+    if not find:
+        for output in root.iter(f"{{{ns}}}outputs"):
+            event = etree.SubElement(output, f"{{{ns}}}curves")
+            event.set("exportMode", "CSV")
+            event.set("inputFile", "standard_curves.crv")
+
+    save_xml_changes(tree, job_file_path, "UTF-8")
 
 
 def create_dyd_file(file_path, data_dyd):
@@ -267,7 +283,7 @@ def run_prepare_pipeline(input_dir, output_dir):
     xml_format_dir(input_dir)
     basecase_path = create_basecase_directory(input_dir, output_dir)
     event_time = format_job_file(basecase_path)
-    run_add_contg_job(basecase_path)
+    run_add_contg_job((basecase_path / "JOB.xml"))
 
     # TODO: Modify this
     # Note: create_dyd_file and create_curves_file functions are using
