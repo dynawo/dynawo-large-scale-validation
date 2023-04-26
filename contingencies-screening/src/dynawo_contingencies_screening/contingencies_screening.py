@@ -57,12 +57,19 @@ def argument_parser(command_list):
     return args
 
 
-def dir_exists(dir_path):
+def dir_exists(input_dir, output_dir):
     # Check if exists output dir
-    if dir_path.exists():
+    if output_dir.exists():
         remove_dir = input("The output directory exists, do you want to remove it? [y/N] ")
         if remove_dir == "y" or remove_dir == "Y":
-            shutil.rmtree(dir_path)
+            # Check if output directory is the same as the input, or input
+            # directory is subdirectory of the specified output directory
+            if (output_dir == input_dir) or (output_dir in input_dir.parents):
+                print("Error: specified input directory is the same or a subdirectory "
+                      "of the specified output directory.")
+                exit()
+            else:
+                shutil.rmtree(output_dir)
         else:
             exit()
 
@@ -152,11 +159,9 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
 # command line executables
 
 
-def prepare_basecase_dir(input_dir, output_dir):
-    # Run the BASECASE preparation pipeline
-    prepare_basecase.run_prepare_pipeline(
-        Path(input_dir).absolute(), Path(output_dir).absolute()
-    )
+def check_basecase_dir(input_dir):
+    # Run the BASECASE directory check
+    prepare_basecase.check_basecase_dir(Path(input_dir).absolute())
 
 
 def run_hades_contingencies():
@@ -164,7 +169,7 @@ def run_hades_contingencies():
 
     args = argument_parser(["input_dir", "output_dir", "hades_launcher"])
 
-    dir_exists(Path(args.output_dir).absolute())
+    dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
 
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
 
@@ -211,9 +216,9 @@ def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(["input_dir", "output_dir", "hades_launcher", "dynawo_launcher"])
 
-    dir_exists(Path(args.output_dir).absolute())
+    dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
 
-    prepare_basecase_dir(args.input_dir, args.output_dir)
+    prepare_basecase.check_basecase_dir(Path(args.input_dir).absolute())
 
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
     dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
@@ -235,6 +240,7 @@ def run_contingencies_screening():
         Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         dynawo_launcher_solved,
     )
+
 
 if __name__ == "__main__":
     run_contingencies_screening()
