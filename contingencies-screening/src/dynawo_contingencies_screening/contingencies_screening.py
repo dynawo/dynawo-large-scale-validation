@@ -65,9 +65,8 @@ def dir_exists(input_dir, output_dir):
             # Check if output directory is the same as the input, or input
             # directory is subdirectory of the specified output directory
             if (output_dir == input_dir) or (output_dir in input_dir.parents):
-                print("Error: specified input directory is the same or a subdirectory "
-                      "of the specified output directory.")
-                exit()
+                exit("Error: specified input directory is the same or a subdirectory "
+                     "of the specified output directory.")
             else:
                 shutil.rmtree(output_dir)
         else:
@@ -85,7 +84,6 @@ def solve_launcher(launcher):
 
 
 def run_hades_contingencies_code(hades_input_folder, hades_output_folder, hades_launcher):
-
     # Find hades input file
     hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
 
@@ -102,7 +100,6 @@ def run_hades_contingencies_code(hades_input_folder, hades_output_folder, hades_
 
 
 def create_contingencies_ranking_code(hades_input_file, hades_output_file):
-
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
 
@@ -138,13 +135,13 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
-
-    str_table = "{:<15} {:<15} {:<15} {:<15}\n".format("NUM", "NOM", "DATA", "FINAL_SCORE")
+    str_table = "{:<15} {:<15} {:<15} {:<15} {:<15}\n".format("NUM", "NOM", "MIN_VOLT", "MAX_VOLT", "FINAL_SCORE")
     for elem_list in sorted_loadflow_score_list:
-        str_table += "{:<15} {:<15} {:<15} {:<15}\n".format(
+        str_table += "{:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
             elem_list[0],
             elem_list[1]["nom"],
-            elem_list[1]["temp_data"],
+            str(len(elem_list[1]["min_voltages"])),
+            str(len(elem_list[1]["max_voltages"])),
             elem_list[1]["final_score"],
         )
 
