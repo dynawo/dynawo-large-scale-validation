@@ -135,13 +135,21 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
-    str_table = "{:<15} {:<15} {:<15} {:<15} {:<15}\n".format("NUM", "NOM", "MIN_VOLT", "MAX_VOLT", "FINAL_SCORE")
+    str_table = "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
+        "NUM", "NOM", "MIN_VOLT", "MAX_VOLT", "STATUS", "CAUSE", "N_ITER", "DURATION", "CONSTR_GROUP", "CONSTR_TENSION", "CONSTR_TRANSIT", "FINAL_SCORE")
     for elem_list in sorted_loadflow_score_list:
-        str_table += "{:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
+        str_table += "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
             elem_list[0],
             elem_list[1]["nom"],
             str(len(elem_list[1]["min_voltages"])),
             str(len(elem_list[1]["max_voltages"])),
+            elem_list[1]["status"],
+            elem_list[1]["cause"],
+            elem_list[1]["n_iter"],
+            elem_list[1]["calc_duration"],
+            str(len(elem_list[1]["constr_group"])),
+            str(len(elem_list[1]["constr_tension"])),
+            str(len(elem_list[1]["constr_transit"])),
             elem_list[1]["final_score"],
         )
 
