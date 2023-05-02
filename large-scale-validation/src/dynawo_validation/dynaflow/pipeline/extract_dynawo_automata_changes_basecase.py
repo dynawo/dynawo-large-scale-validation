@@ -13,9 +13,7 @@ import pandas as pd
 import argparse
 from lxml import etree
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 parser = argparse.ArgumentParser()
 
@@ -29,9 +27,7 @@ args = parser.parse_args()
 def main():
     xml_BASECASE = args.xml_BASECASE
 
-    dwo_basecase_tree = etree.parse(
-        xml_BASECASE, etree.XMLParser(remove_blank_text=True)
-    )
+    dwo_basecase_tree = etree.parse(xml_BASECASE, etree.XMLParser(remove_blank_text=True))
 
     # BASECASE
 

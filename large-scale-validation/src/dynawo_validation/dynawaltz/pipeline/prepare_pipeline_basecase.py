@@ -106,9 +106,7 @@ def main():
 
     # And now edit the curve files in place
     if astdwo:
-        rst_models, pilot_buses = edit_dwo_curves(
-            edited_case, case_zone, dwo_paths, astdwo
-        )
+        rst_models, pilot_buses = edit_dwo_curves(edited_case, case_zone, dwo_paths, astdwo)
         edit_ast_curves(edited_case, case_zone, rst_models, pilot_buses)
     else:
         _, _ = edit_dwo_curves(edited_case, case_zone, dwo_pathsA, astdwo)
@@ -159,13 +157,10 @@ def clone_input_case(input_case, dest_case):
             )
         elif retcode > 0:
             raise ValueError(
-                f"Copy operation ({input_case} -->{dest_case}) returned error "
-                f"code: {retcode}"
+                f"Copy operation ({input_case} -->{dest_case}) returned error " f"code: {retcode}"
             )
     except OSError as e:
-        print(
-            f"Copy operation ({input_case} -->{dest_case}) failed: ", e, file=sys.stderr
-        )
+        print(f"Copy operation ({input_case} -->{dest_case}) failed: ", e, file=sys.stderr)
         raise
 
 
@@ -271,10 +266,7 @@ def edit_dwo_curves(edited_case, case_zone, dwo_paths, astdwo):
             rst_id = bb.get("id")
             rst_models[rst_id] = []
             if rst_id[4:] not in all_pilot_buses:
-                print(
-                    "WARNING: case contains pilot bus %s, not in the master list"
-                    % rst_id
-                )
+                print("WARNING: case contains pilot bus %s, not in the master list" % rst_id)
     # And their respective participating gens (the ones that are actually connected)
     Gen = namedtuple("Bus", "DM staticId")
     for mc in root.iter("{%s}macroConnect" % ns):
@@ -283,9 +275,7 @@ def edit_dwo_curves(edited_case, case_zone, dwo_paths, astdwo):
             gen_id = mc.get("id2")
             for bb in root.iter("{%s}blackBoxModel" % ns):
                 if bb.get("id") == gen_id:
-                    rst_models[rst_id].append(
-                        Gen(DM=gen_id, staticId=bb.get("staticId"))
-                    )
+                    rst_models[rst_id].append(Gen(DM=gen_id, staticId=bb.get("staticId")))
                     break
 
     # Prepare the curves in the CRV file
@@ -304,13 +294,9 @@ def edit_dwo_curves(edited_case, case_zone, dwo_paths, astdwo):
             continue
         # comments to differentiate SVC controls that belong to the Zone
         if rst_id[4:] in zone_pilot_buses:
-            root.append(
-                etree.Comment(" === Inside %s zone: %s === " % (case_zone, rst_id))
-            )
+            root.append(etree.Comment(" === Inside %s zone: %s === " % (case_zone, rst_id)))
         else:
-            root.append(
-                etree.Comment(" === Outside %s zone: %s === " % (case_zone, rst_id))
-            )
+            root.append(etree.Comment(" === Outside %s zone: %s === " % (case_zone, rst_id)))
         root.append(etree.Element("curve", model=rst_id, variable="U_IMPIN_value"))
         root.append(etree.Element("curve", model=rst_id, variable="levelK_value"))
         # Participating gens: only for SVC controls that belong to the Zone
@@ -376,23 +362,16 @@ def edit_ast_curves(edited_case, case_zone, dwo_rst_models, zone_pilot_buses):
             continue
         if dwo_zonerst[4:] in zone_pilot_buses:
             ast_entrees.append(
-                etree.Comment(
-                    " === Inside %s zone: %s ===  " % (case_zone, dwo_zonerst)
-                )
+                etree.Comment(" === Inside %s zone: %s ===  " % (case_zone, dwo_zonerst))
             )
         else:
             ast_entrees.append(
-                etree.Comment(
-                    " === Outside %s zone: %s === " % (case_zone, dwo_zonerst)
-                )
+                etree.Comment(" === Outside %s zone: %s === " % (case_zone, dwo_zonerst))
             )
         zonerst_num = None
         pilot_busId = None
         for ast_zonerst in donnees_rsts.iterfind(".//{%s}zonerst" % ns):
-            if (
-                ast_zonerst.get("nom").replace(" ", "_").replace(".", "_")
-                == dwo_zonerst[4:]
-            ):
+            if ast_zonerst.get("nom").replace(" ", "_").replace(".", "_") == dwo_zonerst[4:]:
                 zonerst_num = ast_zonerst.get("num")
                 pilot_busId = ast_zonerst.find(".//{%s}pilotedyn" % ns).get("pilbus")
                 break
@@ -439,9 +418,7 @@ def edit_ast_curves(edited_case, case_zone, dwo_rst_models, zone_pilot_buses):
                 )
             )
 
-    ast_entrees.append(
-        etree.Comment(" === below, the contingency-specific curves === ")
-    )
+    ast_entrees.append(etree.Comment(" === below, the contingency-specific curves === "))
 
     # Write out the CRV file, preserving the XML format
     tree.write(

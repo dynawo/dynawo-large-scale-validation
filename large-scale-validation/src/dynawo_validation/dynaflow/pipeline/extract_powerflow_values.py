@@ -47,9 +47,7 @@ import pandas as pd
 from lxml import etree
 from collections import namedtuple
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from dynawo_validation.dynaflow.pipeline.dwo_jobinfo import is_dwohds, is_dwodwo
 
@@ -116,9 +114,7 @@ def main():
             )
         else:
             # Extract the solution values from Dynawo results
-            df_dwo, vl_nomV, branch_info = extract_dynawo_solution(
-                case_dir + dwo_solution
-            )
+            df_dwo, vl_nomV, branch_info = extract_dynawo_solution(case_dir + dwo_solution)
             # Extract the solution values from Hades results
             df_hds = extract_hades_solution(
                 case_dir + HDS_INPUT,
@@ -135,9 +131,7 @@ def main():
     else:
         check_inputfiles(case_dir, "/A" + dwo_solution, "/B" + dwo_solution)
         # Extract the solution values from Dynawo results
-        df_dwoA, vl_nomVA, branch_infoA = extract_dynawo_solution(
-            case_dir + "/A" + dwo_solution
-        )
+        df_dwoA, vl_nomVA, branch_infoA = extract_dynawo_solution(case_dir + "/A" + dwo_solution)
         df_dwoB, vl_nomVB, branch_infoB = extract_dynawo_solution(
             case_dir + "/B" + dwo_solution, caseb=True
         )
@@ -173,9 +167,7 @@ def find_launchers(pathtofiles):
 def check_inputfiles(case_dir, solution_1, solution_2):
     if not os.path.isdir(case_dir):
         raise ValueError(f"case directory {case_dir} not found")
-    if not (
-        os.path.isfile(case_dir + solution_1) and os.path.isfile(case_dir + solution_2)
-    ):
+    if not (os.path.isfile(case_dir + solution_1) and os.path.isfile(case_dir + solution_2)):
         raise ValueError(f"the expected PF solution files are missing in {case_dir}\n")
 
 
@@ -350,9 +342,7 @@ def extract_dwo_bus_inj(root, data, vl_nomv):
         "staticVarCompensator",
     )
     for vl in root.iterfind(".//voltageLevel", root.nsmap):
-        injection_elements = [
-            e for e in vl if etree.QName(e.tag).localname in injection_types
-        ]
+        injection_elements = [e for e in vl if etree.QName(e.tag).localname in injection_types]
         for element in injection_elements:
             bus_name = element.get("bus")
             if bus_name is not None:
@@ -373,9 +363,7 @@ def extract_dwo_bus_inj(root, data, vl_nomv):
     print(f" {len(q_inj):5d} Q-injections")
 
 
-def extract_hades_solution(
-    hades_input, hades_output, vl_nomv, dwo_branches, caseb=False
-):
+def extract_hades_solution(hades_input, hades_output, vl_nomv, dwo_branches, caseb=False):
     """Read all output and return a dataframe."""
     # Some structural info is not in the output; we need to get it from the Hades input
     gridinfo = extract_hds_gridinfo(hades_input)
@@ -531,8 +519,7 @@ def extract_hds_branches(dwo_branches, gridinfo, root, data):
         else:
             bad_ctr += 1
     print(
-        f" {lctr:5d} lines {xctr:5d} xfmrs {psctr:3d} psxfmrs"
-        f" ({bad_ctr} quadrip. not in Dwo)",
+        f" {lctr:5d} lines {xctr:5d} xfmrs {psctr:3d} psxfmrs" f" ({bad_ctr} quadrip. not in Dwo)",
         end="",
     )
 
@@ -563,9 +550,7 @@ def extract_hds_taps(root, gridinfo):
                 f"in Hades output file: dephaseur {dephaseur.get('num')}"
                 "  has no associated transformer!"
             )
-        pstaps[quadrip_name] = int(
-            dephaseur.find("./variables", root.nsmap).get("plot")
-        )
+        pstaps[quadrip_name] = int(dephaseur.find("./variables", root.nsmap).get("plot"))
     return taps, pstaps
 
 
@@ -646,9 +631,7 @@ def save_extracted_values(df_a, df_b, output_file):
     sort_order = [True, True, True]
     tempcol = df.pop("VOLT_LEVEL")
     df.insert(2, "VOLT_LEVEL", tempcol)
-    df.sort_values(
-        by=key_fields, ascending=sort_order, inplace=True, na_position="first"
-    )
+    df.sort_values(by=key_fields, ascending=sort_order, inplace=True, na_position="first")
     df.to_csv(output_file, index=False, sep=";", encoding="utf-8")
     print(f"Saved output to file: {output_file}... ")
 
@@ -663,9 +646,7 @@ def save_nonmatching_elements(df_a, df_b, errors_a_file, errors_b_file):
     elements_not_in_A = list(set_B - set_A)
     elements_not_in_B = list(set_A - set_B)
     if len(elements_not_in_A) != 0:
-        df_not_in_A = df_b.loc[
-            (df_b["ID"] + df_b["ELEMENT_TYPE"]).isin(elements_not_in_A)
-        ]
+        df_not_in_A = df_b.loc[(df_b["ID"] + df_b["ELEMENT_TYPE"]).isin(elements_not_in_A)]
         df_not_in_A.sort_values(by=key_fields, ascending=[True, True, True]).to_csv(
             errors_a_file, index=False, sep=";", encoding="utf-8"
         )
@@ -674,9 +655,7 @@ def save_nonmatching_elements(df_a, df_b, errors_a_file, errors_b_file):
             f"saved in file: {errors_a_file}"
         )
     if len(elements_not_in_B) != 0:
-        df_not_in_B = df_a.loc[
-            (df_a["ID"] + df_a["ELEMENT_TYPE"]).isin(elements_not_in_B)
-        ]
+        df_not_in_B = df_a.loc[(df_a["ID"] + df_a["ELEMENT_TYPE"]).isin(elements_not_in_B)]
         df_not_in_B.sort_values(by=key_fields, ascending=[True, True, True]).to_csv(
             errors_b_file, index=False, sep=";", encoding="utf-8"
         )

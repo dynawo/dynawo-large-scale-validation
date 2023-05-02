@@ -89,9 +89,7 @@ def main():
         clone_base_case(base_case, edited_case)
 
         # Modify the Dynawo case (DYD,PAR,CRV)
-        result = config_dynawo_loads_contingency(
-            edited_case, bus_name, dynawo_buses[bus_name]
-        )
+        result = config_dynawo_loads_contingency(edited_case, bus_name, dynawo_buses[bus_name])
         if result == -1:
             remove_case(edited_case)
             continue
@@ -174,10 +172,7 @@ def remove_case(dest_case):
 def dedup_save(basename, edited_case, deduped_case):
     # If the destination exists, warn and rename it to OLD
     if os.path.exists(deduped_case):
-        print(
-            "   WARNING: destination %s exists! -- renaming it to *__OLD__"
-            % deduped_case
-        )
+        print("   WARNING: destination %s exists! -- renaming it to *__OLD__" % deduped_case)
         os.rename(deduped_case, deduped_case + "__OLD__")
 
     # Save it using "deduplication" (actually, hard links)
@@ -202,9 +197,7 @@ def extract_dynawo_buses(iidm_file, verbose=False):
     root = tree.getroot()
     ns = etree.QName(root).namespace
     buses = dict()
-    Bus_info = namedtuple(
-        "Bus_info", "voltageLevel topology busbarSection loads totalP totalQ"
-    )
+    Bus_info = namedtuple("Bus_info", "voltageLevel topology busbarSection loads totalP totalQ")
 
     # Remember that Dynawo's IIDM files contain buses expressed in
     # both topologies (bus-breaker and node-breaker). By inspection,
@@ -370,10 +363,7 @@ def config_dynawo_loads_contingency(casedir, bus_name, bus_info):
     for load_staticId in bus_info.loads:
         found = False
         for dyn_load in root.iter("{%s}blackBoxModel" % ns):
-            if (
-                dyn_load.get("lib")[0:4] == "Load"
-                and dyn_load.get("staticId") == load_staticId
-            ):
+            if dyn_load.get("lib")[0:4] == "Load" and dyn_load.get("staticId") == load_staticId:
                 found = True
                 load_id = dyn_load.get("id")
                 break
@@ -430,12 +420,8 @@ def config_dynawo_loads_contingency(casedir, bus_name, bus_info):
 
     # Insert the new parset with the params we need
     new_parset = etree.Element("set", id="99991234")
-    new_parset.append(
-        etree.Element("par", type="DOUBLE", name="event_tEvent", value=event_time)
-    )
-    new_parset.append(
-        etree.Element("par", type="BOOL", name="event_stateEvent1", value="true")
-    )
+    new_parset.append(etree.Element("par", type="DOUBLE", name="event_tEvent", value=event_time))
+    new_parset.append(etree.Element("par", type="BOOL", name="event_stateEvent1", value="true"))
     root.append(new_parset)
 
     # Write out the PAR file, preserving the XML format
@@ -506,9 +492,7 @@ def config_dynawo_loads_contingency(casedir, bus_name, bus_info):
     tree = etree.parse(crv_file, etree.XMLParser(remove_blank_text=True))
     root = tree.getroot()
     ns = etree.QName(root).namespace
-    root.append(
-        etree.Element("curve", model="NETWORK", variable=bus_label + "_Upu_value")
-    )
+    root.append(etree.Element("curve", model="NETWORK", variable=bus_label + "_Upu_value"))
     # Write out the CRV file, preserving the XML format
     tree.write(
         crv_file,

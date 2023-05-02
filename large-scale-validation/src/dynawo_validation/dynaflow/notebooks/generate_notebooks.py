@@ -17,9 +17,7 @@ from pathlib import Path
 import re
 import pandas as pd
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 parser = argparse.ArgumentParser()
 

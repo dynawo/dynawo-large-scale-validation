@@ -155,9 +155,7 @@ def main():
     df = pd.DataFrame(metrics_rowdata, columns=col_names)
     metrics_dir = aut_dir + "/../metrics"
     Path(metrics_dir).mkdir(parents=False, exist_ok=True)
-    df.to_csv(
-        metrics_dir + "/aut_diffmetrics.csv", sep=";", index=False, float_format="%.4f"
-    )
+    df.to_csv(metrics_dir + "/aut_diffmetrics.csv", sep=";", index=False, float_format="%.4f")
     print("Saved diffmetrics for automata changes in: %s" % metrics_dir)
 
     ###############################################################################
@@ -182,9 +180,7 @@ def main():
                 shunt_correct = True
             else:
                 shunt_correct = False
-            metrics = calc_metrics(
-                caseA_tw, caseB_tw, ld_bus, norm_factor, shunt_correct
-            )
+            metrics = calc_metrics(caseA_tw, caseB_tw, ld_bus, norm_factor, shunt_correct)
             metrics_rowdata.append({"Contg_case": case_label, "time": tw, **metrics})
 
     # Save the metrics to file
@@ -566,8 +562,7 @@ def load2bus_dict_astdwo(base_case, dwo_paths):
     #
     ld_bus = load2bus_dict(base_case, dwo_paths)
     print(
-        "   Building ld_bus dict from BASECASE: found %d active loads in Dynawo"
-        % len(ld_bus),
+        "   Building ld_bus dict from BASECASE: found %d active loads in Dynawo" % len(ld_bus),
         end="",
     )
     dwo_loadbuses = set(list(ld_bus.values()))

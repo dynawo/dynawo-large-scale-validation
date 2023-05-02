@@ -85,12 +85,8 @@ parser.add_argument(
     "all possible contingencies will be generated (if below MAX_NCASES; "
     "otherwise a random sample is generated)",
 )
-parser.add_argument(
-    "-v", "--verbose", help="increase output verbosity", action="store_true"
-)
-parser.add_argument(
-    "-a", "--allcontg", help="generate all the contingencies", action="store_true"
-)
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+parser.add_argument("-a", "--allcontg", help="generate all the contingencies", action="store_true")
 parser.add_argument(
     "-r",
     "--randomc",
@@ -100,8 +96,7 @@ parser.add_argument(
 parser.add_argument(
     "-l",
     "--list",
-    help="enter regular expressions or contingencies in "
-    "string form separated with pipe(|)",
+    help="enter regular expressions or contingencies in " "string form separated with pipe(|)",
 )
 parser.add_argument("base_case", help="enter base case directory")
 args = parser.parse_args()
@@ -159,17 +154,13 @@ def main():
         raise ValueError(f"Case {base_case} is neither an ast-dwo nor a dwo-dwo case")
 
     # Parse all XML files in the basecase
-    parsed_case = parse_basecase(
-        base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB
-    )
+    parsed_case = parse_basecase(base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB)
 
     # Extract the list of all (active) branches in the Dynawo case
     if astdwo:
         dynawo_branches = extract_dynawo_branches(parsed_case.iidmTree, verbose)
         # And reduce the list to those branches that are matched in Astre
-        dynawo_branches = matching_in_astre(
-            parsed_case.astreTree, dynawo_branches, verbose
-        )
+        dynawo_branches = matching_in_astre(parsed_case.astreTree, dynawo_branches, verbose)
     else:
         dynawo_branches = extract_dynawo_branches(parsed_case.A.iidmTree, verbose)
         dynawo_branchesB = extract_dynawo_branches(parsed_case.B.iidmTree, verbose)
@@ -215,9 +206,7 @@ def main():
 
         # Copy the basecase (unchanged files and dir structure)
         # Note we fix any device names with slashes in them (illegal filenames)
-        contg_casedir = (
-            dirname + "/branch" + disconn_mode[0] + "_" + branch_name.replace("/", "+")
-        )
+        contg_casedir = dirname + "/branch" + disconn_mode[0] + "_" + branch_name.replace("/", "+")
 
         if astdwo:
             # Copy the basecase (unchanged files and dir structure)
@@ -329,10 +318,7 @@ def extract_dynawo_branches(iidm_tree, verbose=False):
     )
 
     if verbose:
-        print(
-            "List of all ACTIVE branches in the Dynawo IIDM file: (total: %d)"
-            % len(branches)
-        )
+        print("List of all ACTIVE branches in the Dynawo IIDM file: (total: %d)" % len(branches))
         branch_list = sorted(branches.keys())
         if len(branch_list) < 10:
             print(branch_list)
@@ -388,10 +374,7 @@ def matching_in_astre(astre_tree, dynawo_branches, verbose=False):
 
     print("\nFound %d branches in Astre file" % len(processed_branchesPQ))
     if verbose:
-        print(
-            "Sample list of all BRANCHES in Astre file: (total: %d)"
-            % len(processed_branchesPQ)
-        )
+        print("Sample list of all BRANCHES in Astre file: (total: %d)" % len(processed_branchesPQ))
         branch_list = sorted(processed_branchesPQ)
         if len(branch_list) < 10:
             print(branch_list)
@@ -476,9 +459,7 @@ def config_dynawo_branch_contingency(
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent
-        )
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
     )
     open_F = "true"
     open_T = "true"
@@ -487,14 +468,10 @@ def config_dynawo_branch_contingency(
     if disc_mode == "TO":
         open_F = "false"
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="BOOL", name="event_disconnectOrigin", value=open_F
-        )
+        etree.Element("{%s}par" % ns, type="BOOL", name="event_disconnectOrigin", value=open_F)
     )
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="BOOL", name="event_disconnectExtremity", value=open_T
-        )
+        etree.Element("{%s}par" % ns, type="BOOL", name="event_disconnectExtremity", value=open_T)
     )
     root.append(new_parset)
 
@@ -530,12 +507,8 @@ def config_dynawo_branch_contingency(
     crv_tree = case_trees.crvTree
     root = crv_tree.getroot()
     ns = etree.QName(root).namespace
-    new_crv1 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_from + "_Upu_value"
-    )
-    new_crv2 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_to + "_Upu_value"
-    )
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_from + "_Upu_value")
+    new_crv2 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_to + "_Upu_value")
     root.append(new_crv1)
     root.append(new_crv2)
     # Write out the CRV file, preserving the XML format
@@ -552,9 +525,7 @@ def config_dynawo_branch_contingency(
     return 0
 
 
-def config_astre_branch_contingency(
-    casedir, astre_tree, branch_name, branch_info, disc_mode
-):
+def config_astre_branch_contingency(casedir, astre_tree, branch_name, branch_info, disc_mode):
     astre_file = casedir + ASTRE_PATH
     print("   Configuring file %s" % astre_file)
     root = astre_tree.getroot()
@@ -716,9 +687,7 @@ def save_total_branchpq(dirname, astdwo, dynawo_branches, processed_branchesPQ):
         )
 
     df = pd.DataFrame(data_list, columns=column_list)
-    df.sort_values(
-        by=["PQdiff_pct"], inplace=True, ascending=False, na_position="first"
-    )
+    df.sort_values(by=["PQdiff_pct"], inplace=True, ascending=False, na_position="first")
     df.to_csv(file_name, index=False, sep=";", float_format="%.3f", encoding="utf-8")
 
     return 0

@@ -16,17 +16,13 @@ import lzma
 import numpy as np
 from lxml import etree
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("xml_CONTGCASE", help="enter xml contg case of Hades")
 parser.add_argument("basecase_files_path", help="enter basecase_files_path")
-parser.add_argument(
-    "-s", "--save", help="File to save csv instead of print", default="None"
-)
+parser.add_argument("-s", "--save", help="File to save csv instead of print", default="None")
 
 args = parser.parse_args()
 
@@ -171,39 +167,25 @@ def main():
     df_dynawo_ratioTapChanger_diff = df_dynawo_ratioTapChanger_diff.rename(
         columns={"TAP_VAL": "BC_VAL"}
     )
-    df_dynawo_ratioTapChanger_diff["CG_VAL"] = df_dynawo_ratioTapChanger_contgcase[
-        "TAP_VAL"
-    ]
+    df_dynawo_ratioTapChanger_diff["CG_VAL"] = df_dynawo_ratioTapChanger_contgcase["TAP_VAL"]
 
     df_dynawo_phaseTapChanger_diff = copy.deepcopy(df_dynawo_phaseTapChanger_basecase)
     df_dynawo_phaseTapChanger_diff = df_dynawo_phaseTapChanger_diff.rename(
         columns={"PSTAP_VAL": "BC_VAL"}
     )
-    df_dynawo_phaseTapChanger_diff["CG_VAL"] = df_dynawo_phaseTapChanger_contgcase[
-        "PSTAP_VAL"
-    ]
+    df_dynawo_phaseTapChanger_diff["CG_VAL"] = df_dynawo_phaseTapChanger_contgcase["PSTAP_VAL"]
 
     df_dynawo_shunt_diff = copy.deepcopy(df_dynawo_shunt_basecase)
-    df_dynawo_shunt_diff = df_dynawo_shunt_diff.rename(
-        columns={"SHUNT_CHG_VAL": "BC_VAL"}
-    )
+    df_dynawo_shunt_diff = df_dynawo_shunt_diff.rename(columns={"SHUNT_CHG_VAL": "BC_VAL"})
     df_dynawo_shunt_diff["CG_VAL"] = df_dynawo_shunt_contgcase["SHUNT_CHG_VAL"]
 
     df_dynawo_branch_diff_1 = copy.deepcopy(df_dynawo_branch_basecase_bus1)
-    df_dynawo_branch_diff_1 = df_dynawo_branch_diff_1.rename(
-        columns={"TOPO_CHG_VAL_1": "BC_VAL"}
-    )
-    df_dynawo_branch_diff_1["CG_VAL"] = df_dynawo_branch_contgcase_bus1[
-        "TOPO_CHG_VAL_1"
-    ]
+    df_dynawo_branch_diff_1 = df_dynawo_branch_diff_1.rename(columns={"TOPO_CHG_VAL_1": "BC_VAL"})
+    df_dynawo_branch_diff_1["CG_VAL"] = df_dynawo_branch_contgcase_bus1["TOPO_CHG_VAL_1"]
 
     df_dynawo_branch_diff_2 = copy.deepcopy(df_dynawo_branch_basecase_bus2)
-    df_dynawo_branch_diff_2 = df_dynawo_branch_diff_2.rename(
-        columns={"TOPO_CHG_VAL_2": "BC_VAL"}
-    )
-    df_dynawo_branch_diff_2["CG_VAL"] = df_dynawo_branch_contgcase_bus2[
-        "TOPO_CHG_VAL_2"
-    ]
+    df_dynawo_branch_diff_2 = df_dynawo_branch_diff_2.rename(columns={"TOPO_CHG_VAL_2": "BC_VAL"})
+    df_dynawo_branch_diff_2["CG_VAL"] = df_dynawo_branch_contgcase_bus2["TOPO_CHG_VAL_2"]
 
     df_dynawo_topo_diff = copy.deepcopy(df_dynawo_branch_diff_1)
 
@@ -212,9 +194,7 @@ def main():
         - df_dynawo_ratioTapChanger_basecase["TAP_VAL"]
     )
 
-    df_dynawo_ratioTapChanger_diff["ABS_DIFF"] = df_dynawo_ratioTapChanger_diff[
-        "DIFF"
-    ].abs()
+    df_dynawo_ratioTapChanger_diff["ABS_DIFF"] = df_dynawo_ratioTapChanger_diff["DIFF"].abs()
 
     df_dynawo_ratioTapChanger_diff.loc[
         df_dynawo_ratioTapChanger_diff["ABS_DIFF"] != 0, "NUM_CHANGES"
@@ -224,23 +204,17 @@ def main():
     ] = 0
 
     df_dynawo_ratioTapChanger_diff["POS_DIFF"] = df_dynawo_ratioTapChanger_diff["DIFF"]
-    df_dynawo_ratioTapChanger_diff.loc[
-        df_dynawo_ratioTapChanger_diff["DIFF"] <= 0, "POS_DIFF"
-    ] = 0
+    df_dynawo_ratioTapChanger_diff.loc[df_dynawo_ratioTapChanger_diff["DIFF"] <= 0, "POS_DIFF"] = 0
 
     df_dynawo_ratioTapChanger_diff["NEG_DIFF"] = df_dynawo_ratioTapChanger_diff["DIFF"]
-    df_dynawo_ratioTapChanger_diff.loc[
-        df_dynawo_ratioTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"
-    ] = 0
+    df_dynawo_ratioTapChanger_diff.loc[df_dynawo_ratioTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"] = 0
 
     df_dynawo_phaseTapChanger_diff["DIFF"] = (
         df_dynawo_phaseTapChanger_contgcase["PSTAP_VAL"]
         - df_dynawo_phaseTapChanger_basecase["PSTAP_VAL"]
     )
 
-    df_dynawo_phaseTapChanger_diff["ABS_DIFF"] = df_dynawo_phaseTapChanger_diff[
-        "DIFF"
-    ].abs()
+    df_dynawo_phaseTapChanger_diff["ABS_DIFF"] = df_dynawo_phaseTapChanger_diff["DIFF"].abs()
 
     df_dynawo_phaseTapChanger_diff.loc[
         df_dynawo_phaseTapChanger_diff["ABS_DIFF"] != 0, "NUM_CHANGES"
@@ -250,18 +224,13 @@ def main():
     ] = 0
 
     df_dynawo_phaseTapChanger_diff["POS_DIFF"] = df_dynawo_phaseTapChanger_diff["DIFF"]
-    df_dynawo_phaseTapChanger_diff.loc[
-        df_dynawo_phaseTapChanger_diff["DIFF"] <= 0, "POS_DIFF"
-    ] = 0
+    df_dynawo_phaseTapChanger_diff.loc[df_dynawo_phaseTapChanger_diff["DIFF"] <= 0, "POS_DIFF"] = 0
 
     df_dynawo_phaseTapChanger_diff["NEG_DIFF"] = df_dynawo_phaseTapChanger_diff["DIFF"]
-    df_dynawo_phaseTapChanger_diff.loc[
-        df_dynawo_phaseTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"
-    ] = 0
+    df_dynawo_phaseTapChanger_diff.loc[df_dynawo_phaseTapChanger_diff["DIFF"] >= 0, "NEG_DIFF"] = 0
 
     df_dynawo_shunt_diff["DIFF"] = (
-        df_dynawo_shunt_contgcase["SHUNT_CHG_VAL"]
-        - df_dynawo_shunt_basecase["SHUNT_CHG_VAL"]
+        df_dynawo_shunt_contgcase["SHUNT_CHG_VAL"] - df_dynawo_shunt_basecase["SHUNT_CHG_VAL"]
     )
 
     df_dynawo_shunt_diff["ABS_DIFF"] = df_dynawo_shunt_diff["DIFF"].abs()
@@ -282,12 +251,8 @@ def main():
 
     df_dynawo_branch_diff_1["ABS_DIFF"] = df_dynawo_branch_diff_1["DIFF"].abs()
 
-    df_dynawo_branch_diff_1.loc[
-        df_dynawo_branch_diff_1["ABS_DIFF"] != 0, "NUM_CHANGES"
-    ] = 1
-    df_dynawo_branch_diff_1.loc[
-        df_dynawo_branch_diff_1["ABS_DIFF"] == 0, "NUM_CHANGES"
-    ] = 0
+    df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["ABS_DIFF"] != 0, "NUM_CHANGES"] = 1
+    df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["ABS_DIFF"] == 0, "NUM_CHANGES"] = 0
 
     df_dynawo_branch_diff_1["POS_DIFF"] = df_dynawo_branch_diff_1["DIFF"]
     df_dynawo_branch_diff_1.loc[df_dynawo_branch_diff_1["DIFF"] <= 0, "POS_DIFF"] = 0
@@ -302,12 +267,8 @@ def main():
 
     df_dynawo_branch_diff_2["ABS_DIFF"] = df_dynawo_branch_diff_2["DIFF"].abs()
 
-    df_dynawo_branch_diff_2.loc[
-        df_dynawo_branch_diff_2["ABS_DIFF"] != 0, "NUM_CHANGES"
-    ] = 1
-    df_dynawo_branch_diff_2.loc[
-        df_dynawo_branch_diff_2["ABS_DIFF"] == 0, "NUM_CHANGES"
-    ] = 0
+    df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["ABS_DIFF"] != 0, "NUM_CHANGES"] = 1
+    df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["ABS_DIFF"] == 0, "NUM_CHANGES"] = 0
 
     df_dynawo_branch_diff_2["POS_DIFF"] = df_dynawo_branch_diff_2["DIFF"]
     df_dynawo_branch_diff_2.loc[df_dynawo_branch_diff_2["DIFF"] <= 0, "POS_DIFF"] = 0

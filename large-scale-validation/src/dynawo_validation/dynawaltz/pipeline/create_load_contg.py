@@ -75,12 +75,8 @@ parser.add_argument(
     "all possible contingencies will be generated (if below MAX_NCASES; "
     "otherwise a random sample is generated)",
 )
-parser.add_argument(
-    "-v", "--verbose", help="increase output verbosity", action="store_true"
-)
-parser.add_argument(
-    "-a", "--allcontg", help="generate all the contingencies", action="store_true"
-)
+parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
+parser.add_argument("-a", "--allcontg", help="generate all the contingencies", action="store_true")
 parser.add_argument(
     "-r",
     "--randomc",
@@ -90,8 +86,7 @@ parser.add_argument(
 parser.add_argument(
     "-l",
     "--list",
-    help="enter regular expressions or contingencies in "
-    "string form separated with pipe(|)",
+    help="enter regular expressions or contingencies in " "string form separated with pipe(|)",
 )
 parser.add_argument("base_case", help="enter base case directory")
 args = parser.parse_args()
@@ -141,21 +136,15 @@ def main():
         raise ValueError(f"Case {base_case} is neither an ast-dwo nor a dwo-dwo case")
 
     # Parse all XML files in the basecase
-    parsed_case = parse_basecase(
-        base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB
-    )
+    parsed_case = parse_basecase(base_case, dwo_paths, ASTRE_PATH, dwo_pathsA, dwo_pathsB)
 
     # Extract the list of all LOADS present in the Dynawo case (by staticID)
     if astdwo:
-        dynawo_loads = extract_dynawo_loads(
-            parsed_case.dydTree, parsed_case.iidmTree, verbose
-        )
+        dynawo_loads = extract_dynawo_loads(parsed_case.dydTree, parsed_case.iidmTree, verbose)
         # And reduce the list to those loads that are matched in Astre
         dynawo_loads = matching_in_astre(parsed_case.astreTree, dynawo_loads, verbose)
     else:
-        dynawo_loads = extract_dynawo_loads(
-            parsed_case.A.dydTree, parsed_case.A.iidmTree, verbose
-        )
+        dynawo_loads = extract_dynawo_loads(parsed_case.A.dydTree, parsed_case.A.iidmTree, verbose)
         dynawo_loadsB = extract_dynawo_loads(
             parsed_case.B.dydTree, parsed_case.B.iidmTree, verbose
         )
@@ -418,14 +407,10 @@ def config_dynawo_load_contingency(
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent
-        )
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
     )
     new_parset.append(
-        etree.Element(
-            "{%s}par" % ns, type="BOOL", name="event_stateEvent1", value="true"
-        )
+        etree.Element("{%s}par" % ns, type="BOOL", name="event_stateEvent1", value="true")
     )
     root.append(new_parset)
 
@@ -460,9 +445,7 @@ def config_dynawo_load_contingency(
     crv_tree = case_trees.crvTree
     root = crv_tree.getroot()
     ns = etree.QName(root).namespace
-    new_crv1 = etree.Element(
-        "{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value"
-    )
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_label + "_Upu_value")
     root.append(new_crv1)
     # Write out the CRV file, preserving the XML format
     crv_tree.write(
@@ -624,9 +607,7 @@ def save_total_loadpq(dirname, astdwo, dynawo_loads, processed_loadsPQ):
         )
 
     df = pd.DataFrame(data_list, columns=column_list)
-    df.sort_values(
-        by=["sumPQdiff_pct"], inplace=True, ascending=False, na_position="first"
-    )
+    df.sort_values(by=["sumPQdiff_pct"], inplace=True, ascending=False, na_position="first")
     df.to_csv(file_name, index=False, sep=";", float_format="%.3f", encoding="utf-8")
 
     return 0

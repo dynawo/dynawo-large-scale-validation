@@ -83,9 +83,7 @@ def main():
             rest_A = -19
             rest_B = -20
             for i in data_files:
-                if i not in data_files_list_sim_A and re.match(
-                    ".*-Hades-aut-diff.csv", i
-                ):
+                if i not in data_files_list_sim_A and re.match(".*-Hades-aut-diff.csv", i):
                     data_files_list_sim_A.append(i)
 
                 if i not in data_files_list_sim_A_TAP_changes and re.match(
@@ -98,9 +96,7 @@ def main():
                     data_files_list_sim_A_PSTAP_changes.append(i)
 
             for i in data_files:
-                if i not in data_files_list_sim_B and re.match(
-                    ".*-Dynawo-aut-diff.csv", i
-                ):
+                if i not in data_files_list_sim_B and re.match(".*-Dynawo-aut-diff.csv", i):
                     data_files_list_sim_B.append(i)
 
                 if i not in data_files_list_sim_B_TAP_changes and re.match(
@@ -118,9 +114,7 @@ def main():
             rest_A = -20
             rest_B = -19
             for i in data_files:
-                if i not in data_files_list_sim_A and re.match(
-                    ".*-Dynawo-aut-diff.csv", i
-                ):
+                if i not in data_files_list_sim_A and re.match(".*-Dynawo-aut-diff.csv", i):
                     data_files_list_sim_A.append(i)
 
                 if i not in data_files_list_sim_A_TAP_changes and re.match(
@@ -133,9 +127,7 @@ def main():
                     data_files_list_sim_A_PSTAP_changes.append(i)
 
             for i in data_files:
-                if i not in data_files_list_sim_B and re.match(
-                    ".*-Hades-aut-diff.csv", i
-                ):
+                if i not in data_files_list_sim_B and re.match(".*-Hades-aut-diff.csv", i):
                     data_files_list_sim_B.append(i)
 
                 if i not in data_files_list_sim_B_TAP_changes and re.match(
@@ -152,9 +144,7 @@ def main():
         rest_A = -21
         rest_B = -21
         for i in data_files:
-            if i not in data_files_list_sim_A and re.match(
-                ".*-DynawoA-aut-diff.csv", i
-            ):
+            if i not in data_files_list_sim_A and re.match(".*-DynawoA-aut-diff.csv", i):
                 data_files_list_sim_A.append(i)
 
             if i not in data_files_list_sim_A_TAP_changes and re.match(
@@ -167,9 +157,7 @@ def main():
                 data_files_list_sim_A_PSTAP_changes.append(i)
 
         for i in data_files:
-            if i not in data_files_list_sim_B and re.match(
-                ".*-DynawoB-aut-diff.csv", i
-            ):
+            if i not in data_files_list_sim_B and re.match(".*-DynawoB-aut-diff.csv", i):
                 data_files_list_sim_B.append(i)
 
             if i not in data_files_list_sim_B_TAP_changes and re.match(

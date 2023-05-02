@@ -56,8 +56,7 @@ def run_pipeline(
                     file_path
                     + "/run_pipeline.sh "
                     + runallopts
-                    + "-A %s -B %s -a %s %s"
-                    % (launcherA, launcherB, base_case, results_dir),
+                    + "-A %s -B %s -a %s %s" % (launcherA, launcherB, base_case, results_dir),
                     shell=True,
                 )
         else:
@@ -102,8 +101,7 @@ def run_pipeline(
                     file_path
                     + "/run_pipeline.sh "
                     + runallopts
-                    + "-A %s -B %s %s %s"
-                    % (launcherA, launcherB, base_case, results_dir),
+                    + "-A %s -B %s %s %s" % (launcherA, launcherB, base_case, results_dir),
                     shell=True,
                 )
         else:

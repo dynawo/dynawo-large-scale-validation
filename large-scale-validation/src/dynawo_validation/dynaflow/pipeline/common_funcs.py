@@ -241,9 +241,7 @@ def parse_basecase(base_case, dwo_paths, asthds_path, dwo_pathsA, dwo_pathsB):
     Parsed_dwodwo_case = namedtuple("Parsed_dwodwo_case", "A B")
 
     if dwo_pathsA is None and dwo_pathsB is None:
-        asthdsTree = etree.parse(
-            base_case + asthds_path, etree.XMLParser(remove_blank_text=True)
-        )
+        asthdsTree = etree.parse(base_case + asthds_path, etree.XMLParser(remove_blank_text=True))
         iidmTree = etree.parse(
             base_case + "/" + dwo_paths.iidmFile,
             etree.XMLParser(remove_blank_text=True),

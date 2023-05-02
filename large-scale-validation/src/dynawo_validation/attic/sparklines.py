@@ -151,9 +151,9 @@ def sparkline(
     bio = BytesIO()
     plt.savefig(bio)
     plt.close()
-    html = """<img src="data:image/png;base64,%s"/>""" % base64.b64encode(
-        bio.getvalue()
-    ).decode("utf-8")
+    html = """<img src="data:image/png;base64,%s"/>""" % base64.b64encode(bio.getvalue()).decode(
+        "utf-8"
+    )
     return html
 
 

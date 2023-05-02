@@ -94,9 +94,7 @@ def main():
         for j in range(len(groups[i])):
             data_list["GROUP"].append(i)
             data_list["DEVICE_TYPE"].append(aut_df.loc[groups[i][j], "DEVICE_TYPE"])
-            data_list["DEVICE"].append(
-                aut_df.loc[groups[i][j], "DEVICE"] + "_" + str(i)
-            )
+            data_list["DEVICE"].append(aut_df.loc[groups[i][j], "DEVICE"] + "_" + str(i))
             data_list["TIME"].append(aut_df.loc[groups[i][j], "TIME"])
             data_list["EVENT"].append(aut_df.loc[groups[i][j], "EVENT"])
             data_list["EVENT_MESSAGE"].append(aut_df.loc[groups[i][j], "EVENT_MESSAGE"])
@@ -308,9 +306,7 @@ def insert_HVDCLines(iidm_tree, G, n_edges):
                         adm = 1 / float(hvdc.get("r"))
                         hvdc_id = hvdc.get("id")
                         if (bus1, bus2) not in G.edges:
-                            G.add_edge(
-                                bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm
-                            )
+                            G.add_edge(bus1, bus2, value=adm, id=hvdc_id, pa=p1, imp=1 / adm)
                         else:
                             prev_dict = G.get_edge_data(bus1, bus2)
                             G.add_edge(

@@ -1,49 +1,35 @@
-import os
-import argparse
-from pathlib import Path
-import pandas as pd
+from pathlib import Path, PurePath
+import warnings
 
 
-def parser(args_type):
-    p = argparse.ArgumentParser()
-    if args_type == 1:
-        p.add_argument(
-            "case_dir",
-            help="enter the path to the folder containing the case files",
+def check_basecase_dir(input_dir):
+    # Check input has both directories
+    if not Path(input_dir / "dynawo").is_dir():
+        exit(
+            "Error: missing 'dynawo' directory in the input folder (name must be as shown in this message)"
         )
-    if args_type == 2:
-        p.add_argument(
-            "job_file",
-            help="TODO: explain",
-        )
-        p.add_argument(
-            "pepito",
-            help="TODO: explain",
+    if not Path(input_dir / "hades").is_dir():
+        exit(
+            "Error: missing 'hades' directory in the input folder (name must be as shown in this message)"
         )
 
-    args = p.parse_args()
-    return args
+    for file in input_dir.iterdir():
+        if PurePath(file).name != "dynawo" and PurePath(file).name != "hades":
+            warnings.warn("Input directory should only contain the 'dynawo' and 'hades' folders")
+            break
 
+    # Check hades dir is not empty and has only 1 file ('donneesEntreeHADES2*.xml')
+    has_next = next(Path(input_dir / "hades").iterdir(), None)
+    if has_next is not None:
+        for file in Path(input_dir / "hades").iterdir():
+            if not (PurePath(file).name.startswith("donneesEntreeHADES2")) or (
+                file.suffix != ".xml"
+            ):
+                exit(
+                    "Error: 'hades' directory in the input folder "
+                    "should only contain the 'donneesEntreeHADES2*.xml' case-file"
+                )
+    else:
+        exit("Error: 'hades' directory in the input folder should not be empty")
 
-def xml_format_dir():
-    args = parser(1)
-
-    os.system(
-        str(Path(os.path.dirname(os.path.abspath(__file__))))
-        + "/xml_format_dir.sh "
-        + str(Path(args.case_dir))
-    )
-
-
-def format_job_file():
-    args = parser(2)
-
-    os.system(
-        str(Path(os.path.dirname(os.path.abspath(__file__))))
-        + "/xml_format_dir.sh "
-        + str(Path(args.case_dir))
-    )
-
-
-if __name__ == "__main__":
-    format_job_file()
+    # TODO: Check dynawo directory

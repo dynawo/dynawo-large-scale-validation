@@ -133,10 +133,8 @@ def main():
         # Extract the events from Dynawo results
         df_dwo = extract_dynawo_events(run_case + dwo_events_in, run_case + dyd_file)
         # Sort and save
-        save_extracted_event(
-            df_dwo, run_case + DYNAWO_EVENTS_OUT
-        )
-                    
+        save_extracted_event(df_dwo, run_case + DYNAWO_EVENTS_OUT)
+
     elif is_dwodwo(run_case):
         # construct Dynawo paths from the info in the JOB_A and JOB_B files
         dwo_pathsA, dwo_pathsB = get_dwodwo_jobpaths(run_case)
@@ -183,10 +181,7 @@ def check_inputfiles(run_case, events_in_1, events_in_2):
     # remove trailing slash
     if run_case[-1] == "/":
         run_case = run_case[:-1]
-    if not (
-        os.path.isfile(run_case + events_in_1)
-        and os.path.isfile(run_case + events_in_2)
-    ):
+    if not (os.path.isfile(run_case + events_in_1) and os.path.isfile(run_case + events_in_2)):
         raise ValueError("the expected output files are missing in %s\n" % run_case)
 
 
@@ -212,26 +207,16 @@ def extract_astre_events(astre_input):
         elif event.get("type") == "7" and event.get("evenement") == "2":  # PRISEMOINS1
             append_astre_data(data, event, devtype_loadxfmer, "TapDown")
         # Shunts
-        elif (
-            event.get("type") == "4" and event.get("evenement") == "21"
-        ):  # ACMC_ENCLENCHEMENT
+        elif event.get("type") == "4" and event.get("evenement") == "21":  # ACMC_ENCLENCHEMENT
             append_astre_data(data, event, devtype_shunt, "ShuntConnected")
-        elif (
-            event.get("type") == "4" and event.get("evenement") == "22"
-        ):  # ACMC_DECLENCHEMENT
+        elif event.get("type") == "4" and event.get("evenement") == "22":  # ACMC_DECLENCHEMENT
             append_astre_data(data, event, devtype_shunt, "ShuntDisconnected")
-        elif (
-            event.get("type") == "4" and event.get("evenement") == "33"
-        ):  # SMACC_ENCLENCHEMENT
+        elif event.get("type") == "4" and event.get("evenement") == "33":  # SMACC_ENCLENCHEMENT
             append_astre_data(data, event, devtype_shunt, "ShuntConnected")
-        elif (
-            event.get("type") == "4" and event.get("evenement") == "34"
-        ):  # SMACC_DECLENCHEMENT
+        elif event.get("type") == "4" and event.get("evenement") == "34":  # SMACC_DECLENCHEMENT
             append_astre_data(data, event, devtype_shunt, "ShuntDisconnected")
         # K-levels
-        elif (
-            event.get("type") == "2" and event.get("evenement") == "18"
-        ):  # RST_CONSIGNE
+        elif event.get("type") == "2" and event.get("evenement") == "18":  # RST_CONSIGNE
             append_astre_data(data, event, devtype_klevel, "NewRstLevel")
 
     # Translate the device IDs to their names
@@ -376,9 +361,7 @@ def dynawo_id2name(data, dynawo_dyd):
     for dm in root.iter("{%s}blackBoxModel" % ns):
         static_id = dm.get("staticId")
         if static_id is not None:
-            dm_names[dm.get("id")] = Dev_info(
-                lib_name=dm.get("lib"), static_id=static_id
-            )
+            dm_names[dm.get("id")] = Dev_info(lib_name=dm.get("lib"), static_id=static_id)
 
     # Now, depending on the device type (row[0]), translate the
     # dynamic model id (row[1]) to its static name

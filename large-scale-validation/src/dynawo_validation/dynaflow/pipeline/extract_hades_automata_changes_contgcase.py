@@ -15,18 +15,14 @@ import argparse
 import lzma
 from lxml import etree
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument("xml_CONTGCASE", help="enter xml contg case of Hades")
 parser.add_argument("basecase_files_path", help="enter basecase_files_path")
 parser.add_argument("hades_basecase_xml", help="enter hades_basecase_xml")
-parser.add_argument(
-    "-s", "--save", help="File to save csv instead of print", default="None"
-)
+parser.add_argument("-s", "--save", help="File to save csv instead of print", default="None")
 
 args = parser.parse_args()
 
@@ -90,28 +86,20 @@ def main():
 
     data_keys = hades_regleurs_contg.keys()
     data_list = hades_regleurs_contg.values()
-    df_hades_regleurs_contg = pd.DataFrame(
-        data=data_list, index=data_keys, columns=["AUT_VAL"]
-    )
+    df_hades_regleurs_contg = pd.DataFrame(data=data_list, index=data_keys, columns=["AUT_VAL"])
 
     data_keys = hades_dephaseurs_contg.keys()
     data_list = hades_dephaseurs_contg.values()
-    df_hades_dephaseurs_contg = pd.DataFrame(
-        data=data_list, index=data_keys, columns=["AUT_VAL"]
-    )
+    df_hades_dephaseurs_contg = pd.DataFrame(data=data_list, index=data_keys, columns=["AUT_VAL"])
 
     df_hades_regleurs_diff = copy.deepcopy(df_hades_regleurs_basecase)
 
     df_hades_dephaseurs_diff = copy.deepcopy(df_hades_dephaseurs_basecase)
 
-    df_hades_regleurs_diff = df_hades_regleurs_diff.rename(
-        columns={"AUT_VAL": "BC_VAL"}
-    )
+    df_hades_regleurs_diff = df_hades_regleurs_diff.rename(columns={"AUT_VAL": "BC_VAL"})
     df_hades_regleurs_diff["CG_VAL"] = df_hades_regleurs_contg["AUT_VAL"]
 
-    df_hades_dephaseurs_diff = df_hades_dephaseurs_diff.rename(
-        columns={"AUT_VAL": "BC_VAL"}
-    )
+    df_hades_dephaseurs_diff = df_hades_dephaseurs_diff.rename(columns={"AUT_VAL": "BC_VAL"})
     df_hades_dephaseurs_diff["CG_VAL"] = df_hades_dephaseurs_contg["AUT_VAL"]
 
     df_hades_regleurs_diff["DIFF"] = (
@@ -120,12 +108,8 @@ def main():
 
     df_hades_regleurs_diff["ABS_DIFF"] = df_hades_regleurs_diff["DIFF"].abs()
 
-    df_hades_regleurs_diff.loc[
-        df_hades_regleurs_diff["ABS_DIFF"] != 0, "NUM_CHANGES"
-    ] = 1
-    df_hades_regleurs_diff.loc[
-        df_hades_regleurs_diff["ABS_DIFF"] == 0, "NUM_CHANGES"
-    ] = 0
+    df_hades_regleurs_diff.loc[df_hades_regleurs_diff["ABS_DIFF"] != 0, "NUM_CHANGES"] = 1
+    df_hades_regleurs_diff.loc[df_hades_regleurs_diff["ABS_DIFF"] == 0, "NUM_CHANGES"] = 0
 
     df_hades_regleurs_diff["POS_DIFF"] = df_hades_regleurs_diff["DIFF"]
     df_hades_regleurs_diff.loc[df_hades_regleurs_diff["DIFF"] <= 0, "POS_DIFF"] = 0
@@ -139,12 +123,8 @@ def main():
 
     df_hades_dephaseurs_diff["ABS_DIFF"] = df_hades_dephaseurs_diff["DIFF"].abs()
 
-    df_hades_dephaseurs_diff.loc[
-        df_hades_dephaseurs_diff["ABS_DIFF"] != 0, "NUM_CHANGES"
-    ] = 1
-    df_hades_dephaseurs_diff.loc[
-        df_hades_dephaseurs_diff["ABS_DIFF"] == 0, "NUM_CHANGES"
-    ] = 0
+    df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["ABS_DIFF"] != 0, "NUM_CHANGES"] = 1
+    df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["ABS_DIFF"] == 0, "NUM_CHANGES"] = 0
 
     df_hades_dephaseurs_diff["POS_DIFF"] = df_hades_dephaseurs_diff["DIFF"]
     df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["DIFF"] <= 0, "POS_DIFF"] = 0
@@ -152,9 +132,7 @@ def main():
     df_hades_dephaseurs_diff["NEG_DIFF"] = df_hades_dephaseurs_diff["DIFF"]
     df_hades_dephaseurs_diff.loc[df_hades_dephaseurs_diff["DIFF"] >= 0, "NEG_DIFF"] = 0
 
-    has_changed_regleurs = df_hades_regleurs_diff.loc[
-        (df_hades_regleurs_diff.NUM_CHANGES != 0)
-    ]
+    has_changed_regleurs = df_hades_regleurs_diff.loc[(df_hades_regleurs_diff.NUM_CHANGES != 0)]
     has_changed_dephaseurs = df_hades_dephaseurs_diff.loc[
         (df_hades_dephaseurs_diff.NUM_CHANGES != 0)
     ]

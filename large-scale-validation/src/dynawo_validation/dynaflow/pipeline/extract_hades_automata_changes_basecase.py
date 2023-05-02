@@ -13,9 +13,7 @@ import pandas as pd
 import argparse
 from lxml import etree
 
-sys.path.insert(
-    1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(1, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 parser = argparse.ArgumentParser()
 
@@ -43,9 +41,7 @@ def main():
         if pstap_ID != "0" and pstap_ID is not None:
             pstap2xfmr[pstap_ID] = branch.get("nom")
 
-    hds_basecase_tree = etree.parse(
-        xml_BASECASE, etree.XMLParser(remove_blank_text=True)
-    )
+    hds_basecase_tree = etree.parse(xml_BASECASE, etree.XMLParser(remove_blank_text=True))
 
     # BASECASE
 
@@ -79,21 +75,15 @@ def main():
 
     data_keys = hades_regleurs_basecase.keys()
     data_list = hades_regleurs_basecase.values()
-    df_hades_regleurs_basecase = pd.DataFrame(
-        data=data_list, index=data_keys, columns=["AUT_VAL"]
-    )
-    df_hades_regleurs_basecase.to_csv(
-        save_path + "df_hades_regleurs_basecase.csv", sep=";"
-    )
+    df_hades_regleurs_basecase = pd.DataFrame(data=data_list, index=data_keys, columns=["AUT_VAL"])
+    df_hades_regleurs_basecase.to_csv(save_path + "df_hades_regleurs_basecase.csv", sep=";")
 
     data_keys = hades_dephaseurs_basecase.keys()
     data_list = hades_dephaseurs_basecase.values()
     df_hades_dephaseurs_basecase = pd.DataFrame(
         data=data_list, index=data_keys, columns=["AUT_VAL"]
     )
-    df_hades_dephaseurs_basecase.to_csv(
-        save_path + "df_hades_dephaseurs_basecase.csv", sep=";"
-    )
+    df_hades_dephaseurs_basecase.to_csv(save_path + "df_hades_dephaseurs_basecase.csv", sep=";")
 
     print("Automata changes of HADES_BASECASE saved")
 

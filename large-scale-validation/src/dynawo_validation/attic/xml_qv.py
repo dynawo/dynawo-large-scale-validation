@@ -27,15 +27,9 @@ def main():
 
 def print_xmltree(node, level=1, only_with_IDs=False):
     for child in node:
-        if not isinstance(
-            child.tag, str
-        ):  # skip ProcessingInstructions, Comments, Entities
+        if not isinstance(child.tag, str):  # skip ProcessingInstructions, Comments, Entities
             continue
-        if (
-            only_with_IDs
-            and level > 5
-            and (child.get("id") is None and child.get("nom") is None)
-        ):
+        if only_with_IDs and level > 5 and (child.get("id") is None and child.get("nom") is None):
             continue
         tag = etree.QName(child)
         print(

@@ -238,10 +238,7 @@ def main(
         df = delta
         if check.value:
             stable = np.where(
-                df.is_preStab_ast
-                & df.is_preStab_dwo
-                & df.is_postStab_ast
-                & df.is_postStab_dwo
+                df.is_preStab_ast & df.is_preStab_dwo & df.is_postStab_ast & df.is_postStab_dwo
             )
             df = df.iloc[stable]
         mask_ = [mask.value in x for x in df.vars]
@@ -289,8 +286,7 @@ def main(
                 break
         print(f"Warning: reducing the number of shown points to: {filter.sum()}")
         print(
-            f"(not showing points with abs(1-x/y) < {r1}"
-            f" and abs(x),abs(y) < {r2}*data_scale)"
+            f"(not showing points with abs(1-x/y) < {r1}" f" and abs(x),abs(y) < {r2}*data_scale)"
         )
         return df.loc[filter]
 
@@ -304,9 +300,7 @@ def main(
         if MATCH_CRV_AT_PRECONTG_TIME:
             idx_match_ast = abs(df_ast["time"] - MATCH_CRV_AT_PRECONTG_TIME).idxmin()
             idx_match_dwo = abs(df_dwo["time"] - MATCH_CRV_AT_PRECONTG_TIME).idxmin()
-            yoffset = (
-                df_ast[var2.value][idx_match_ast] - df_dwo[var2.value][idx_match_dwo]
-            )
+            yoffset = df_ast[var2.value][idx_match_ast] - df_dwo[var2.value][idx_match_dwo]
         else:
             yoffset = 0
         with g.batch_update():
@@ -332,9 +326,7 @@ def main(
         if MATCH_CRV_AT_PRECONTG_TIME:
             idx_match_ast = abs(df_ast["time"] - MATCH_CRV_AT_PRECONTG_TIME).idxmin()
             idx_match_dwo = abs(df_dwo["time"] - MATCH_CRV_AT_PRECONTG_TIME).idxmin()
-            yoffset = (
-                df_ast[var2.value][idx_match_ast] - df_dwo[var2.value][idx_match_dwo]
-            )
+            yoffset = df_ast[var2.value][idx_match_ast] - df_dwo[var2.value][idx_match_dwo]
         else:
             yoffset = 0
         with g.batch_update():
@@ -429,9 +421,7 @@ def main(
                 font=dict(family="Arial", size=18),
             ),
         )
-        subfig_curve_and_events.write_image(
-            "fig_curve_and_events.pdf", engine="kaleido"
-        )
+        subfig_curve_and_events.write_image("fig_curve_and_events.pdf", engine="kaleido")
 
     ###########################################################
     # END OF INNER FUNCTIONS; MAIN CODE STARTS HERE
@@ -465,14 +455,10 @@ def main(
     ):
         raise ValueError("Input datafiles (metrics) not found for %s" % CRV_DIR)
 
-    delta = pd.read_csv(
-        crv_reducedparams_file, sep=";", index_col=False, compression="infer"
-    )
+    delta = pd.read_csv(crv_reducedparams_file, sep=";", index_col=False, compression="infer")
     delta.fillna(-1, inplace=True)
 
-    aut_metrics = pd.read_csv(
-        aut_metrics_file, sep=";", index_col=False, compression="infer"
-    )
+    aut_metrics = pd.read_csv(aut_metrics_file, sep=";", index_col=False, compression="infer")
     aut_metrics["global_aut"] = aut_metrics[aut_metrics.columns[1:]].mean(axis=1)
 
     aut_tw_metrics = pd.read_csv(
@@ -496,9 +482,7 @@ def main(
     # Load the curve data for the first case
     contg_cases = list(delta["dev"].unique())
     contg_case0 = contg_cases[0]
-    df_ast, df_dwo, df_lk, T_END = get_curve_dfs(
-        CRV_DIR, PREFIX, contg_case0, IS_DWO_DWO
-    )
+    df_ast, df_dwo, df_lk, T_END = get_curve_dfs(CRV_DIR, PREFIX, contg_case0, IS_DWO_DWO)
     vars_dwo = df_dwo.columns[1:]  # Astre's var names are assumed to be the same
     var0 = vars_dwo[0]
     var2 = widgets.Dropdown(options=vars_dwo, value=var0, description="Variable: ")
@@ -530,9 +514,7 @@ def main(
         value="NETWORK",
         description="Var. group: ",
     )
-    dev = widgets.Dropdown(
-        options=contg_cases, value=contg_case0, description="Contg. case: "
-    )
+    dev = widgets.Dropdown(options=contg_cases, value=contg_case0, description="Contg. case: ")
     container = widgets.HBox([check, mask, var, dev, var2])
 
     # Initialize Plot Traces
@@ -545,9 +527,7 @@ def main(
         mode="markers",
         marker_color=df.TT_ast,
         marker_size=5
-        + 45
-        * (df.dPP_ast - min(df.dPP_ast))
-        / max(1.0e-6, max(df.dPP_ast) - min(df.dPP_ast)),
+        + 45 * (df.dPP_ast - min(df.dPP_ast)) / max(1.0e-6, max(df.dPP_ast) - min(df.dPP_ast)),
         text=df["dev"] + "<br>" + df["vars"],
         xaxis="x1",
         yaxis="y1",
