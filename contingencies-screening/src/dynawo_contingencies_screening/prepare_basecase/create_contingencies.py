@@ -2,8 +2,28 @@ from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
 
 
-def generate_branch_contingency(root, element_name):
-    pass
+def generate_branch_contingency(root, element_name, disc_mode="BOTH"):
+    # TODO: Implement a way to get the disc_mode from the user
+    # Start by looking for the element entry
+    hades_branch = None
+    reseau = root.find("./reseau", root.nsmap)
+    donneesGroupes = reseau.find("./donneesQuadripoles", root.nsmap)
+    for g in donneesGroupes.iterfind("./quadripole", root.nsmap):
+        if g.get("nom") == element_name:
+            hades_branch = g
+            break
+
+    # If element does not exist, exit program
+    if hades_branch is None:
+        exit("Error: Generator with the provided name does not exist")
+
+    if disc_mode == "FROM":
+        hades_branch.set("nor", "-1")
+    elif disc_mode == "TO":
+        hades_branch.set("nex", "-1")
+    else:
+        hades_branch.set("nex", "-1")
+        hades_branch.set("nor", "-1")
 
 
 def generate_generator_contingency(root, element_name):
@@ -41,7 +61,20 @@ def generate_load_contingency(root, element_name):
 
 
 def generate_shunt_contingency(root, element_name):
-    pass
+    # Start by looking for the element entry
+    hades_shunt = None
+    reseau = root.find("./reseau", root.nsmap)
+    donneesShunts = reseau.find("./donneesShunts", root.nsmap)
+    for g in donneesShunts.iterfind("./shunt", root.nsmap):
+        if g.get("nom") == element_name:
+            hades_shunt = g
+            break
+
+    # If element does not exist, exit program
+    if hades_shunt is None:
+        exit("Error: Shunt with the provided name does not exist")
+
+    hades_shunt.set("noeud", "-1")
 
 
 def generate_contingency(
