@@ -133,7 +133,7 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file):
     # Parse hades xml output file
     parsed_hades_output_file = manage_files.parse_xml_file(hades_output_file)
 
-    # Get list of all contingencies
+    # Get dict of all contingencies
     hades_contingencies_dict = extract_results_data.get_contingencies_dict(parsed_hades_input_file)
 
     # Collect Hades results in dict format
@@ -164,7 +164,7 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 def display_results_table(output_dir, sorted_loadflow_score_list):
     str_table = "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
         "NUM",
-        "NOM",
+        "NAME",
         "MIN_VOLT",
         "MAX_VOLT",
         "STATUS",
@@ -179,7 +179,7 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
     for elem_list in sorted_loadflow_score_list:
         str_table += "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
             elem_list[0],
-            elem_list[1]["nom"],
+            elem_list[1]["name"],
             str(len(elem_list[1]["min_voltages"])),
             str(len(elem_list[1]["max_voltages"])),
             elem_list[1]["status"],

@@ -11,7 +11,10 @@ def get_contingencies_dict(parsed_hades_input_file):
 
     contingencies_dict = {}
     for variante in root.iter("{%s}variante" % ns):
-        contingencies_dict[variante.attrib["num"]] = {"nom": variante.attrib["nom"]}
+        node_impact_list = []
+        for posteimpacte in variante.iter("{%s}posteimpacte" % ns):
+            node_impact_list.append(posteimpacte.attrib["numposte"])
+        contingencies_dict[variante.attrib["num"]] = {"name": variante.attrib["nom"], "node_impact": node_impact_list}
 
     return contingencies_dict
 
@@ -22,10 +25,13 @@ def get_voltages(root, ns, contingencies_list):
     min_voltages_dict = {key: [] for key in contingencies_list}
 
     for entry in root.iter("{%s}posteSurv" % ns):
-        # Store the VMin value and its contingency
-        min_voltages_dict[entry.attrib["varianteVmin"]].append(entry.attrib["vmin"])
-        # Store the VMax value and its contingency
-        max_voltages_dict[entry.attrib["varianteVmax"]].append(entry.attrib["vmax"])
+        vmin = entry.attrib["vmin"]
+        vmax = entry.attrib["vmax"]
+        if vmin != vmax:
+            # Store the VMin value and its contingency
+            min_voltages_dict[entry.attrib["varianteVmin"]].append(vmin)
+            # Store the VMax value and its contingency
+            max_voltages_dict[entry.attrib["varianteVmax"]].append(vmax)
 
     return min_voltages_dict, max_voltages_dict
 
