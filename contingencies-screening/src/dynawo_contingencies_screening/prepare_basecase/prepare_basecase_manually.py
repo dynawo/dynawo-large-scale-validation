@@ -6,10 +6,7 @@ import subprocess
 
 def xml_format_dir(input_dir):
     subprocess.run(
-        [
-            str(PurePath(Path(__file__).absolute()).parent / "xml_format_dir.sh"),
-            str(input_dir)
-        ]
+        [str(PurePath(Path(__file__).absolute()).parent / "xml_format_dir.sh"), str(input_dir)]
     )
 
 
@@ -165,8 +162,8 @@ def run_add_contg_job(job_file_path):
         dir_dyd_file = dyd_file.get("dydFile")
         dir_dyd = PurePath(dir_dyd_file).parent
         if len(str(dir_dyd)) != 0:
-            dir_dyd = (dir_dyd / "")
-        dir_dyd_contg = (dir_dyd / "contingency.dyd")
+            dir_dyd = dir_dyd / ""
+        dir_dyd_contg = dir_dyd / "contingency.dyd"
         event = etree.SubElement(dyd_file.getparent(), f"{{{ns}}}dynModels")
         event.set("dydFile", dir_dyd_contg)
 

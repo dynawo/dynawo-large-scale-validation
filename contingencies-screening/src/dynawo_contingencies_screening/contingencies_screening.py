@@ -65,8 +65,10 @@ def dir_exists(input_dir, output_dir):
             # Check if output directory is the same as the input, or input
             # directory is subdirectory of the specified output directory
             if (output_dir == input_dir) or (output_dir in input_dir.parents):
-                exit("Error: specified input directory is the same or a subdirectory "
-                     "of the specified output directory.")
+                exit(
+                    "Error: specified input directory is the same or a subdirectory "
+                    "of the specified output directory."
+                )
             else:
                 shutil.rmtree(output_dir)
         else:
@@ -136,7 +138,19 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
     str_table = "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
-        "NUM", "NOM", "MIN_VOLT", "MAX_VOLT", "STATUS", "CAUSE", "N_ITER", "DURATION", "CONSTR_GROUP", "CONSTR_TENSION", "CONSTR_TRANSIT", "FINAL_SCORE")
+        "NUM",
+        "NOM",
+        "MIN_VOLT",
+        "MAX_VOLT",
+        "STATUS",
+        "CAUSE",
+        "N_ITER",
+        "DURATION",
+        "CONSTR_GROUP",
+        "CONSTR_TENSION",
+        "CONSTR_TRANSIT",
+        "FINAL_SCORE",
+    )
     for elem_list in sorted_loadflow_score_list:
         str_table += "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
             elem_list[0],

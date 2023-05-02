@@ -71,21 +71,16 @@ def get_fault_data(root, ns, contingencies_list):
                     constraint_entry["typeLim"] = constraint.attrib["typeLim"]
                     constraint_entry["type"] = constraint.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
+                elif constraint.tag == ("{%s}contrTransit" % ns):
+                    constraint_entry["tempo"] = constraint.attrib["tempo"]
+                    constraint_entry["beforeMW"] = constraint.attrib["avantMW"]
+                    constraint_entry["afterMW"] = constraint.attrib["apresMW"]
+                    constraint_entry["sideOr"] = constraint.attrib["coteOr"]
+                    constraint_dict["contrTransit"][contingency_number].append(constraint_entry)
                 else:
-                    if constraint.tag == ("{%s}contrTransit" % ns):
-                        constraint_entry["tempo"] = constraint.attrib["tempo"]
-                        constraint_entry["beforeMW"] = constraint.attrib["avantMW"]
-                        constraint_entry["afterMW"] = constraint.attrib["apresMW"]
-                        constraint_entry["sideOr"] = constraint.attrib["coteOr"]
-                        constraint_dict["contrTransit"][contingency_number].append(
-                            constraint_entry
-                        )
-                    else:
-                        constraint_entry["threshType"] = constraint.attrib["typeSeuil"]
-                        constraint_entry["tempo"] = constraint.attrib["tempo"]
-                        constraint_dict["contrTension"][contingency_number].append(
-                            constraint_entry
-                        )
+                    constraint_entry["threshType"] = constraint.attrib["typeSeuil"]
+                    constraint_entry["tempo"] = constraint.attrib["tempo"]
+                    constraint_dict["contrTension"][contingency_number].append(constraint_entry)
 
     return (
         status_dict,
