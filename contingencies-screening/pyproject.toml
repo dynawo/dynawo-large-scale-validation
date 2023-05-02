@@ -64,6 +64,7 @@ check_basecase_dir = "dynawo_contingencies_screening.contingencies_screening:che
 run_hades_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_hades_contingencies"
 create_contingencies_ranking = "dynawo_contingencies_screening.contingencies_screening:create_contingencies_ranking"
 run_dynawo_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_dynawo_contingencies"
+create_hades_contingency = "dynawo_contingencies_screening.contingencies_screening:create_hades_contingency"
 run_contingencies_screening = "dynawo_contingencies_screening.contingencies_screening:run_contingencies_screening"
 
 

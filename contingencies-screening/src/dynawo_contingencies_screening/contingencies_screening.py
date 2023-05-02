@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
-from dynawo_contingencies_screening.prepare_basecase import prepare_basecase
+from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
 
@@ -51,6 +51,31 @@ def argument_parser(command_list):
         p.add_argument(
             "hades_output_file",
             help="enter the path to the hades output file",
+        )
+
+    if "hades_original_file" in command_list:
+        p.add_argument(
+            "hades_original_file",
+            help="enter the path to the hades original file",
+        )
+
+    if "hades_contingency_file" in command_list:
+        p.add_argument(
+            "hades_contingency_file",
+            help="enter the path to the hades contingency file",
+        )
+
+    if "contingency_element_name" in command_list:
+        p.add_argument(
+            "contingency_element_name",
+            help="enter the name of the contingency element",
+        )
+
+    if "contingency_element_type" in command_list:
+        p.add_argument(
+            "contingency_element_type",
+            help="enter the type of the contingency element",
+            type=int,
         )
 
     args = p.parse_args()
@@ -231,6 +256,25 @@ def run_dynawo_contingencies():
     )
 
 
+def create_hades_contingency():
+    # Create an single hades contingency
+    args = argument_parser(
+        [
+            "hades_original_file",
+            "hades_contingency_file",
+            "contingency_element_name",
+            "contingency_element_type",
+        ]
+    )
+
+    create_contingencies.generate_contingency(
+        Path(args.hades_original_file),
+        Path(args.hades_contingency_file),
+        args.contingency_element_name,
+        args.contingency_element_type,
+    )
+
+
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(["input_dir", "output_dir", "hades_launcher", "dynawo_launcher"])
@@ -259,7 +303,3 @@ def run_contingencies_screening():
         Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         dynawo_launcher_solved,
     )
-
-
-if __name__ == "__main__":
-    run_contingencies_screening()
