@@ -78,6 +78,18 @@ def argument_parser(command_list):
             type=int,
         )
 
+    if "dynawo_job_file" in command_list:
+        p.add_argument(
+            "dynawo_job_file",
+            help="enter the path to the dynawo JOB file",
+        )
+
+    if "dynawo_contingency_file" in command_list:
+        p.add_argument(
+            "dynawo_contingency_file",
+            help="enter the path to the dynawo contingency files",
+        )
+
     args = p.parse_args()
     return args
 
@@ -275,6 +287,25 @@ def create_hades_contingency():
     create_contingencies.generate_contingency(
         Path(args.hades_original_file),
         Path(args.hades_contingency_file),
+        args.contingency_element_name,
+        args.contingency_element_type,
+    )
+
+
+def create_dynawo_contingency():
+    # Create a single dynawo contingency
+    args = argument_parser(
+        [
+            "dynawo_job_file",
+            "dynawo_contingency_file",
+            "contingency_element_name",
+            "contingency_element_type",
+        ]
+    )
+
+    create_contingencies.generate_contingency(
+        Path(args.dynawo_job_file),
+        Path(args.dynawo_contingency_file),
         args.contingency_element_name,
         args.contingency_element_type,
     )
