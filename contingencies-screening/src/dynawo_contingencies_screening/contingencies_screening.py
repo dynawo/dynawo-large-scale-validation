@@ -166,7 +166,7 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
         "POS",
         "NUM",
         "NAME",
-        "NODE_IMPACT    ",
+        "NODE_IMPACT",
         "STATUS",
         "MIN_VOLT",
         "MAX_VOLT",
@@ -177,7 +177,7 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
         "CONSTR_FLOW",
         "FINAL_SCORE",
     )
-    
+
     i_count = 0
     for elem_list in sorted_loadflow_score_list:
         i_count += 1
