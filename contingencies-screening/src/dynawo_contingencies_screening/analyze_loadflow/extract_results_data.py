@@ -14,7 +14,10 @@ def get_contingencies_dict(parsed_hades_input_file):
         node_impact_list = []
         for posteimpacte in variante.iter("{%s}posteimpacte" % ns):
             node_impact_list.append(posteimpacte.attrib["numposte"])
-        contingencies_dict[variante.attrib["num"]] = {"name": variante.attrib["nom"], "node_impact": node_impact_list}
+        contingencies_dict[variante.attrib["num"]] = {
+            "name": variante.attrib["nom"],
+            "node_impact": node_impact_list,
+        }
 
     return contingencies_dict
 
@@ -51,9 +54,9 @@ def get_fault_data(root, ns, contingencies_list):
         # Collect the data from the 'resLF' tag
         contingency_number = contingency.attrib["num"]
         load_flow_branch = contingency.find("{%s}resLF" % ns)
-        status_dict[contingency_number] = load_flow_branch.attrib["statut"]
-        cause_dict[contingency_number] = load_flow_branch.attrib["cause"]
-        iter_number_dict[contingency_number] = load_flow_branch.attrib["nbIter"]
+        status_dict[contingency_number] = int(load_flow_branch.attrib["statut"])
+        cause_dict[contingency_number] = int(load_flow_branch.attrib["cause"])
+        iter_number_dict[contingency_number] = int(load_flow_branch.attrib["nbIter"])
         calc_duration_dict[contingency_number] = round(
             float(load_flow_branch.attrib["dureeCalcul"]), 5
         )
@@ -74,7 +77,7 @@ def get_fault_data(root, ns, contingencies_list):
 
                 # Check for the constraint type
                 if constraint.tag == ("{%s}contrGroupe" % ns):
-                    constraint_entry["typeLim"] = constraint.attrib["typeLim"]
+                    constraint_entry["typeLim"] = int(constraint.attrib["typeLim"])
                     constraint_entry["type"] = constraint.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
                 elif constraint.tag == ("{%s}contrTransit" % ns):
@@ -124,8 +127,20 @@ def collect_hades_results(contingencies_dict, parsed_hades_output_file):
         contingencies_dict[key]["cause"] = cause_dict[key]
         contingencies_dict[key]["n_iter"] = iter_number_dict[key]
         contingencies_dict[key]["calc_duration"] = calc_duration_dict[key]
-        contingencies_dict[key]["constr_group"] = constraint_dict["contrGroupe"][key]
-        contingencies_dict[key]["constr_tension"] = constraint_dict["contrTension"][key]
-        contingencies_dict[key]["constr_transit"] = constraint_dict["contrTransit"][key]
+        contingencies_dict[key]["constr_volt"] = constraint_dict["contrTension"][key]
+        contingencies_dict[key]["constr_flow"] = constraint_dict["contrTransit"][key]
+
+        constr_gen_Q = [
+            constr_i
+            for constr_i in constraint_dict["contrGroupe"][key]
+            if constr_i["typeLim"] == 0 or constr_i["typeLim"] == 1
+        ]
+        constr_gen_U = [
+            constr_i
+            for constr_i in constraint_dict["contrGroupe"][key]
+            if constr_i["typeLim"] == 2 or constr_i["typeLim"] == 3
+        ]
+        contingencies_dict[key]["constr_gen_Q"] = constr_gen_Q
+        contingencies_dict[key]["constr_gen_U"] = constr_gen_U
 
     return contingencies_dict

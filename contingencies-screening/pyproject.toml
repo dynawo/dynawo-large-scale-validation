@@ -33,7 +33,7 @@ authors = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["Screening", "Dynawo"]
 classifiers = [
     "Programming Language :: Python :: 3",

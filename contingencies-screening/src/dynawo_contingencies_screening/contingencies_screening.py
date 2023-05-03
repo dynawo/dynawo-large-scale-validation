@@ -162,33 +162,37 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
-    str_table = "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
+    str_table = "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
+        "POS",
         "NUM",
         "NAME",
+        "NODE_IMPACT",
+        "STATUS",
         "MIN_VOLT",
         "MAX_VOLT",
-        "STATUS",
-        "CAUSE",
         "N_ITER",
-        "DURATION",
-        "CONSTR_GROUP",
-        "CONSTR_TENSION",
-        "CONSTR_TRANSIT",
+        "CONSTR_GEN_Q",
+        "CONSTR_GEN_U",
+        "CONSTR_VOLT",
+        "CONSTR_FLOW",
         "FINAL_SCORE",
     )
+    i_count = 0
     for elem_list in sorted_loadflow_score_list:
-        str_table += "{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n".format(
+        i_count += 1
+        str_table += "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
+            i_count,
             elem_list[0],
             elem_list[1]["name"],
+            str(len(elem_list[1]["node_impact"])),
+            str(elem_list[1]["status"]),
             str(len(elem_list[1]["min_voltages"])),
             str(len(elem_list[1]["max_voltages"])),
-            elem_list[1]["status"],
-            elem_list[1]["cause"],
-            elem_list[1]["n_iter"],
-            elem_list[1]["calc_duration"],
-            str(len(elem_list[1]["constr_group"])),
-            str(len(elem_list[1]["constr_tension"])),
-            str(len(elem_list[1]["constr_transit"])),
+            str(elem_list[1]["n_iter"]),
+            str(len(elem_list[1]["constr_gen_Q"])),
+            str(len(elem_list[1]["constr_gen_U"])),
+            str(len(elem_list[1]["constr_volt"])),
+            str(len(elem_list[1]["constr_flow"])),
             elem_list[1]["final_score"],
         )
 
