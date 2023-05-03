@@ -2,8 +2,10 @@ from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
 
 
-def generate_branch_contingency(root, element_name, disc_mode="BOTH"):
-    # TODO: Implement a way to get the disc_mode from the user
+BRANCH_DISCONNECTION_MODE = "TO"
+
+
+def generate_branch_contingency(root, element_name):
     # Start by looking for the element entry
     hades_branch = None
     reseau = root.find("./reseau", root.nsmap)
@@ -15,15 +17,19 @@ def generate_branch_contingency(root, element_name, disc_mode="BOTH"):
 
     # If element does not exist, exit program
     if hades_branch is None:
-        exit("Error: Generator with the provided name does not exist")
+        exit("Error: Branch with the provided name does not exist")
 
-    if disc_mode == "FROM":
-        hades_branch.set("nor", "-1")
-    elif disc_mode == "TO":
-        hades_branch.set("nex", "-1")
-    else:
-        hades_branch.set("nex", "-1")
-        hades_branch.set("nor", "-1")
+    # Disconnect the specified branch side or both
+    match BRANCH_DISCONNECTION_MODE:
+        case "FROM":
+            hades_branch.set("nor", "-1")
+        case "TO":
+            hades_branch.set("nex", "-1")
+        case "BOTH":
+            hades_branch.set("nex", "-1")
+            hades_branch.set("nor", "-1")
+        case _:
+            exit("Error: Wrong disconnection mode specified")
 
 
 def generate_generator_contingency(root, element_name):
@@ -40,6 +46,7 @@ def generate_generator_contingency(root, element_name):
     if hades_gen is None:
         exit("Error: Generator with the provided name does not exist")
 
+    # Disconnect the generator
     hades_gen.set("noeud", "-1")
 
 
@@ -57,6 +64,7 @@ def generate_load_contingency(root, element_name):
     if hades_load is None:
         exit("Error: Load with the provided name does not exist")
 
+    # Disconnect the load
     hades_load.set("noeud", "-1")
 
 
@@ -74,6 +82,7 @@ def generate_shunt_contingency(root, element_name):
     if hades_shunt is None:
         exit("Error: Shunt with the provided name does not exist")
 
+    # Disconnect the shunt
     hades_shunt.set("noeud", "-1")
 
 
