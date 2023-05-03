@@ -11,12 +11,20 @@ def get_contingencies_dict(parsed_hades_input_file):
 
     contingencies_dict = {}
     for variante in root.iter("{%s}variante" % ns):
-        node_impact_list = []
-        for posteimpacte in variante.iter("{%s}posteimpacte" % ns):
-            node_impact_list.append(posteimpacte.attrib["numposte"])
+
+        affected_elements_list = []
+        for quadex in variante.iter("{%s}quadex" % ns):
+            affected_elements_list.append(quadex.text)
+        for quador in variante.iter("{%s}quador" % ns):
+            affected_elements_list.append(quador.text)
+        for ouvrage in variante.iter("{%s}ouvrage" % ns):
+            affected_elements_list.append(ouvrage.attrib["num"])
+        for vscor in variante.iter("{%s}vscor" % ns):
+            affected_elements_list.append(vscor.text)
+
         contingencies_dict[variante.attrib["num"]] = {
             "name": variante.attrib["nom"],
-            "node_impact": node_impact_list,
+            "affected_elements": affected_elements_list,
         }
 
     return contingencies_dict
