@@ -25,7 +25,7 @@ def analyze_loadflow_resuts(contingencies_dict, parsed_hades_output_file):
                     )
                     * coef_volt
                     + contingencies_dict[key]["n_iter"] * coef_iter
-                    + len(contingencies_dict[key]["node_impact"]) * coef_poste
+                    + len(contingencies_dict[key]["affected_elements"]) * coef_poste
                     + (
                         len(contingencies_dict[key]["constr_gen_Q"])
                         + len(contingencies_dict[key]["constr_gen_U"])
