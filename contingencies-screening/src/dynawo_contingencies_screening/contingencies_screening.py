@@ -65,6 +65,18 @@ def argument_parser(command_list):
             help="enter the path to the hades contingency file",
         )
 
+    if "dynawo_job_file" in command_list:
+        p.add_argument(
+            "dynawo_job_file",
+            help="enter the path to the dynawo JOB file",
+        )
+
+    if "dynawo_contingency_file" in command_list:
+        p.add_argument(
+            "dynawo_contingency_file",
+            help="enter the path to the dynawo contingency files",
+        )
+
     if "contingency_element_name" in command_list:
         p.add_argument(
             "contingency_element_name",
@@ -76,18 +88,6 @@ def argument_parser(command_list):
             "contingency_element_type",
             help="enter the type of the contingency element",
             type=int,
-        )
-
-    if "dynawo_job_file" in command_list:
-        p.add_argument(
-            "dynawo_job_file",
-            help="enter the path to the dynawo JOB file",
-        )
-
-    if "dynawo_contingency_file" in command_list:
-        p.add_argument(
-            "dynawo_contingency_file",
-            help="enter the path to the dynawo contingency files",
         )
 
     args = p.parse_args()
@@ -303,9 +303,9 @@ def create_dynawo_contingency():
         ]
     )
 
-    create_contingencies.generate_contingency(
-        Path(args.dynawo_job_file),
-        Path(args.dynawo_contingency_file),
+    create_contingencies.generate_dynawo_contingency(
+        Path(args.dynawo_job_file).absolute(),
+        Path(args.dynawo_contingency_file).absolute(),
         args.contingency_element_name,
         args.contingency_element_type,
     )

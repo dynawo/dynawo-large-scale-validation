@@ -3,7 +3,7 @@ from dynawo_contingencies_screening.commons import manage_files
 from pathlib import PurePath
 
 
-BRANCH_DISCONNECTION_MODE = "TO"
+BRANCH_DISCONNECTION_MODE = "BOTH"
 
 
 def generate_branch_contingency(root, element_name):
@@ -129,12 +129,28 @@ def generate_contingency(
     )
 
 
-def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, element_name):
+def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name):
+    # Check the provided branch name exists
+    iidm_file_path = dydFile_path.parent / iidm_file
+    iidm_tree = manage_files.parse_xml_file(iidm_file_path)
+    root = iidm_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    dynawo_branch = None
+    for b in root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
+        if element_name == b.get("id"):
+            dynawo_branch = b
+            break
+
+    # If element does not exist, exit program
+    if dynawo_branch is None:
+        exit("Error: Branch with the provided name does not exist")
+
     ###########################################################
     # DYD file: configure an event model for the disconnection
     ###########################################################
 
-    dydFile_outPath = dynawo_output_folder / dydFile_path
+    dydFile_outPath = dynawo_output_folder / dydFile_path.name
     dyd_tree = manage_files.parse_xml_file(dydFile_path)
     root = dyd_tree.getroot()
     ns = etree.QName(root).namespace
@@ -182,6 +198,7 @@ def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, eleme
     cnx.set("var2", cnx_var2)
 
     # Write out the DYD file, preserving the XML format
+    etree.indent(dyd_tree)
     dyd_tree.write(
         dydFile_outPath,
         pretty_print=True,
@@ -200,11 +217,6 @@ def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, eleme
     root = par_tree.getroot()
     ns = etree.QName(root).namespace
 
-    # Erase all existing parsets used by the Events removed above
-    for parset in root.iterfind("./set", root.nsmap):
-        if parset.get("id") in old_parIds:
-            parset.getparent().remove(parset)
-
     # Get the event time
     for par_set in root.iterfind("./{%s}set" % ns):
         if par_set.get("id") == parId:
@@ -213,11 +225,16 @@ def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, eleme
                     event_tEvent = float(par.get("value"))
                     break
 
+    # Erase all existing parsets used by the Events removed above
+    for parset in root.iterfind("./set", root.nsmap):
+        if parset.get("id") in old_parIds:
+            parset.getparent().remove(parset)
+
     # Insert the new parset with the params we need
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=event_tEvent)
+        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=str(round(event_tEvent)))
     )
     open_F = "true"
     open_T = "true"
@@ -234,6 +251,7 @@ def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, eleme
     root.append(new_parset)
 
     # Write out the PAR file, preserving the XML format
+    etree.indent(par_tree)
     par_tree.write(
         parFile_outPath,
         pretty_print=True,
@@ -244,7 +262,76 @@ def generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, eleme
     ############################################################
     # CRV file: configure which variables we want in the output
     ############################################################
-    # TODO: Finish the function and check its functionality
+
+    # We expand the `curvesInput` section with any additional
+    # variables that make sense to have in the output. The base case
+    # is expected to have the variables that monitor the behavior of
+    # the SVC (pilot point voltage, K level, and P,Q of participating
+    # branches).  We will keep these, and add new ones.
+    #
+    # For now, we'll just add the voltage at the contingency bus. To do
+    # this, we would use the IIDM file, where the branch has an
+    # attribute that directly provides the bus it is connected to. We
+    # already stored this value in the branch_info tuple before.
+
+    branch_tag = etree.QName(dynawo_branch).localname
+    if branch_tag == "line":
+        branch_type = "Line"
+    elif branch_tag == "twoWindingsTransformer":
+        if dynawo_branch.find("{%s}phaseTapChanger" % ns) is None:
+            branch_type = "Transformer"
+        else:
+            branch_type = "PhaseShitfer"
+
+    # Get the buses we need to disconnect
+    bus_from = get_endbus(root, dynawo_branch, branch_type, "1")
+    bus_to = get_endbus(root, dynawo_branch, branch_type, "2")
+
+    # Add the corresponding curve to the CRV file
+    crvFile_outPath = dynawo_output_folder / crvFile_contg
+    crv_file_path = dydFile_path.parent / crvFile_contg
+    crv_tree = manage_files.parse_xml_file(crv_file_path)
+    root = crv_tree.getroot()
+    ns = etree.QName(root).namespace
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_from + "_Upu_value")
+    new_crv2 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_to + "_Upu_value")
+    root.append(new_crv1)
+    root.append(new_crv2)
+
+    # Write out the CRV file, preserving the XML format
+    etree.indent(crv_tree)
+    crv_tree.write(
+        crvFile_outPath,
+        pretty_print=True,
+        xml_declaration='<?xml version="1.0" encoding="UTF-8"?>',
+        encoding="UTF-8",
+    )
+
+
+def get_endbus(root, branch, branch_type, side):
+    ns = etree.QName(root).namespace
+    end_bus = branch.get("bus" + side)
+    if end_bus is None:
+        end_bus = branch.get("connectableBus" + side)
+    if end_bus is None:
+        # bummer, the bus is NODE_BREAKER
+        topo = []
+        #  for xfmers, we only need to search the VLs within the substation
+        if branch_type == "Line":
+            pnode = root
+        else:
+            pnode = branch.getparent()
+        for vl in pnode.iter("{%s}voltageLevel" % ns):
+            if vl.get("id") == branch.get("voltageLevelId" + side):
+                topo = vl.find("{%s}nodeBreakerTopology" % ns)
+                break
+        # we won't resolve the actual topo connectivity; just take the first busbar
+        for node in topo:
+            node_type = etree.QName(node).localname
+            if node_type == "busbarSection" and node.get("v") is not None:
+                end_bus = node.get("id")
+                break
+    return end_bus
 
 
 def generate_dynawo_generator_contingency(dyd_tree, element_name):
@@ -279,13 +366,25 @@ def generate_dynawo_contingency(
     modeler = last_job.find("{%s}modeler" % ns)
     dynModels = modeler.findall("{%s}dynModels" % ns)
     dydFile_contg = dynModels[-1].get("dydFile")
+    outputs = last_job.find("{%s}outputs" % ns)
+    curves = outputs.find("{%s}curves" % ns)
+    crvFile_contg = curves.get("inputFile")
+    network = modeler.find("{%s}network" % ns)
+    iidm_file = network.get("iidmFile")
+
     dydFile_path = PurePath(dynawo_job_file.absolute()).parent / dydFile_contg
 
     # Add the contingency according to its type
     match contingency_element_type:
         # Branch contingency
         case 1:
-            generate_dynawo_branch_contingency(dydFile_path, dynawo_output_folder, contingency_element_name)
+            generate_dynawo_branch_contingency(
+                dydFile_path,
+                dynawo_output_folder,
+                crvFile_contg,
+                iidm_file,
+                contingency_element_name
+            )
         # Generator contingency
         case 2:
             generate_dynawo_generator_contingency(dydFile_path, contingency_element_name)
