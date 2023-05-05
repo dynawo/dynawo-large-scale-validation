@@ -4,6 +4,18 @@ from pathlib import PurePath
 
 
 BRANCH_DISCONNECTION_MODE = "BOTH"
+# This dictionary refers to the possible load models. Depending on each of them, the
+# variable for the disconnection event can be one or another.
+LOAD_MODELS = {
+    "DYNModelLoadAlphaBeta": "switchOffSignal2",
+    "DYNModelLoadRestorativeWithLimits": "switchOff2_value",
+    "LoadAlphaBeta": "load_switchOffSignal2_value",
+    "LoadAlphaBetaRestorative": "load_switchOffSignal2_value",
+    "LoadAlphaBetaRestorativeLimitsRecalc": "load_switchOffSignal2_value",
+    "LoadPQCompensation": "load_switchOffSignal2_value",
+    "LoadPQ": "load_switchOffSignal2_value",
+    "LoadZIP": "load_switchOffSignal2_value",
+}
 
 
 def generate_branch_contingency(root, element_name):
@@ -133,23 +145,31 @@ def generate_contingency(
 
 
 def modify_dyd_file(
-    root, ns, disconn_eventmodel, parFile_contg, cnx_id2, cnx_var2, dyd_tree, dydFile_outPath
+    root,
+    ns,
+    disconn_eventmodel,
+    parFile_contg,
+    cnx_id2,
+    cnx_var2,
+    dyd_tree,
+    dydFile_outPath,
+    event_name,
 ):
     # Erase all existing Event models (keep the IDs to remove their
     # connections later below)
-    old_eventIds = []
-    old_parIds = []
+    old_event_ids = []
+    old_par_ids = []
     for event in root.iterfind(f"./{{{ns}}}blackBoxModel"):
         if event.get("lib")[0:5] == "Event":
-            old_eventIds.append(event.get("id"))
-            old_parIds.append(event.get("parId"))
+            old_event_ids.append(event.get("id"))
+            old_par_ids.append(event.get("parId"))
             event.getparent().remove(event)
 
     # Declare a new Event
     parId = "99991234"
 
     event = etree.SubElement(root, f"{{{ns}}}blackBoxModel")
-    event_id = "Disconnect my branch"
+    event_id = event_name
     event.set("id", event_id)
     event.set("lib", disconn_eventmodel)
     event.set("parFile", parFile_contg)
@@ -157,7 +177,7 @@ def modify_dyd_file(
 
     # Erase all connections of the previous Events we removed above
     for cnx in root.iterfind(f"./{{{ns}}}connect"):
-        if cnx.get("id1") in old_eventIds or cnx.get("id2") in old_eventIds:
+        if cnx.get("id1") in old_event_ids or cnx.get("id2") in old_event_ids:
             cnx.getparent().remove(cnx)
 
     # Declare a new Connect between the Event model and the branch
@@ -176,13 +196,13 @@ def modify_dyd_file(
         encoding="UTF-8",
     )
 
-    return parId, old_parIds
+    return parId, old_par_ids
 
 
-def modify_par_file(root, ns, parID, old_parIds):
+def modify_par_file(root, ns, par_id, old_par_ids):
     # Get the event time
     for par_set in root.iterfind("./{%s}set" % ns):
-        if par_set.get("id") == parID:
+        if par_set.get("id") == par_id:
             for par in par_set.iterfind("./{%s}par" % ns):
                 if par.get("name") == "event_tEvent":
                     event_tEvent = float(par.get("value"))
@@ -190,7 +210,7 @@ def modify_par_file(root, ns, parID, old_parIds):
 
     # Erase all existing parsets used by the Events removed above
     for parset in root.iterfind("./set", root.nsmap):
-        if parset.get("id") in old_parIds:
+        if parset.get("id") in old_par_ids:
             parset.getparent().remove(parset)
 
     return event_tEvent
@@ -235,8 +255,18 @@ def generate_dynawo_branch_contingency(
     cnx_var2 = element_name + "_state_value"
 
     # Modify the dyd contingency file
-    parID, old_parIds = modify_dyd_file(
-        root, ns, disconn_eventmodel, parFile_contg, cnx_id2, cnx_var2, dyd_tree, dydFile_outPath
+    event_name = "Disconnect my branch"
+
+    par_id, old_par_ids = modify_dyd_file(
+        root,
+        ns,
+        disconn_eventmodel,
+        parFile_contg,
+        cnx_id2,
+        cnx_var2,
+        dyd_tree,
+        dydFile_outPath,
+        event_name,
     )
 
     ###########################################################
@@ -251,7 +281,7 @@ def generate_dynawo_branch_contingency(
     ns = etree.QName(root).namespace
 
     # Modify the par contingency file
-    event_tEvent = modify_par_file(root, ns, parID, old_parIds)
+    event_tEvent = modify_par_file(root, ns, par_id, old_par_ids)
 
     # Insert the new parset with the params we need
     ns = etree.QName(root).namespace
@@ -369,9 +399,9 @@ def generate_dynawo_generator_contingency(
     ns = etree.QName(root).namespace
 
     dynawo_generator = None
-    for b in root.iter("{%s}generator" % ns):
-        if element_name == b.get("id"):
-            dynawo_generator = b
+    for g in root.iter("{%s}generator" % ns):
+        if element_name == g.get("id"):
+            dynawo_generator = g
             break
 
     # If element does not exist, exit program
@@ -411,8 +441,19 @@ def generate_dynawo_generator_contingency(
     first_bbm = root.find("./{%s}blackBoxModel" % ns)
     parFile_contg = first_bbm.get("parFile")
 
-    parID, old_parIds = modify_dyd_file(
-        root, ns, disconn_eventmodel, parFile_contg, cnx_id2, cnx_var2, dyd_tree, dydFile_outPath
+    # Modify the dyd contingency file
+    event_name = "Disconnect my gen"
+
+    par_id, old_par_ids = modify_dyd_file(
+        root,
+        ns,
+        disconn_eventmodel,
+        parFile_contg,
+        cnx_id2,
+        cnx_var2,
+        dyd_tree,
+        dydFile_outPath,
+        event_name,
     )
 
     ###########################################################
@@ -427,13 +468,15 @@ def generate_dynawo_generator_contingency(
     ns = etree.QName(root).namespace
 
     # Modify the par contingency file
-    event_tEvent = modify_par_file(root, ns, parID, old_parIds)
+    event_tEvent = modify_par_file(root, ns, par_id, old_par_ids)
 
     # Insert the new parset with the params we need
     ns = etree.QName(root).namespace
     new_parset = etree.Element("{%s}set" % ns, id="99991234")
     new_parset.append(
-        etree.Element("{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=str(round(event_tEvent)))
+        etree.Element(
+            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=str(round(event_tEvent))
+        )
     )
     new_parset.append(
         etree.Element("{%s}par" % ns, type="BOOL", name=param_eventname, value="true")
@@ -498,8 +541,153 @@ def generate_dynawo_generator_contingency(
     )
 
 
-def generate_dynawo_load_contingency(dyd_tree, element_name):
-    pass
+def generate_dynawo_load_contingency(
+    dydContFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name, dyd_file
+):
+    # Check the provided branch name exists
+    iidm_file_path = dydContFile_path.parent / iidm_file
+    iidm_tree = manage_files.parse_xml_file(iidm_file_path)
+    root = iidm_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    dynawo_load = None
+    for l in root.iter("{%s}load" % ns):
+        if element_name == l.get("id"):
+            dynawo_load = l
+            break
+
+    # If element does not exist, exit program
+    if dynawo_load is None:
+        exit("Error: Load with the provided name does not exist")
+
+    ###########################################################
+    # DYD file: configure an event model for the disconnection
+    ###########################################################
+
+    dyd_file_path = dydContFile_path.parent / dyd_file
+    dyd_tree = manage_files.parse_xml_file(dyd_file_path)
+    root = dyd_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get the load model type
+    for bbm in dyd_tree.iter("{%s}blackBoxModel" % ns):
+        if bbm.get("lib") in LOAD_MODELS and bbm.get("id") == element_name:
+            model_lib = bbm.get("lib")
+            break
+
+    dydFile_outPath = dynawo_output_folder / dydContFile_path.name
+    dyd_tree = manage_files.parse_xml_file(dydContFile_path)
+    root = dyd_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get the contingency par file name
+    first_bbm = root.find("./{%s}blackBoxModel" % ns)
+    parFile_contg = first_bbm.get("parFile")
+
+    disconn_eventmodel = "EventSetPointBoolean"
+    cnx_id2 = element_name
+    cnx_var2 = model_lib
+    param_eventname = "event_stateEvent1"
+
+    # Modify the dyd contingency file
+    event_name = "Disconnect my load"
+
+    par_id, old_par_ids = modify_dyd_file(
+        root,
+        ns,
+        disconn_eventmodel,
+        parFile_contg,
+        cnx_id2,
+        cnx_var2,
+        dyd_tree,
+        dydFile_outPath,
+        event_name,
+    )
+
+    ###########################################################
+    # PAR file: add a section with the disconnection parameters
+    ###########################################################
+
+    # Get the par file tree
+    parFile_outPath = dynawo_output_folder / parFile_contg
+    par_file_path = dydContFile_path.parent / parFile_contg
+    par_tree = manage_files.parse_xml_file(par_file_path)
+    root = par_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    # Modify the par contingency file
+    event_tEvent = modify_par_file(root, ns, par_id, old_par_ids)
+
+    # Insert the new parset with the params we need
+    ns = etree.QName(root).namespace
+    new_parset = etree.Element("{%s}set" % ns, id="99991234")
+    new_parset.append(
+        etree.Element(
+            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=str(round(event_tEvent))
+        )
+    )
+    new_parset.append(
+        etree.Element("{%s}par" % ns, type="BOOL", name=param_eventname, value="true")
+    )
+    root.append(new_parset)
+
+    # Write out the PAR file, preserving the XML format
+    etree.indent(par_tree)
+    par_tree.write(
+        parFile_outPath,
+        pretty_print=True,
+        xml_declaration='<?xml version="1.0" encoding="UTF-8"?>',
+        encoding="UTF-8",
+    )
+
+    ############################################################
+    # CRV file: configure which variables we want in the output
+    ############################################################
+
+    # We expand the `curvesInput` section with any additional
+    # variables that make sense to have in the output. The base case
+    # is expected to have the variables that monitor the behavior of
+    # the SVC (pilot point voltage, K level, and P,Q of participating
+    # load).  We will keep these, and add new ones.
+    #
+    # For now, we'll just add the voltage at the contingency bus. To do
+    # this, we would use the IIDM file, where the load has an
+    # attribute that directly provides the bus it is connected to. We
+    # already stored this value in the Load_info tuple before.
+
+    # Find the bus (depends on the topology of its voltageLevel)
+    topo_val = dynawo_load.getparent().get("topologyKind")
+    if topo_val == "BUS_BREAKER":
+        bus_name = dynawo_load.get("bus")
+    elif topo_val == "NODE_BREAKER":
+        # don't try to resolve the topology, just take the first active busbar
+        bus_name = None
+        vl = dynawo_load.getparent()
+        topology = vl.find("./nodeBreakerTopology", root.nsmap)
+        for node in topology:
+            node_type = etree.QName(node).localname
+            if node_type == "busbarSection" and node.get("v") is not None:
+                bus_name = node.get("id")
+                break
+
+    # Add the corresponding curve to the CRV file
+    crvFile_outPath = dynawo_output_folder / crvFile_contg
+    crv_file_path = dydContFile_path.parent / crvFile_contg
+    crv_tree = manage_files.parse_xml_file(crv_file_path)
+    root = crv_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_name + "_Upu_value")
+    root.append(new_crv1)
+
+    # Write out the CRV file, preserving the XML format
+    etree.indent(crv_tree)
+    crv_tree.write(
+        crvFile_outPath,
+        pretty_print=True,
+        xml_declaration='<?xml version="1.0" encoding="UTF-8"?>',
+        encoding="UTF-8",
+    )
 
 
 def generate_dynawo_shunt_contingency(dyd_tree, element_name):
@@ -558,7 +746,14 @@ def generate_dynawo_contingency(
             )
         # Load contingency
         case 3:
-            generate_dynawo_load_contingency(dydContFile_path, contingency_element_name)
+            generate_dynawo_load_contingency(
+                dydContFile_path,
+                dynawo_output_folder,
+                crvFile_contg,
+                iidm_file,
+                contingency_element_name,
+                dyd_file,
+            )
         # Shunt contingency
         case 4:
             generate_dynawo_shunt_contingency(dydContFile_path, contingency_element_name)
