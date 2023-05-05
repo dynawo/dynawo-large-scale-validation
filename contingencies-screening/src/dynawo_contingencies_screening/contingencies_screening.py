@@ -90,6 +90,14 @@ def argument_parser(command_list):
             type=int,
         )
 
+    if "tap_changers" in command_list:
+        p.add_argument(
+            "-t",
+            "--tap_changers",
+            help="run the simulations with activated tap changers",
+            action="store_true",
+        )
+
     args = p.parse_args()
     return args
 
@@ -122,7 +130,9 @@ def solve_launcher(launcher):
     return launcher_solved
 
 
-def run_hades_contingencies_code(hades_input_folder, hades_output_folder, hades_launcher):
+def run_hades_contingencies_code(
+    hades_input_folder, hades_output_folder, hades_launcher, tap_changers
+):
     # Find hades input file
     hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
 
@@ -133,9 +143,17 @@ def run_hades_contingencies_code(hades_input_folder, hades_output_folder, hades_
     os.makedirs(hades_output_folder, exist_ok=True)
 
     # Run hades file (assuming all contingencies are run through the security analysis in a single run)
-    run_hades.run_hades(hades_input_file, hades_output_file, hades_launcher)
+    run_hades.run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
 
     return hades_input_file, hades_output_file
+
+
+def sort_ranking(elem):
+    lambda x: x[1]["final_score"]
+    if type(elem[1]["final_score"]) == str:
+        return 0
+    else:
+        return elem[1]["final_score"]
 
 
 def create_contingencies_ranking_code(hades_input_file, hades_output_file):
@@ -158,9 +176,7 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file):
         hades_contingencies_dict, parsed_hades_output_file
     )
 
-    return sorted(
-        hades_contingencies_dict.items(), key=lambda x: x[1]["final_score"], reverse=True
-    )
+    return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True)
 
 
 def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
@@ -228,7 +244,7 @@ def check_basecase_dir(input_dir):
 def run_hades_contingencies():
     # Run a hades contingency through the tool
 
-    args = argument_parser(["input_dir", "output_dir", "hades_launcher"])
+    args = argument_parser(["input_dir", "output_dir", "hades_launcher", "tap_changers"])
 
     dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
 
@@ -238,6 +254,7 @@ def run_hades_contingencies():
         Path(args.input_dir).absolute() / HADES_FOLDER,
         Path(args.output_dir).absolute() / HADES_FOLDER,
         hades_launcher_solved,
+        args.tap_changers,
     )
 
     print(
@@ -313,7 +330,9 @@ def create_dynawo_contingency():
 
 def run_contingencies_screening():
     # Main execution pipeline
-    args = argument_parser(["input_dir", "output_dir", "hades_launcher", "dynawo_launcher"])
+    args = argument_parser(
+        ["input_dir", "output_dir", "hades_launcher", "dynawo_launcher", "tap_changers"]
+    )
 
     dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
 
@@ -326,6 +345,7 @@ def run_contingencies_screening():
         Path(args.input_dir).absolute() / HADES_FOLDER,
         Path(args.output_dir).absolute() / HADES_FOLDER,
         hades_launcher_solved,
+        args.tap_changers,
     )
 
     sorted_loadflow_score_dict = create_contingencies_ranking_code(
