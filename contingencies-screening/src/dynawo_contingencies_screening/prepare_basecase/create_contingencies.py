@@ -326,8 +326,7 @@ def generate_dynawo_branch_contingency(
     #
     # For now, we'll just add the voltage at the contingency bus. To do
     # this, we would use the IIDM file, where the branch has an
-    # attribute that directly provides the bus it is connected to. We
-    # already stored this value in the branch_info tuple before.
+    # attribute that directly provides the bus it is connected to.
 
     branch_tag = etree.QName(dynawo_branch).localname
     if branch_tag == "line":
@@ -504,8 +503,7 @@ def generate_dynawo_generator_contingency(
     #
     # For now we'll just add the voltage at the contingency bus. To do
     # this, we would use the IIDM file, where the gen has an
-    # attribute that directly provides the bus it is connected to. We
-    # already stored this value in the Gen_info tuple before.
+    # attribute that directly provides the bus it is connected to.
 
     # Get the generator bus name
     topo_val = dynawo_generator.getparent().get("topologyKind")
@@ -652,8 +650,7 @@ def generate_dynawo_load_contingency(
     #
     # For now, we'll just add the voltage at the contingency bus. To do
     # this, we would use the IIDM file, where the load has an
-    # attribute that directly provides the bus it is connected to. We
-    # already stored this value in the Load_info tuple before.
+    # attribute that directly provides the bus it is connected to.
 
     # Find the bus (depends on the topology of its voltageLevel)
     topo_val = dynawo_load.getparent().get("topologyKind")
@@ -690,8 +687,127 @@ def generate_dynawo_load_contingency(
     )
 
 
-def generate_dynawo_shunt_contingency(dyd_tree, element_name):
-    pass
+def generate_dynawo_shunt_contingency(
+    dydContFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name
+):
+    # Check the provided branch name exists
+    iidm_file_path = dydContFile_path.parent / iidm_file
+    iidm_tree = manage_files.parse_xml_file(iidm_file_path)
+    root = iidm_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    dynawo_shunt = None
+    for sh in root.iter("{%s}shunt" % ns):
+        if element_name == sh.get("id") and sh.get("bus") is not None:
+            dynawo_shunt = sh
+            break
+
+    # If element does not exist, exit program
+    if dynawo_shunt is None:
+        exit("Error: Shunt with the provided name does not exist or is not connected to a bus")
+
+    ###########################################################
+    # DYD file: configure an event model for the disconnection
+    ###########################################################
+
+    dydFile_outPath = dynawo_output_folder / dydContFile_path.name
+    dyd_tree = manage_files.parse_xml_file(dydContFile_path)
+    root = dyd_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get the contingency par file name
+    first_bbm = root.find("./{%s}blackBoxModel" % ns)
+    parFile_contg = first_bbm.get("parFile")
+
+    cnx_id2 = "NETWORK"
+    cnx_var2 = element_name + "_state_value"
+    disconn_eventmodel = "EventConnectedStatus"
+    param_eventname = "event_open"
+
+    # Modify the dyd contingency file
+    event_name = "Disconnect my shunt"
+
+    par_id, old_par_ids = modify_dyd_file(
+        root,
+        ns,
+        disconn_eventmodel,
+        parFile_contg,
+        cnx_id2,
+        cnx_var2,
+        dyd_tree,
+        dydFile_outPath,
+        event_name,
+    )
+
+    ###########################################################
+    # PAR file: add a section with the disconnection parameters
+    ###########################################################
+
+    # Get the par file tree
+    parFile_outPath = dynawo_output_folder / parFile_contg
+    par_file_path = dydContFile_path.parent / parFile_contg
+    par_tree = manage_files.parse_xml_file(par_file_path)
+    root = par_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    # Modify the par contingency file
+    event_tEvent = modify_par_file(root, ns, par_id, old_par_ids)
+
+    new_parset = etree.Element("{%s}set" % ns, id="99991234")
+    new_parset.append(
+        etree.Element(
+            "{%s}par" % ns, type="DOUBLE", name="event_tEvent", value=str(round(event_tEvent))
+        )
+    )
+    new_parset.append(
+        etree.Element("{%s}par" % ns, type="BOOL", name=param_eventname, value="true")
+    )
+    root.append(new_parset)
+
+    # Write out the PAR file, preserving the XML format
+    etree.indent(par_tree)
+    par_tree.write(
+        parFile_outPath,
+        pretty_print=True,
+        xml_declaration='<?xml version="1.0" encoding="UTF-8"?>',
+        encoding="UTF-8",
+    )
+
+    ############################################################
+    # CRV file: configure which variables we want in the output
+    ############################################################
+
+    # We expand the `curvesInput` section with any additional
+    # variables that make sense to have in the output. The base case
+    # is expected to have the variables that monitor the behavior of
+    # the SVC (pilot point voltage, K level, and P,Q of participating
+    # shunt).  We will keep these, and add new ones.
+    #
+    # For now, we'll just add the voltage at the contingency bus. To do
+    # this, we would use the IIDM file, where the shunt has an
+    # attribute that directly provides the bus it is connected to.
+
+    # Get the name of the bus
+    bus_name = dynawo_shunt.get("bus")
+
+    # Add the corresponding curve to the CRV file
+    crvFile_outPath = dynawo_output_folder / crvFile_contg
+    crv_file_path = dydContFile_path.parent / crvFile_contg
+    crv_tree = manage_files.parse_xml_file(crv_file_path)
+    root = crv_tree.getroot()
+    ns = etree.QName(root).namespace
+
+    new_crv1 = etree.Element("{%s}curve" % ns, model="NETWORK", variable=bus_name + "_Upu_value")
+    root.append(new_crv1)
+
+    # Write out the CRV file, preserving the XML format
+    etree.indent(crv_tree)
+    crv_tree.write(
+        crvFile_outPath,
+        pretty_print=True,
+        xml_declaration='<?xml version="1.0" encoding="UTF-8"?>',
+        encoding="UTF-8",
+    )
 
 
 def generate_dynawo_contingency(
@@ -708,7 +824,7 @@ def generate_dynawo_contingency(
     root = parsed_input_xml.getroot()
     ns = etree.QName(root).namespace
 
-    # Obtain the contingency file names
+    # Obtain the needed file names
     jobs = root.findall("{%s}job" % ns)
     last_job = jobs[-1]  # contemplate only the *last* job, in case there are several
     modeler = last_job.find("{%s}modeler" % ns)
@@ -756,7 +872,13 @@ def generate_dynawo_contingency(
             )
         # Shunt contingency
         case 4:
-            generate_dynawo_shunt_contingency(dydContFile_path, contingency_element_name)
+            generate_dynawo_shunt_contingency(
+                dydContFile_path,
+                dynawo_output_folder,
+                crvFile_contg,
+                iidm_file,
+                contingency_element_name,
+            )
         # Default case: Not a valid element type provided
         case _:
             exit("Error: Invalid value for the contingency element type provided")
