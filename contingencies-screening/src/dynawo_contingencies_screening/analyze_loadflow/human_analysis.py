@@ -8,8 +8,6 @@ def analyze_loadflow_resuts(contingencies_dict, parsed_hades_output_file):
     root = parsed_hades_output_file.getroot()
     ns = etree.QName(root).namespace
 
-    import random
-
     coef_volt = 1
     coef_iter = 10
     coef_poste = 10

@@ -1,8 +1,9 @@
+import os
 from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
 
 
-BRANCH_DISCONNECTION_MODE = "TO"
+BRANCH_DISCONNECTION_MODE = "BOTH"
 
 
 def generate_branch_contingency(root, element_name):
@@ -86,6 +87,13 @@ def generate_shunt_contingency(root, element_name):
     hades_shunt.set("noeud", "-1")
 
 
+def clean_contingencies(parsed_input_xml, root, ns):
+    # Clear contingencies from previous runs and from the original run with
+    # the goal of running only the target contingency
+    for variante in root.iter("{%s}variante" % ns):
+        variante.getparent().remove(variante)
+
+
 def generate_contingency(
     hades_original_file, hades_contingency_file, contingency_element_name, contingency_element_type
 ):
@@ -98,6 +106,8 @@ def generate_contingency(
     # Parse the hades input file
     parsed_input_xml = manage_files.parse_xml_file(hades_original_file)
     root = parsed_input_xml.getroot()
+
+    clean_contingencies(parsed_input_xml, root, etree.QName(root).namespace)
 
     # Add the contingency according to its type
     match contingency_element_type:
@@ -126,3 +136,51 @@ def generate_contingency(
         encoding="ISO-8859-1",
         standalone=False,
     )
+
+
+def get_types_cont(hades_input_file):
+    parsed_hades = manage_files.parse_xml_file(hades_input_file)
+    root = parsed_hades.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get all the types of the different elements
+    dict_types_cont = {}
+    for entry in root.iter("{%s}quadripole" % ns):
+        dict_types_cont[entry.attrib["nom"]] = 1
+
+    for entry in root.iter("{%s}groupe" % ns):
+        dict_types_cont[entry.attrib["nom"]] = 2
+
+    for entry in root.iter("{%s}conso" % ns):
+        dict_types_cont[entry.attrib["nom"]] = 3
+
+    for entry in root.iter("{%s}shunt" % ns):
+        dict_types_cont[entry.attrib["nom"]] = 4
+
+    return dict_types_cont
+
+
+def create_hades_contingency_n_1(
+    hades_input_file, hades_output_folder, replay_cont, dict_types_cont
+):
+    # Contingencies (N-1)
+
+    # Find the contingency type
+    if replay_cont in dict_types_cont:
+        cont_type = dict_types_cont[replay_cont]
+    else:
+        exit("Contingency type not found")
+
+    # Create output dir
+    os.makedirs(hades_output_folder / replay_cont, exist_ok=True)
+
+    # Generate contingency file
+    # TODO: Try to optimize it
+    generate_contingency(
+        hades_input_file,
+        hades_output_folder / replay_cont / hades_input_file.name,
+        replay_cont,
+        cont_type,
+    )
+
+    return hades_output_folder / replay_cont

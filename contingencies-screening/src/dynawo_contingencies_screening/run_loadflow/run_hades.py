@@ -36,14 +36,18 @@ def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
     # We obtain the output folder path
     # and copy the input file there
     output_folder = hades_output_file.parent
-    shutil.copy(hades_input_file, output_folder)
+    if output_folder != hades_input_file.parent:
+        shutil.copy(hades_input_file, output_folder)
 
     # Activate tap changers if needed
     activate_tap_changers(output_folder / (hades_input_file.name), tap_changers)
 
     # Run the simulation on the specified hades launcher
     subprocess.run(
-        str(hades_launcher)
+        "cd "
+        + str(output_folder)
+        + " && "
+        + str(hades_launcher)
         + " "
         + str(output_folder / (hades_input_file.name))
         + " "
