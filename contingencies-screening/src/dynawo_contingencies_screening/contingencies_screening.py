@@ -69,18 +69,6 @@ def argument_parser(command_list):
             help="enter the path to the hades contingency file",
         )
 
-    if "dynawo_job_file" in command_list:
-        p.add_argument(
-            "dynawo_job_file",
-            help="enter the path to the dynawo JOB file",
-        )
-
-    if "dynawo_contingency_file" in command_list:
-        p.add_argument(
-            "dynawo_contingency_file",
-            help="enter the path to the dynawo contingency files",
-        )
-
     if "contingency_element_name" in command_list:
         p.add_argument(
             "contingency_element_name",
@@ -383,6 +371,7 @@ def create_hades_contingency():
             "hades_contingency_file",
             "contingency_element_name",
             "contingency_element_type",
+            "branch_disconnection_mode"
         ]
     )
 
@@ -391,6 +380,7 @@ def create_hades_contingency():
         Path(args.hades_contingency_file),
         args.contingency_element_name,
         args.contingency_element_type,
+        args.branch_disconnection_mode
     )
 
 
@@ -398,16 +388,16 @@ def create_dynawo_contingency():
     # Create a single dynawo contingency
     args = argument_parser(
         [
-            "dynawo_job_file",
-            "dynawo_contingency_file",
+            "input_dir",
+            "output_dir",
             "contingency_element_name",
             "contingency_element_type",
         ]
     )
 
     create_contingencies.generate_dynawo_contingency(
-        Path(args.dynawo_job_file).absolute(),
-        Path(args.dynawo_contingency_file).absolute(),
+        Path(args.input_dir).absolute() / DYNAWO_FOLDER,
+        Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         args.contingency_element_name,
         args.contingency_element_type,
     )

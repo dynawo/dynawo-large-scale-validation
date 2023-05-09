@@ -200,6 +200,7 @@ def create_hades_contingency_n_1(
 
     return hades_output_folder / replay_cont
 
+
 def modify_dyd_file(
     root,
     ns,
@@ -455,13 +456,15 @@ def generate_dynawo_generator_contingency(
 
     dynawo_generator = None
     for g in root.iter("{%s}generator" % ns):
-        if element_name == g.get("id"):
+        if element_name == g.get("id") and g.get("bus") is not None:
             dynawo_generator = g
             break
 
     # If element does not exist, exit program
     if dynawo_generator is None:
-        exit("Error: Branch with the provided name does not exist")
+        exit(
+            "Error: Generator with the provided name does not exist or is not connected to a bus"
+        )
 
     ###########################################################
     # DYD file: configure an event model for the disconnection
@@ -867,13 +870,16 @@ def generate_dynawo_shunt_contingency(
 
 
 def generate_dynawo_contingency(
-    dynawo_job_file, dynawo_output_folder, contingency_element_name, contingency_element_type
+    dynawo_input_dir, dynawo_output_folder, contingency_element_name, contingency_element_type
 ):
     # Parse the dynawo JOB.xml file with the parse_xml_file function
     # created for it, and extract the contingency files names from it.
     # This contingency is defined with the name of the element and a number,
     # being 1 for branch, 2 for generator, 3 for load and 4 for shunt. Save
     # the final xml file to the dynawo_output_folder path.
+
+    # Get the JOB file path
+    dynawo_job_file = dynawo_input_dir / "JOB.xml"
 
     # Parse the JOB file
     parsed_input_xml = manage_files.parse_xml_file(dynawo_job_file)
