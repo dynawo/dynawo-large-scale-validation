@@ -284,13 +284,17 @@ def generate_dynawo_branch_contingency(
 
     dynawo_branch = None
     for b in root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
-        if element_name == b.get("id"):
+        if (
+            element_name == b.get("id")
+            and b.get("bus1") is not None
+            and b.get("bus2") is not None
+        ):
             dynawo_branch = b
             break
 
     # If element does not exist, exit program
     if dynawo_branch is None:
-        exit("Error: Branch with the provided name does not exist")
+        exit("Error: Branch with the provided name does not exist or is not connected to a bus")
 
     ###########################################################
     # DYD file: configure an event model for the disconnection
@@ -609,13 +613,13 @@ def generate_dynawo_load_contingency(
 
     dynawo_load = None
     for l in root.iter("{%s}load" % ns):
-        if element_name == l.get("id"):
+        if element_name == l.get("id") and l.get("bus") is not None:
             dynawo_load = l
             break
 
     # If element does not exist, exit program
     if dynawo_load is None:
-        exit("Error: Load with the provided name does not exist")
+        exit("Error: Load with the provided name does not exist or is not connected to a bus")
 
     ###########################################################
     # DYD file: configure an event model for the disconnection
