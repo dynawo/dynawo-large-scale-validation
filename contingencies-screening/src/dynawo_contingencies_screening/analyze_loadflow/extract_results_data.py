@@ -24,6 +24,7 @@ def get_contingencies_dict(parsed_hades_input_file):
 
         contingencies_dict[variante.attrib["num"]] = {
             "name": variante.attrib["nom"],
+            "type": int(variante.attrib["type"]),
             "affected_elements": affected_elements_list,
         }
 
