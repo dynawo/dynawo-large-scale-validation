@@ -3,10 +3,7 @@ from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
 
 
-BRANCH_DISCONNECTION_MODE = "BOTH"
-
-
-def generate_branch_contingency(root, element_name):
+def generate_branch_contingency(root, element_name, disconnection_mode):
     # Start by looking for the element entry
     hades_branch = None
     reseau = root.find("./reseau", root.nsmap)
@@ -21,7 +18,7 @@ def generate_branch_contingency(root, element_name):
         exit("Error: Branch with the provided name does not exist")
 
     # Disconnect the specified branch side or both
-    match BRANCH_DISCONNECTION_MODE:
+    match disconnection_mode:
         case "FROM":
             hades_branch.set("nor", "-1")
         case "TO":
@@ -95,7 +92,11 @@ def clean_contingencies(parsed_input_xml, root, ns):
 
 
 def generate_contingency(
-    hades_original_file, hades_contingency_file, contingency_element_name, contingency_element_type
+    hades_original_file_parsed,
+    hades_contingency_file,
+    contingency_element_name,
+    contingency_element_type,
+    disconnection_mode,
 ):
     # Parse the hades_original_file xml with the parse_xml_file function
     # created for it, and modify the file to create the requested contingency.
@@ -103,17 +104,12 @@ def generate_contingency(
     # being 1 for branch, 2 for generator, 3 for load and 4 for shunt. Save
     # the final xml file to the hades_contingency_file path.
 
-    # Parse the hades input file
-    parsed_input_xml = manage_files.parse_xml_file(hades_original_file)
-    root = parsed_input_xml.getroot()
-
-    clean_contingencies(parsed_input_xml, root, etree.QName(root).namespace)
-
+    root = hades_original_file_parsed.getroot()
     # Add the contingency according to its type
     match contingency_element_type:
         # Branch contingency
         case 1:
-            generate_branch_contingency(root, contingency_element_name)
+            generate_branch_contingency(root, contingency_element_name, disconnection_mode)
         # Generator contingency
         case 2:
             generate_generator_contingency(root, contingency_element_name)
@@ -128,8 +124,8 @@ def generate_contingency(
             exit("Error: Invalid value for the contingency element type provided")
 
     # Save the modified xml
-    etree.indent(parsed_input_xml)
-    parsed_input_xml.write(
+    etree.indent(hades_original_file_parsed)
+    hades_original_file_parsed.write(
         hades_contingency_file,
         pretty_print=True,
         xml_declaration='<?xml version="1.0" encoding="ISO-8859-1"?>',
@@ -161,7 +157,7 @@ def get_types_cont(hades_input_file):
 
 
 def create_hades_contingency_n_1(
-    hades_input_file, hades_output_folder, replay_cont, dict_types_cont
+    hades_input_file, hades_input_file_parsed, hades_output_folder, replay_cont, dict_types_cont
 ):
     # Contingencies (N-1)
 
@@ -174,13 +170,16 @@ def create_hades_contingency_n_1(
     # Create output dir
     os.makedirs(hades_output_folder / replay_cont, exist_ok=True)
 
+    # TODO: Get the disconnection mode from input file
+    disconnection_mode = "BOTH"
+
     # Generate contingency file
-    # TODO: Try to optimize it
     generate_contingency(
-        hades_input_file,
+        hades_input_file_parsed,
         hades_output_folder / replay_cont / hades_input_file.name,
         replay_cont,
         cont_type,
+        disconnection_mode,
     )
 
     return hades_output_folder / replay_cont

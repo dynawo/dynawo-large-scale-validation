@@ -1,12 +1,15 @@
 import os
 import shutil
+import copy
 import argparse
 from pathlib import Path
+from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
 from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
+
 
 HADES_FOLDER = "hades"
 DYNAWO_FOLDER = "dynawo"
@@ -103,6 +106,23 @@ def argument_parser(command_list):
             action="store_true",
         )
 
+    if "branch_disconnection_mode" in command_list:
+        p.add_argument(
+            "-b",
+            "--branch_disconnection_mode",
+            help="define the branch_disconnection_mode (FROM, TO, BOTH)",
+            default="BOTH",
+        )
+
+    if "n_replay" in command_list:
+        p.add_argument(
+            "-n",
+            "--n_replay",
+            help="define the number of worst contingencies to replay (FROM, TO, BOTH)",
+            type=int,
+            default=REPLAY_NUM,
+        )
+
     args = p.parse_args()
     return args
 
@@ -156,9 +176,11 @@ def run_hades_contingencies_code(
 def sort_ranking(elem):
     lambda x: x[1]["final_score"]
     if type(elem[1]["final_score"]) == str:
-        return 0
+        if elem[1]["final_score"] == "Divergence":
+            return 999999
+        else:
+            return 0
     else:
-        # TODO: define priority
         return elem[1]["final_score"]
 
 
@@ -198,12 +220,24 @@ def prepare_hades_contingencies(
 
     dict_types_cont = create_contingencies.get_types_cont(hades_input_file)
 
+    # Parse the hades input file and clean contingencies
+    hades_input_file_parsed = manage_files.parse_xml_file(hades_input_file)
+    root = hades_input_file_parsed.getroot()
+    create_contingencies.clean_contingencies(
+        hades_input_file_parsed, root, etree.QName(root).namespace
+    )
+
     for replay_cont in replay_contgs:
         if replay_cont[1] == 0:
+            hades_input_file_parsed_copy = copy.deepcopy(hades_input_file_parsed)
             # Contingencies (N-1)
             # Generate the fist N(number_pos_replay) contingencies
             hades_output_file = create_contingencies.create_hades_contingency_n_1(
-                hades_input_file, hades_output_folder, replay_cont[0], dict_types_cont
+                hades_input_file,
+                hades_input_file_parsed_copy,
+                hades_output_folder,
+                replay_cont[0],
+                dict_types_cont,
             )
 
             hades_output_list.append(hades_output_file)
@@ -329,25 +363,6 @@ def run_dynawo_contingencies():
     )
 
 
-def create_hades_contingency():
-    # Create an single hades contingency
-    args = argument_parser(
-        [
-            "hades_original_file",
-            "hades_contingency_file",
-            "contingency_element_name",
-            "contingency_element_type",
-        ]
-    )
-
-    create_contingencies.generate_contingency(
-        Path(args.hades_original_file),
-        Path(args.hades_contingency_file),
-        args.contingency_element_name,
-        args.contingency_element_type,
-    )
-
-
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(
@@ -359,6 +374,7 @@ def run_contingencies_screening():
             "tap_changers",
             "replay_hades",
             "replay_dynawo",
+            "n_replay",
         ]
     )
 
@@ -384,7 +400,7 @@ def run_contingencies_screening():
 
     if args.replay_hades:
         replay_hades_paths = prepare_hades_contingencies(
-            sorted_loadflow_score_dict, hades_input_file, hades_output_file.parent, REPLAY_NUM
+            sorted_loadflow_score_dict, hades_input_file, hades_output_file.parent, args.n_replay
         )
 
         for replay_hades_path in replay_hades_paths:
