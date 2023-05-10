@@ -1,10 +1,11 @@
 import os
 from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
-from pathlib import PurePath
+from pathlib import Path, PurePath
+import shutil
 
 
-BRANCH_DISCONNECTION_MODE = "BOTH"
+disconnection_mode = "BOTH"
 # This dictionary refers to the possible load models. Depending on each of them, the
 # variable for the disconnection event can be one or another.
 LOAD_MODELS = {
@@ -201,6 +202,78 @@ def create_hades_contingency_n_1(
     return hades_output_folder / replay_cont
 
 
+def get_dynawo_types_cont(dynawo_input_file):
+    parsed_iidm = manage_files.parse_xml_file(dynawo_input_file)
+    root = parsed_iidm.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get all the types of the different elements
+    dict_types_cont = {}
+    for entry in root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
+        if entry.get("bus1") is not None and entry.get("bus2") is not None:
+            dict_types_cont[entry.attrib["id"]] = 1
+
+    for entry in root.iter("{%s}generator" % ns):
+        if entry.get("bus") is not None:
+            dict_types_cont[entry.attrib["id"]] = 2
+
+    for entry in root.iter("{%s}load" % ns):
+        if entry.get("bus") is not None:
+            dict_types_cont[entry.attrib["id"]] = 3
+
+    for entry in root.iter("{%s}shunt" % ns):
+        if entry.get("bus") is not None:
+            dict_types_cont[entry.attrib["id"]] = 4
+
+    return dict_types_cont
+
+
+def create_dynawo_contingency_n_1(
+    dynawo_input_folder, dynawo_output_folder, replay_cont, dict_types_cont
+):
+    # Contingencies (N-1)
+    print(replay_cont)
+    # Find the contingency type
+    if replay_cont in dict_types_cont:
+        cont_type = dict_types_cont[replay_cont]
+    else:
+        exit("Contingency type not found")
+
+    # Create output dir
+    dynawo_output_folder = dynawo_output_folder / replay_cont
+    os.makedirs(dynawo_output_folder, exist_ok=True)
+
+    # Get the JOB.xml file path
+    jobs_file = list(dynawo_input_folder.glob("*.jobs"))[0]
+
+    # Copy all Dynawo files into the contingency subdirectory
+    for file in dynawo_input_folder.iterdir():
+        src_path = PurePath(dynawo_input_folder).joinpath(file.name)
+        dst_path = PurePath(dynawo_output_folder).joinpath(file.name)
+        if Path(file).is_dir():
+            shutil.copytree(src_path, dst_path)
+        else:
+            # Check if file is the symlink
+            if file.name == "JOB.xml":
+                Path(dst_path).symlink_to(Path(jobs_file))
+            else:
+                shutil.copy2(src_path, dst_path)
+
+    # TODO: Get the disconnection mode from input file
+    disconnection_mode = "BOTH"
+
+    # Generate contingency file
+    generate_dynawo_contingency(
+        dynawo_output_folder,
+        dynawo_output_folder,
+        replay_cont,
+        cont_type,
+        disconnection_mode,
+    )
+
+    return dynawo_output_folder
+
+
 def modify_dyd_file(
     root,
     ns,
@@ -274,7 +347,7 @@ def modify_par_file(root, ns, par_id, old_par_ids):
 
 
 def generate_dynawo_branch_contingency(
-    dydContFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name
+    dydContFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name, disconnection_mode
 ):
     # Check the provided branch name exists
     iidm_file_path = dydContFile_path.parent / iidm_file
@@ -354,10 +427,17 @@ def generate_dynawo_branch_contingency(
     )
     open_F = "true"
     open_T = "true"
-    if BRANCH_DISCONNECTION_MODE == "FROM":
-        open_T = "false"
-    if BRANCH_DISCONNECTION_MODE == "TO":
-        open_F = "false"
+    match disconnection_mode:
+        case "FROM":
+            open_T = "false"
+        case "TO":
+            open_F = "false"
+        case "BOTH":
+            open_F = "false"
+            open_T = "false"
+        case _:
+            exit("Error: Wrong disconnection mode specified")
+
     new_parset.append(
         etree.Element("{%s}par" % ns, type="BOOL", name="event_disconnectOrigin", value=open_F)
     )
@@ -874,7 +954,11 @@ def generate_dynawo_shunt_contingency(
 
 
 def generate_dynawo_contingency(
-    dynawo_input_dir, dynawo_output_folder, contingency_element_name, contingency_element_type
+    dynawo_input_dir,
+    dynawo_output_folder,
+    contingency_element_name,
+    contingency_element_type,
+    disconnection_mode
 ):
     # Parse the dynawo JOB.xml file with the parse_xml_file function
     # created for it, and extract the contingency files names from it.
@@ -915,6 +999,7 @@ def generate_dynawo_contingency(
                 crvFile_contg,
                 iidm_file,
                 contingency_element_name,
+                disconnection_mode
             )
         # Generator contingency
         case 2:
