@@ -14,6 +14,7 @@ from dynawo_contingencies_screening.commons import manage_files
 HADES_FOLDER = "hades"
 DYNAWO_FOLDER = "dynawo"
 REPLAY_NUM = 25
+DEFAULT_SCORE = 1
 
 
 def argument_parser(command_list):
@@ -123,6 +124,15 @@ def argument_parser(command_list):
             default=REPLAY_NUM,
         )
 
+    if "score_type" in command_list:
+        p.add_argument(
+            "-s",
+            "--score_type",
+            help="Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning)",
+            type=int,
+            default=DEFAULT_SCORE,
+        )
+
     args = p.parse_args()
     return args
 
@@ -184,7 +194,7 @@ def sort_ranking(elem):
         return elem[1]["final_score"]
 
 
-def create_contingencies_ranking_code(hades_input_file, hades_output_file):
+def create_contingencies_ranking_code(hades_input_file, hades_output_file, score_type):
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
 
@@ -200,9 +210,21 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file):
     )
 
     # Analyze Hades results
-    hades_contingencies_dict = human_analysis.analyze_loadflow_resuts_discrete(
-        hades_contingencies_dict, parsed_hades_output_file
-    )
+    match score_type:
+        case 1:
+            hades_contingencies_dict = human_analysis.analyze_loadflow_results_discrete(
+                hades_contingencies_dict
+            )
+        case 2:
+            hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
+                hades_contingencies_dict
+            )
+        case 3:
+            hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
+                hades_contingencies_dict
+            )
+        case _:
+            exit("There is no defined score for the indicated option")
 
     return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True)
 
@@ -386,10 +408,12 @@ def run_hades_contingencies():
 def create_contingencies_ranking():
     # Create a ranking with a contingency already executed
 
-    args = argument_parser(["hades_input_file", "hades_output_file"])
+    args = argument_parser(["hades_input_file", "hades_output_file", "score_type"])
 
     sorted_loadflow_score_dict = create_contingencies_ranking_code(
-        Path(args.hades_input_file).absolute(), Path(args.hades_output_file).absolute()
+        Path(args.hades_input_file).absolute(),
+        Path(args.hades_output_file).absolute(),
+        args.score_type,
     )
 
     print("Results ranking:")
@@ -442,6 +466,7 @@ def run_contingencies_screening():
             "replay_hades",
             "replay_dynawo",
             "n_replay",
+            "score_type",
         ]
     )
 
@@ -460,7 +485,9 @@ def run_contingencies_screening():
     )
 
     sorted_loadflow_score_dict = create_contingencies_ranking_code(
-        hades_input_file, hades_output_file
+        hades_input_file,
+        hades_output_file,
+        args.score_type,
     )
 
     display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)

@@ -1,11 +1,8 @@
 from lxml import etree
 
 
-def analyze_loadflow_resuts_discrete(contingencies_dict, parsed_hades_output_file):
+def analyze_loadflow_results_discrete(contingencies_dict):
     # TODO: Explain what should be done
-    # TODO: Modify it
-    root = parsed_hades_output_file.getroot()
-    ns = etree.QName(root).namespace
 
     w_volt = 1
     w_iter = 10
@@ -57,12 +54,9 @@ def analyze_loadflow_resuts_discrete(contingencies_dict, parsed_hades_output_fil
     return contingencies_dict
 
 
-def analyze_loadflow_resuts_continuous(contingencies_dict, parsed_hades_output_file):
+def analyze_loadflow_results_continuous(contingencies_dict):
     # TODO: Explain what should be done
-
-    root = parsed_hades_output_file.getroot()
-    ns = etree.QName(root).namespace
-
+    # TODO: Implement it
     w_volt = 1
     w_iter = 10
     w_poste = 10

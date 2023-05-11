@@ -120,6 +120,8 @@ def collect_hades_results(contingencies_dict, parsed_hades_output_file):
     # Collect the voltages data and its contingencies
     min_voltages_dict, max_voltages_dict = get_voltages(root, ns, list(contingencies_dict.keys()))
 
+    # TODO: Get poste voltages in order to compute continuous score
+
     # Collect all the 'defaut' tag data
     (
         status_dict,
