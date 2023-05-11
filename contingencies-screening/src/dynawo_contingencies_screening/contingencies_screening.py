@@ -248,8 +248,53 @@ def prepare_hades_contingencies(
     return hades_output_list
 
 
-def prepare_dynawo_contingencies():
-    pass
+def prepare_dynawo_contingencies(
+    sorted_loadflow_score_dict, dynawo_input_folder, dynawo_output_folder, number_pos_replay
+):
+    # Create the worst contingencies manually in order to replay it with Hades launcher
+    replay_contgs = [
+        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_dict
+    ]
+    replay_contgs = replay_contgs[:number_pos_replay]
+
+    dynawo_output_list = []
+
+    # Get the JOB file path
+    dynawo_job_file = dynawo_input_folder / "JOB.xml"
+
+    # Parse the JOB file
+    parsed_input_xml = manage_files.parse_xml_file(dynawo_job_file)
+    root = parsed_input_xml.getroot()
+    ns = etree.QName(root).namespace
+
+    # Get the .iidm filename
+    jobs = root.findall("{%s}job" % ns)
+    last_job = jobs[-1]  # contemplate only the *last* job, in case there are several
+    modeler = last_job.find("{%s}modeler" % ns)
+    network = modeler.find("{%s}network" % ns)
+    iidm_file = network.get("iidmFile")
+
+    dict_types_cont = create_contingencies.get_dynawo_types_cont(
+        dynawo_input_folder / iidm_file
+    )
+
+    for replay_cont in replay_contgs:
+        if replay_cont[1] == 0:
+            # Contingencies (N-1)
+            # Generate the fist N(number_pos_replay) contingencies
+            dynawo_output_file = create_contingencies.create_dynawo_contingency_n_1(
+                dynawo_input_folder,
+                dynawo_output_folder,
+                replay_cont[0],
+                dict_types_cont,
+            )
+
+            dynawo_output_list.append(dynawo_output_file)
+        else:
+            # TODO: Implement other types of contingencies (ex. N-k)
+            continue
+
+    return dynawo_output_list
 
 
 def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
@@ -363,6 +408,25 @@ def run_dynawo_contingencies():
     )
 
 
+def create_dynawo_contingency():
+    # Create a single dynawo contingency
+    args = argument_parser(
+        [
+            "input_dir",
+            "output_dir",
+            "contingency_element_name",
+            "contingency_element_type",
+        ]
+    )
+
+    create_contingencies.generate_dynawo_contingency(
+        Path(args.input_dir).absolute() / DYNAWO_FOLDER,
+        Path(args.output_dir).absolute() / DYNAWO_FOLDER,
+        args.contingency_element_name,
+        args.contingency_element_type,
+    )
+
+
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(
@@ -412,10 +476,16 @@ def run_contingencies_screening():
             )
 
     if args.replay_dynawo:
-        prepare_dynawo_contingencies()
+        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
+        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER
 
-        run_dynawo_contingencies_code(
-            Path(args.input_dir).absolute() / DYNAWO_FOLDER,
-            Path(args.output_dir).absolute() / DYNAWO_FOLDER,
-            dynawo_launcher_solved,
+        replay_dynawo_paths = prepare_dynawo_contingencies(
+            sorted_loadflow_score_dict, dynawo_input_dir, dynawo_output_dir, args.n_replay
         )
+
+        for replay_dynawo_path in replay_dynawo_paths:
+            run_dynawo_contingencies_code(
+                replay_dynawo_path,
+                replay_dynawo_path,
+                dynawo_launcher_solved,
+            )
