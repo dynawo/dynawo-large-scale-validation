@@ -68,8 +68,6 @@ def analyze_loadflow_resuts_continuous(contingencies_dict, parsed_hades_output_f
     w_poste = 10
     w_constrait = 10
 
-
-
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:
             contingencies_dict[key]["final_score"] = round(

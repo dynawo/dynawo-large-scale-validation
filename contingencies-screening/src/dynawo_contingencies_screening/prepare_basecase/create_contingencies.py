@@ -347,7 +347,12 @@ def modify_par_file(root, ns, par_id, old_par_ids):
 
 
 def generate_dynawo_branch_contingency(
-    dydContFile_path, dynawo_output_folder, crvFile_contg, iidm_file, element_name, disconnection_mode
+    dydContFile_path,
+    dynawo_output_folder,
+    crvFile_contg,
+    iidm_file,
+    element_name,
+    disconnection_mode,
 ):
     # Check the provided branch name exists
     iidm_file_path = dydContFile_path.parent / iidm_file
@@ -357,11 +362,7 @@ def generate_dynawo_branch_contingency(
 
     dynawo_branch = None
     for b in root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
-        if (
-            element_name == b.get("id")
-            and b.get("bus1") is not None
-            and b.get("bus2") is not None
-        ):
+        if element_name == b.get("id") and b.get("bus1") is not None and b.get("bus2") is not None:
             dynawo_branch = b
             break
 
@@ -546,9 +547,7 @@ def generate_dynawo_generator_contingency(
 
     # If element does not exist, exit program
     if dynawo_generator is None:
-        exit(
-            "Error: Generator with the provided name does not exist or is not connected to a bus"
-        )
+        exit("Error: Generator with the provided name does not exist or is not connected to a bus")
 
     ###########################################################
     # DYD file: configure an event model for the disconnection
@@ -958,7 +957,7 @@ def generate_dynawo_contingency(
     dynawo_output_folder,
     contingency_element_name,
     contingency_element_type,
-    disconnection_mode
+    disconnection_mode,
 ):
     # Parse the dynawo JOB.xml file with the parse_xml_file function
     # created for it, and extract the contingency files names from it.
@@ -999,7 +998,7 @@ def generate_dynawo_contingency(
                 crvFile_contg,
                 iidm_file,
                 contingency_element_name,
-                disconnection_mode
+                disconnection_mode,
             )
         # Generator contingency
         case 2:

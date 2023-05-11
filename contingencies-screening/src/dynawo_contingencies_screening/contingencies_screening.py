@@ -274,9 +274,7 @@ def prepare_dynawo_contingencies(
     network = modeler.find("{%s}network" % ns)
     iidm_file = network.get("iidmFile")
 
-    dict_types_cont = create_contingencies.get_dynawo_types_cont(
-        dynawo_input_folder / iidm_file
-    )
+    dict_types_cont = create_contingencies.get_dynawo_types_cont(dynawo_input_folder / iidm_file)
 
     for replay_cont in replay_contgs:
         if replay_cont[1] == 0:
