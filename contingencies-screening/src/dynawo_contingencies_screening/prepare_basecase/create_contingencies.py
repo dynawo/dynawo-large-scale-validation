@@ -182,7 +182,8 @@ def create_hades_contingency_n_1(
     if replay_cont in dict_types_cont:
         cont_type = dict_types_cont[replay_cont]
     else:
-        exit("Contingency type not found")
+        print("Contingency " + replay_cont + " not found in Hades model")
+        return -1
 
     # Create output dir
     os.makedirs(hades_output_folder / replay_cont, exist_ok=True)
@@ -232,12 +233,12 @@ def create_dynawo_contingency_n_1(
     dynawo_input_folder, dynawo_output_folder, replay_cont, dict_types_cont
 ):
     # Contingencies (N-1)
-    print(replay_cont)
     # Find the contingency type
     if replay_cont in dict_types_cont:
         cont_type = dict_types_cont[replay_cont]
     else:
-        exit("Contingency type not found")
+        print("Contingency " + replay_cont + " not found in Dynawo model")
+        return -1
 
     # Create output dir
     dynawo_output_folder = dynawo_output_folder / replay_cont

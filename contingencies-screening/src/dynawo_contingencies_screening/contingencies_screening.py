@@ -240,7 +240,8 @@ def prepare_hades_contingencies(
                 dict_types_cont,
             )
 
-            hades_output_list.append(hades_output_file)
+            if hades_output_file != -1:
+                hades_output_list.append(hades_output_file)
         else:
             # TODO: Implement other types of contingencies (ex. N-k)
             continue
@@ -287,7 +288,8 @@ def prepare_dynawo_contingencies(
                 dict_types_cont,
             )
 
-            dynawo_output_list.append(dynawo_output_file)
+            if dynawo_output_file != -1:
+                dynawo_output_list.append(dynawo_output_file)
         else:
             # TODO: Implement other types of contingencies (ex. N-k)
             continue
@@ -395,6 +397,8 @@ def create_contingencies_ranking():
 
 
 def run_dynawo_contingencies():
+    # Run a dynawo contingency through the tool
+
     args = argument_parser(["input_dir", "output_dir", "dynawo_launcher"])
 
     dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
@@ -408,6 +412,7 @@ def run_dynawo_contingencies():
 
 def create_dynawo_contingency():
     # Create a single dynawo contingency
+
     args = argument_parser(
         [
             "input_dir",
