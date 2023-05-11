@@ -200,7 +200,7 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file):
     )
 
     # Analyze Hades results
-    hades_contingencies_dict = human_analysis.analyze_loadflow_resuts(
+    hades_contingencies_dict = human_analysis.analyze_loadflow_resuts_discrete(
         hades_contingencies_dict, parsed_hades_output_file
     )
 

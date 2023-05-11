@@ -113,7 +113,7 @@ def collect_hades_results(contingencies_dict, parsed_hades_output_file):
     # For each of the dict identifiers, insert the information of the result
     # of the contingency found in the outputs
 
-    # TODO: add output data to dict
+    # Get the root and the namespacing of the file
     root = parsed_hades_output_file.getroot()
     ns = etree.QName(root).namespace
 
