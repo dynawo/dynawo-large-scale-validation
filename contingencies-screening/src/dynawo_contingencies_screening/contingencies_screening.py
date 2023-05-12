@@ -187,7 +187,7 @@ def sort_ranking(elem):
     lambda x: x[1]["final_score"]
     if type(elem[1]["final_score"]) == str:
         if elem[1]["final_score"] == "Divergence":
-            return 999999
+            return 999999999
         else:
             return 0
     else:
@@ -202,26 +202,29 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file, score
     parsed_hades_output_file = manage_files.parse_xml_file(hades_output_file)
 
     # Get dict of all contingencies
+    hades_elements_dict = extract_results_data.get_elements_dict(parsed_hades_input_file)
+
+    # Get dict of all contingencies
     hades_contingencies_dict = extract_results_data.get_contingencies_dict(parsed_hades_input_file)
 
     # Collect Hades results in dict format
-    hades_contingencies_dict = extract_results_data.collect_hades_results(
-        hades_contingencies_dict, parsed_hades_output_file
+    hades_elements_dict, hades_contingencies_dict = extract_results_data.collect_hades_results(
+        hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file
     )
 
     # Analyze Hades results
     match score_type:
         case 1:
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_discrete(
-                hades_contingencies_dict
+                hades_contingencies_dict, hades_elements_dict
             )
         case 2:
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
-                hades_contingencies_dict
+                hades_contingencies_dict, hades_elements_dict
             )
         case 3:
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-                hades_contingencies_dict
+                hades_contingencies_dict, hades_elements_dict
             )
         case _:
             exit("There is no defined score for the indicated option")
