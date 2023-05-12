@@ -6,7 +6,7 @@ from pathlib import Path
 from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
-from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies
+from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies, matching_elements
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
 
@@ -131,6 +131,12 @@ def argument_parser(command_list):
             help="Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning)",
             type=int,
             default=DEFAULT_SCORE,
+        )
+
+    if "dynawo_job_file" in command_list:
+        p.add_argument(
+            "dynawo_job_file",
+            help="enter the path to the dynawo job file",
         )
 
     args = p.parse_args()
@@ -451,6 +457,19 @@ def create_dynawo_contingency():
         Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         args.contingency_element_name,
         args.contingency_element_type,
+    )
+
+
+def extract_matching_elements():
+    args = argument_parser(
+        [
+            "hades_input_file",
+            "dynawo_job_file",
+        ]
+    )
+
+    matching_elements.matching_elements(
+        Path(args.hades_input_file).absolute(), Path(args.dynawo_job_file).absolute()
     )
 
 
