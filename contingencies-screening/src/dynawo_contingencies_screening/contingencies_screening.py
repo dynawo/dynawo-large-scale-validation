@@ -2,10 +2,15 @@ import os
 import shutil
 import copy
 import argparse
+import pandas as pd
 from pathlib import Path
 from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
-from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
+from dynawo_contingencies_screening.analyze_loadflow import (
+    extract_results_data,
+    human_analysis,
+    machine_learning_analysis,
+)
 from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
@@ -128,7 +133,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-s",
             "--score_type",
-            help="Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning)",
+            help="Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning disc, 4 = machine learning cont",
             type=int,
             default=DEFAULT_SCORE,
         )
@@ -194,7 +199,9 @@ def sort_ranking(elem):
         return elem[1]["final_score"]
 
 
-def create_contingencies_ranking_code(hades_input_file, hades_output_file, score_type):
+def create_contingencies_ranking_code(
+    hades_input_file, hades_output_file, score_type, tap_changers
+):
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
 
@@ -218,13 +225,39 @@ def create_contingencies_ranking_code(hades_input_file, hades_output_file, score
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_discrete(
                 hades_contingencies_dict, hades_elements_dict
             )
+
+            # Used to temporarily store dataframes, in order to use them for ML
+            # df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
+            #     hades_contingencies_dict, hades_elements_dict, True, True
+            # )
+
+            # if (Path(os.getcwd()) / "disc_df.csv").is_file():
+            #     df_ant = pd.read_csv(Path(os.getcwd()) / "disc_df.csv", sep=";", index_col="NUM")
+            #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
+
+            # df_temp.to_csv(Path(os.getcwd()) / "disc_df.csv", sep=";")
         case 2:
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
                 hades_contingencies_dict, hades_elements_dict
             )
+
+            # Used to temporarily store dataframes, in order to use them for ML
+            # df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
+            #     hades_contingencies_dict, hades_elements_dict, False, True
+            # )
+
+            # if (Path(os.getcwd()) / "cont_df.csv").is_file():
+            #     df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
+            #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
+
+            # df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
         case 3:
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-                hades_contingencies_dict, hades_elements_dict
+                hades_contingencies_dict, hades_elements_dict, True, tap_changers
+            )
+        case 4:
+            hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
+                hades_contingencies_dict, hades_elements_dict, False, tap_changers
             )
         case _:
             exit("There is no defined score for the indicated option")
@@ -411,12 +444,13 @@ def run_hades_contingencies():
 def create_contingencies_ranking():
     # Create a ranking with a contingency already executed
 
-    args = argument_parser(["hades_input_file", "hades_output_file", "score_type"])
+    args = argument_parser(["hades_input_file", "hades_output_file", "score_type", "tap_changers"])
 
     sorted_loadflow_score_dict = create_contingencies_ranking_code(
         Path(args.hades_input_file).absolute(),
         Path(args.hades_output_file).absolute(),
         args.score_type,
+        args.tap_changers,
     )
 
     print("Results ranking:")
@@ -491,6 +525,7 @@ def run_contingencies_screening():
         hades_input_file,
         hades_output_file,
         args.score_type,
+        args.tap_changers,
     )
 
     display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)
