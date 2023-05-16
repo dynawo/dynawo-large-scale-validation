@@ -11,7 +11,11 @@ from dynawo_contingencies_screening.analyze_loadflow import (
     human_analysis,
     machine_learning_analysis,
 )
-from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies, matching_elements
+from dynawo_contingencies_screening.prepare_basecase import (
+    prepare_basecase,
+    create_contingencies,
+    matching_elements,
+)
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
 
