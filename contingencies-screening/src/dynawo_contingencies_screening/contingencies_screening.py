@@ -502,6 +502,7 @@ def create_dynawo_contingency():
 
 
 def extract_matching_elements():
+    # TODO: Delete it when it is integrated in the pipeline
     args = argument_parser(
         [
             "hades_input_file",
