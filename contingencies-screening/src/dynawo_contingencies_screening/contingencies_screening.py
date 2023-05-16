@@ -6,7 +6,11 @@ from pathlib import Path
 from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
 from dynawo_contingencies_screening.analyze_loadflow import extract_results_data, human_analysis
-from dynawo_contingencies_screening.prepare_basecase import prepare_basecase, create_contingencies, matching_elements
+from dynawo_contingencies_screening.prepare_basecase import (
+    prepare_basecase,
+    create_contingencies,
+    matching_elements,
+)
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
 from dynawo_contingencies_screening.commons import manage_files
 
@@ -468,7 +472,12 @@ def extract_matching_elements():
         ]
     )
 
-    matching_elements.matching_elements(
+    (
+        matched_branches,
+        matched_generators,
+        matched_loads,
+        matched_shunts,
+    ) = matching_elements.matching_elements(
         Path(args.hades_input_file).absolute(), Path(args.dynawo_job_file).absolute()
     )
 

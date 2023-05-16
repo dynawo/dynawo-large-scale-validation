@@ -30,14 +30,9 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
         bus_to = create_contingencies.get_endbus(dynawo_iidm_root, dynawo_branch, branch_type, "2")
 
         if bus_from is None or bus_to is None:  # skip branch
-            print(
-                "   WARNING: couldn't find bus FROM/TO for %s %s (skipping)"
-                % (branch_type, branch_name)
-            )
             continue
-        dynawo_branches.append(branch_name)
 
-    print("\nFound %d branches in Dynawo file" % len(dynawo_branches))
+        dynawo_branches.append(branch_name)
 
     return dynawo_branches
 
@@ -52,8 +47,6 @@ def get_hades_branches(hades_root):
     for branch in donneesQuadripoles.iterfind("./quadripole", hades_root.nsmap):
         hades_branches.add(branch.get("nom"))
 
-    print("\nFound %d branches in Hades file" % len(hades_branches))
-
     return hades_branches
 
 
@@ -67,8 +60,6 @@ def extract_matching_branches(hades_root, dynawo_iidm_root):
 
     # Get the matching branches
     matched_branches = [x for x in dynawo_branches if x in hades_branches]
-
-    print("   (matched %d branches between both files)\n" % len(matched_branches))
 
     return matched_branches
 
@@ -93,8 +84,6 @@ def get_dynawo_generators(dynawo_iidm_root, ns):
 
         dynawo_generators.append(gen_name)
 
-    print("\nFound %d generators in Dynawo file" % len(dynawo_generators))
-
     return dynawo_generators
 
 
@@ -110,8 +99,6 @@ def get_hades_generators(hades_root):
         if gen.get("noeud") != "-1":
             hades_generators.add(gen.get("nom"))
 
-    print("\nFound %d generators in Hades file" % len(hades_generators))
-
     return hades_generators
 
 
@@ -124,8 +111,6 @@ def extract_matching_generators(hades_root, dynawo_iidm_root):
 
     # Get the matching branches
     matched_generators = [x for x in dynawo_generators if x in hades_generators]
-
-    print("   (matched %d generators between both files)\n" % len(matched_generators))
 
     return matched_generators
 
@@ -154,8 +139,6 @@ def get_dynawo_loads(dynawo_iidm_root, dynawo_dyd_root):
 
         dynawo_loads.append(load_name)
 
-    print("\nFound %d loads in Dynawo file" % len(dynawo_loads))
-
     return dynawo_loads
 
 
@@ -169,8 +152,6 @@ def get_hades_loads(hades_root):
         if load.get("noeud") != "-1":
             hades_loads.add(load.get("nom"))
 
-    print("\nFound %d loads in Hades file" % len(hades_loads))
-
     return hades_loads
 
 
@@ -183,8 +164,6 @@ def extract_matching_loads(hades_root, dynawo_iidm_root, dynawo_dyd_root):
     # Get the matching loads
     matched_loads = [x for x in dynawo_loads if x in hades_loads]
 
-    print("   (matched %d loads between both files)\n" % len(matched_loads))
-
     return matched_loads
 
 
@@ -196,8 +175,6 @@ def get_dynawo_shunts(dynawo_iidm_root, ns):
         if shunt.get("bus") is not None:
             shunt_name = shunt.get("id")
             dynawo_shunts.append(shunt_name)
-
-    print("\nFound %d shunts in Dynawo file" % len(dynawo_shunts))
 
     return dynawo_shunts
 
@@ -212,8 +189,6 @@ def get_hades_shunts(hades_root):
         if shunt.get("noeud") != "-1":
             hades_shunts.add(shunt.get("nom"))
 
-    print("\nFound %d shunts in Hades file" % len(hades_shunts))
-
     return hades_shunts
 
 
@@ -227,17 +202,10 @@ def extract_matching_shunts(hades_root, dynawo_iidm_root):
     # Get the matching loads
     matched_shunts = [x for x in dynawo_shunts if x in hades_shunts]
 
-    print("   (matched %d shunts between both files)\n" % len(matched_shunts))
-
     return matched_shunts
 
 
 def matching_elements(hades_input_file, dynawo_job_file):
-    matched_branches = {}
-    matched_generators = {}
-    matched_loads = {}
-    matched_shunts = {}
-
     # Get the needed dynawo file paths from the JOB file
     parsed_input_xml = manage_files.parse_xml_file(dynawo_job_file)
     root = parsed_input_xml.getroot()

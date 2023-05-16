@@ -65,7 +65,6 @@ run_hades_contingencies = "dynawo_contingencies_screening.contingencies_screenin
 create_contingencies_ranking = "dynawo_contingencies_screening.contingencies_screening:create_contingencies_ranking"
 run_dynawo_contingencies = "dynawo_contingencies_screening.contingencies_screening:run_dynawo_contingencies"
 run_contingencies_screening = "dynawo_contingencies_screening.contingencies_screening:run_contingencies_screening"
-extract_matching_elements = "dynawo_contingencies_screening.contingencies_screening:extract_matching_elements"
 
 
 
