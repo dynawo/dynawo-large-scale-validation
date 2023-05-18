@@ -9,8 +9,11 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
 
     # Get all the connected branches' name
     for dynawo_branch in dynawo_iidm_root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
-        if (float(dynawo_branch.get("p1")) == 0.0 and float(dynawo_branch.get("q1")) == 0.0) or (
-            float(dynawo_branch.get("p2")) == 0.0 and float(dynawo_branch.get("q2")) == 0.0
+        if (
+            (dynawo_branch.get("p1") == None or dynawo_branch.get("q1") == None)
+            or (dynawo_branch.get("p2") == None or dynawo_branch.get("q2") == None)
+            or (float(dynawo_branch.get("p1")) == 0.0 and float(dynawo_branch.get("q1")) == 0.0)
+            or (float(dynawo_branch.get("p2")) == 0.0 and float(dynawo_branch.get("q2")) == 0.0)
         ):
             continue
         branch_name = dynawo_branch.get("id")
@@ -69,6 +72,8 @@ def get_dynawo_generators(dynawo_iidm_root, ns):
 
     # Get all the connected generators' name
     for gen in dynawo_iidm_root.iter("{%s}generator" % ns):
+        if gen.get("p") is None or (gen.get("q") is None and gen.get("targetQ") is None):
+            continue
         P_val = float(gen.get("p"))
         if gen.get("q") is not None:
             Q_val = float(gen.get("q"))
@@ -115,27 +120,15 @@ def extract_matching_generators(hades_root, dynawo_iidm_root):
     return matched_generators
 
 
-def get_dynawo_loads(dynawo_iidm_root, dynawo_dyd_root):
-    dynawo_loads = []
-    dm_loads = dict()
+def get_dynawo_loads(dynawo_iidm_root):
+    # TODO: We don't have dyd now, modified quickly, check it
 
-    # We first enumerate all loads from the DYD and keep their model type
-    ns_dyd = etree.QName(dynawo_dyd_root).namespace
-    for bbm in dynawo_dyd_root.iter("{%s}blackBoxModel" % ns_dyd):
-        if bbm.get("lib") in create_contingencies.LOAD_MODELS:
-            dm_loads[bbm.get("id")] = bbm.get("lib")
+    dynawo_loads = []
 
     # Get all the connected loads' name
     ns = etree.QName(dynawo_iidm_root).namespace
     for load in dynawo_iidm_root.iter("{%s}load" % ns):
         load_name = load.get("id")
-        if load_name not in dm_loads:
-            continue
-        topo_val = load.getparent().get("topologyKind")
-        if topo_val == "BUS_BREAKER":
-            bus_name = load.get("bus")
-            if bus_name is None:
-                continue
 
         dynawo_loads.append(load_name)
 
@@ -155,8 +148,8 @@ def get_hades_loads(hades_root):
     return hades_loads
 
 
-def extract_matching_loads(hades_root, dynawo_iidm_root, dynawo_dyd_root):
-    dynawo_loads = get_dynawo_loads(dynawo_iidm_root, dynawo_dyd_root)
+def extract_matching_loads(hades_root, dynawo_iidm_root):
+    dynawo_loads = get_dynawo_loads(dynawo_iidm_root)
 
     # Get all the Hades loads
     hades_loads = get_hades_loads(hades_root)
@@ -205,35 +198,17 @@ def extract_matching_shunts(hades_root, dynawo_iidm_root):
     return matched_shunts
 
 
-def matching_elements(hades_input_file, dynawo_job_file):
-    # Get the needed dynawo file paths from the JOB file
-    parsed_input_xml = manage_files.parse_xml_file(dynawo_job_file)
-    root = parsed_input_xml.getroot()
-    ns = etree.QName(root).namespace
-
-    jobs = root.findall("{%s}job" % ns)
-    last_job = jobs[-1]  # contemplate only the *last* job, in case there are several
-    modeler = last_job.find("{%s}modeler" % ns)
-    dynModels = modeler.findall("{%s}dynModels" % ns)
-    dyd_file = dynModels[0].get("dydFile")
-    network = modeler.find("{%s}network" % ns)
-    iidm_file = network.get("iidmFile")
-
-    iidm_file_path = PurePath(dynawo_job_file.absolute()).parent / iidm_file
-    dyd_file_path = PurePath(dynawo_job_file.absolute()).parent / dyd_file
-
+def matching_elements(hades_input_file, iidm_file_path):
     # Parse the necessary files
     hades_input_file_parsed = manage_files.parse_xml_file(hades_input_file)
     hades_root = hades_input_file_parsed.getroot()
     dynawo_iidm_file_parsed = manage_files.parse_xml_file(iidm_file_path)
     dynawo_iidm_root = dynawo_iidm_file_parsed.getroot()
-    dynawo_dyd_file_parsed = manage_files.parse_xml_file(dyd_file_path)
-    dynawo_dyd_root = dynawo_dyd_file_parsed.getroot()
 
     # Extract the matching elements for each type
     matched_branches = extract_matching_branches(hades_root, dynawo_iidm_root)
     matched_generators = extract_matching_generators(hades_root, dynawo_iidm_root)
-    matched_loads = extract_matching_loads(hades_root, dynawo_iidm_root, dynawo_dyd_root)
+    matched_loads = extract_matching_loads(hades_root, dynawo_iidm_root)
     matched_shunts = extract_matching_shunts(hades_root, dynawo_iidm_root)
 
     return matched_branches, matched_generators, matched_loads, matched_shunts

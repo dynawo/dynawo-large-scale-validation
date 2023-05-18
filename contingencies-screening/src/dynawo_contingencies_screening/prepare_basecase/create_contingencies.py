@@ -1,4 +1,5 @@
 import os
+import json
 from lxml import etree
 from dynawo_contingencies_screening.commons import manage_files
 from pathlib import Path, PurePath
@@ -1033,3 +1034,83 @@ def generate_dynawo_contingency(
         # Default case: Not a valid element type provided
         case _:
             exit("Error: Invalid value for the contingency element type provided")
+
+
+def create_dynawo_SA(
+    dynawo_output_folder,
+    replay_contgs,
+    dict_types_cont,
+    dynamic_database,
+    matched_branches,
+    matched_generators,
+    matched_loads,
+    matched_shunts,
+):
+
+    if dynamic_database is not None:
+        config_dict = {
+            "dfl-config": {
+                "OutputDir": str(dynawo_output_folder),
+                "SettingPath": str(dynamic_database / "setting.xml"),
+                "AssemblingPath": str(dynamic_database / "assembling.xml"),
+                "ChosenOutputs": ["STEADYSTATE", "LOSTEQ", "TIMELINE", "CONSTRAINTS"],
+            }
+        }
+        contng_dict = {
+            "version": "1.0",
+            "name": "list",
+            "contingencies": [],
+        }
+    else:
+        config_dict = {
+            "dfl-config": {
+                "OutputDir": str(dynawo_output_folder),
+                "ChosenOutputs": ["STEADYSTATE", "LOSTEQ", "TIMELINE", "CONSTRAINTS"],
+            }
+        }
+        contng_dict = {
+            "version": "1.0",
+            "name": "list",
+            "contingencies": [],
+        }
+
+    # Create output dir
+    os.makedirs(dynawo_output_folder, exist_ok=True)
+
+    for replay_cont in replay_contgs:
+
+        match dict_types_cont[replay_cont]:
+            case 1:
+                type_cont = "LINE"
+                if replay_cont not in matched_branches:
+                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    continue
+            case 2:
+                type_cont = "GENERATOR"
+                if replay_cont not in matched_generators:
+                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    continue
+            case 3:
+                type_cont = "LOAD"
+                if replay_cont not in matched_loads:
+                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    continue
+            case 4:
+                type_cont = "SHUNT_COMPENSATOR"
+                if replay_cont not in matched_shunts:
+                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    continue
+            case _:
+                continue
+
+        contng_dict["contingencies"].append(
+            {"id": replay_cont, "elements": [{"id": replay_cont, "type": type_cont}]}
+        )
+
+    with open(dynawo_output_folder / "config.json", "w") as outfile:
+        json.dump(config_dict, outfile)
+
+    with open(dynawo_output_folder / "contng.json", "w") as outfile:
+        json.dump(contng_dict, outfile)
+
+    return dynawo_output_folder / "config.json", dynawo_output_folder / "contng.json"

@@ -100,11 +100,11 @@ def argument_parser(command_list):
             action="store_true",
         )
 
-    if "replay_hades" in command_list:
+    if "replay_hades_obo" in command_list:
         p.add_argument(
             "-a",
-            "--replay_hades",
-            help="replay the worst contingencies with Hades",
+            "--replay_hades_obo",
+            help="replay the worst contingencies with Hades one by one",
             action="store_true",
         )
 
@@ -113,6 +113,14 @@ def argument_parser(command_list):
             "-d",
             "--replay_dynawo",
             help="replay the worst contingencies with Dynawo",
+            action="store_true",
+        )
+
+    if "replay_dynawo_obo" in command_list:
+        p.add_argument(
+            "-y",
+            "--replay_dynawo_obo",
+            help="replay the worst contingencies with Dynawo one by one",
             action="store_true",
         )
 
@@ -142,10 +150,12 @@ def argument_parser(command_list):
             default=DEFAULT_SCORE,
         )
 
-    if "dynawo_job_file" in command_list:
+    if "dynamic_database" in command_list:
         p.add_argument(
-            "dynawo_job_file",
-            help="enter the path to the dynawo job file",
+            "-b",
+            "--dynamic_database",
+            help="Path to obtain a different dynamic database when using Dynawo",
+            default=None,
         )
 
     args = p.parse_args()
@@ -317,10 +327,49 @@ def prepare_hades_contingencies(
     return hades_output_list
 
 
+def prepare_dynawo_SA(
+    hades_input_file,
+    sorted_loadflow_score_dict,
+    dynawo_input_folder,
+    dynawo_output_folder,
+    number_pos_replay,
+    dynamic_database,
+):
+    # Create the worst contingencies with JSON in order to replay it with Dynawo launcher
+    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_dict]
+    replay_contgs = replay_contgs[:number_pos_replay]
+
+    iidm_file = list(dynawo_input_folder.glob("*.*iidm"))[0]
+
+    (
+        matched_branches,
+        matched_generators,
+        matched_loads,
+        matched_shunts,
+    ) = matching_elements.matching_elements(hades_input_file, iidm_file)
+
+    dict_types_cont = create_contingencies.get_dynawo_types_cont(dynawo_input_folder / iidm_file)
+
+    # Contingencies (N-1)
+    # Generate the fist N(number_pos_replay) contingencies
+    config_file, contng_file = create_contingencies.create_dynawo_SA(
+        dynawo_output_folder,
+        replay_contgs,
+        dict_types_cont,
+        dynamic_database,
+        matched_branches,
+        matched_generators,
+        matched_loads,
+        matched_shunts,
+    )
+
+    return config_file, contng_file
+
+
 def prepare_dynawo_contingencies(
     sorted_loadflow_score_dict, dynawo_input_folder, dynawo_output_folder, number_pos_replay
 ):
-    # Create the worst contingencies manually in order to replay it with Hades launcher
+    # Create the worst contingencies manually in order to replay it with Dynawo launcher
     replay_contgs = [
         [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_dict
     ]
@@ -366,13 +415,21 @@ def prepare_dynawo_contingencies(
 
 
 def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
-    # TODO: Implement it
-
     # Create output dir
     os.makedirs(output_dir, exist_ok=True)
 
     # Run the BASECASE with the specified Dynawo launcher
     run_dynawo.run_dynaflow(input_dir, output_dir, dynawo_launcher)
+
+
+def run_dynawo_contingencies_SA_code(
+    input_dir, output_dir, dynawo_launcher, config_file, contng_file
+):
+    # Create output dir
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Run the BASECASE with the specified Dynawo launcher
+    run_dynawo.run_dynaflow_SA(input_dir, output_dir, dynawo_launcher, config_file, contng_file)
 
 
 def display_results_table(output_dir, sorted_loadflow_score_dict):
@@ -501,25 +558,6 @@ def create_dynawo_contingency():
     )
 
 
-def extract_matching_elements():
-    # TODO: Delete it when it is integrated in the pipeline
-    args = argument_parser(
-        [
-            "hades_input_file",
-            "dynawo_job_file",
-        ]
-    )
-
-    (
-        matched_branches,
-        matched_generators,
-        matched_loads,
-        matched_shunts,
-    ) = matching_elements.matching_elements(
-        Path(args.hades_input_file).absolute(), Path(args.dynawo_job_file).absolute()
-    )
-
-
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(
@@ -529,10 +567,12 @@ def run_contingencies_screening():
             "hades_launcher",
             "dynawo_launcher",
             "tap_changers",
-            "replay_hades",
+            "replay_hades_obo",
             "replay_dynawo",
+            "replay_dynawo_obo",
             "n_replay",
             "score_type",
+            "dynamic_database",
         ]
     )
 
@@ -559,7 +599,33 @@ def run_contingencies_screening():
 
     display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)
 
-    if args.replay_hades:
+    if args.replay_dynawo:
+        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
+        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER
+
+        if args.dynamic_database is not None:
+            dynamic_database = Path(args.dynamic_database).absolute()
+        else:
+            dynamic_database = None
+
+        config_file, contng_file = prepare_dynawo_SA(
+            hades_input_file,
+            sorted_loadflow_score_dict,
+            dynawo_input_dir,
+            dynawo_output_dir,
+            args.n_replay,
+            dynamic_database,
+        )
+
+        run_dynawo_contingencies_SA_code(
+            dynawo_input_dir,
+            dynawo_output_dir,
+            dynawo_launcher_solved,
+            config_file,
+            contng_file,
+        )
+
+    if args.replay_hades_obo:
         replay_hades_paths = prepare_hades_contingencies(
             sorted_loadflow_score_dict, hades_input_file, hades_output_file.parent, args.n_replay
         )
@@ -572,10 +638,11 @@ def run_contingencies_screening():
                 args.tap_changers,
             )
 
-    if args.replay_dynawo:
+    if args.replay_dynawo_obo:
         dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
-        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER
+        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER / "OneByOne"
 
+        # TODO: Adapt it to the new files
         replay_dynawo_paths = prepare_dynawo_contingencies(
             sorted_loadflow_score_dict, dynawo_input_dir, dynawo_output_dir, args.n_replay
         )
