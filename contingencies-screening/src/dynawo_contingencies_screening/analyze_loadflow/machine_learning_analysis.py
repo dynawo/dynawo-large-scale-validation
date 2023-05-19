@@ -1,7 +1,6 @@
 import os
 import argparse
 from pathlib import Path
-from lxml import etree
 import pandas as pd
 import pickle
 from numpy import mean, std

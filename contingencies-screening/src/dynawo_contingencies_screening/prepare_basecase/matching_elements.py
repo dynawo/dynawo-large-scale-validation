@@ -1,5 +1,4 @@
 from lxml import etree
-from pathlib import Path, PurePath
 from dynawo_contingencies_screening.commons import manage_files
 from dynawo_contingencies_screening.prepare_basecase import create_contingencies
 
@@ -26,7 +25,7 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
             else:
                 branch_type = "PhaseShitfer"
 
-        # Get the buses we need to disconnect
+        # Check if branch is connected on both ends
         bus_from = create_contingencies.get_endbus(
             dynawo_iidm_root, dynawo_branch, branch_type, "1"
         )
