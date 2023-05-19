@@ -1048,11 +1048,15 @@ def create_dynawo_SA(
 ):
 
     if dynamic_database is not None:
+
+        setting_xml = list(dynamic_database.glob("*setting*.xml"))[0]
+        assembling_xml = list(dynamic_database.glob("*assembling*.xml"))[0]
+
         config_dict = {
             "dfl-config": {
                 "OutputDir": str(dynawo_output_folder),
-                "SettingPath": str(dynamic_database / "setting.xml"),
-                "AssemblingPath": str(dynamic_database / "assembling.xml"),
+                "SettingPath": str(setting_xml),
+                "AssemblingPath": str(assembling_xml),
                 "ChosenOutputs": ["STEADYSTATE", "LOSTEQ", "TIMELINE", "CONSTRAINTS"],
             }
         }
