@@ -107,7 +107,7 @@ def get_contingencies_dict(parsed_hades_input_file):
 
 
 def get_max_min_voltages(root, ns, contingencies_list):
-    # Create the dictionaries where we will store the data
+    # Create the dictionaries where the data will be stored
     max_voltages_dict = {key: [] for key in contingencies_list}
     min_voltages_dict = {key: [] for key in contingencies_list}
     poste_node_volt_dict = {}
@@ -134,6 +134,7 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
     # Once this is done, define these voltages for each of the postes
     for noeud in root.iter("{%s}noeud" % ns):
         variable = noeud.find("{%s}variables" % ns)
+        # Convert voltage value from base 100 to real value
         elements_dict["noeud"][int(noeud.attrib["num"])]["volt"] = (
             float(variable.attrib["v"])
             * float(

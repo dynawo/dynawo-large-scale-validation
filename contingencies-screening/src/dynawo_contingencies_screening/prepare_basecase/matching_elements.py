@@ -1,5 +1,4 @@
 from lxml import etree
-from pathlib import Path, PurePath
 from dynawo_contingencies_screening.commons import manage_files
 from dynawo_contingencies_screening.prepare_basecase import create_contingencies
 
@@ -26,7 +25,7 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
             else:
                 branch_type = "PhaseShitfer"
 
-        # Get the buses we need to disconnect
+        # Check if branch is connected on both ends
         bus_from = create_contingencies.get_endbus(
             dynawo_iidm_root, dynawo_branch, branch_type, "1"
         )
@@ -121,14 +120,22 @@ def extract_matching_generators(hades_root, dynawo_iidm_root):
 
 
 def get_dynawo_loads(dynawo_iidm_root):
-    # TODO: We don't have dyd now, modified quickly, check it
-
     dynawo_loads = []
 
     # Get all the connected loads' name
     ns = etree.QName(dynawo_iidm_root).namespace
     for load in dynawo_iidm_root.iter("{%s}load" % ns):
         load_name = load.get("id")
+
+        # Check if it's connected to a bus
+        topo_val = load.getparent().get("topologyKind")
+        if topo_val == "BUS_BREAKER":
+            bus_name = load.get("bus")
+            if bus_name is None:
+                continue
+        # Skip it if its topology is different
+        else:
+            continue
 
         dynawo_loads.append(load_name)
 

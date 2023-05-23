@@ -1,4 +1,3 @@
-from lxml import etree
 
 
 def analyze_loadflow_results_discrete(contingencies_dict, elements_dict):

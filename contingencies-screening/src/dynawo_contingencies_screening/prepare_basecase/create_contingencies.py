@@ -1047,6 +1047,7 @@ def create_dynawo_SA(
     matched_shunts,
 ):
 
+    # Check if a dynamic database is going to be used and create the needed JSON files
     if dynamic_database is not None:
 
         setting_xml = list(dynamic_database.glob("*setting*.xml"))[0]
@@ -1081,6 +1082,7 @@ def create_dynawo_SA(
     # Create output dir
     os.makedirs(dynawo_output_folder, exist_ok=True)
 
+    # Replay the contingencies
     for replay_cont in replay_contgs:
 
         match dict_types_cont[replay_cont]:
@@ -1111,6 +1113,7 @@ def create_dynawo_SA(
             {"id": replay_cont, "elements": [{"id": replay_cont, "type": type_cont}]}
         )
 
+    # Save the JSON files
     with open(dynawo_output_folder / "config.json", "w") as outfile:
         json.dump(config_dict, outfile)
 

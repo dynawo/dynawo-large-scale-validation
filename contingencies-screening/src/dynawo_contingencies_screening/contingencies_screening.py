@@ -67,18 +67,6 @@ def argument_parser(command_list):
             help="enter the path to the hades output file",
         )
 
-    if "hades_original_file" in command_list:
-        p.add_argument(
-            "hades_original_file",
-            help="enter the path to the hades original file",
-        )
-
-    if "hades_contingency_file" in command_list:
-        p.add_argument(
-            "hades_contingency_file",
-            help="enter the path to the hades contingency file",
-        )
-
     if "contingency_element_name" in command_list:
         p.add_argument(
             "contingency_element_name",
@@ -538,26 +526,6 @@ def run_dynawo_contingencies():
     )
 
 
-def create_dynawo_contingency():
-    # Create a single dynawo contingency
-
-    args = argument_parser(
-        [
-            "input_dir",
-            "output_dir",
-            "contingency_element_name",
-            "contingency_element_type",
-        ]
-    )
-
-    create_contingencies.generate_dynawo_contingency(
-        Path(args.input_dir).absolute() / DYNAWO_FOLDER,
-        Path(args.output_dir).absolute() / DYNAWO_FOLDER,
-        args.contingency_element_name,
-        args.contingency_element_type,
-    )
-
-
 def run_contingencies_screening():
     # Main execution pipeline
     args = argument_parser(
@@ -575,21 +543,28 @@ def run_contingencies_screening():
             "dynamic_database",
         ]
     )
+    input_dir_path = Path(args.input_dir).absolute()
+    output_dir_path = Path(args.output_dir).absolute()
 
-    dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
+    # Check the existence of the input and output directories
+    dir_exists(input_dir_path, output_dir_path)
 
-    prepare_basecase.check_basecase_dir(Path(args.input_dir).absolute())
+    # Check if input directory has the required format and files
+    prepare_basecase.check_basecase_dir(input_dir_path)
 
+    # Check if specified launchers are files in the system path or directories to files
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
     dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
 
+    # Run the contingencies with the specified hades launcher
     hades_input_file, hades_output_file = run_hades_contingencies_code(
-        Path(args.input_dir).absolute() / HADES_FOLDER,
-        Path(args.output_dir).absolute() / HADES_FOLDER,
+        input_dir_path / HADES_FOLDER,
+        output_dir_path / HADES_FOLDER,
         hades_launcher_solved,
         args.tap_changers,
     )
 
+    # Rank all contingencies based of the hades simulation results
     sorted_loadflow_score_dict = create_contingencies_ranking_code(
         hades_input_file,
         hades_output_file,
@@ -597,17 +572,20 @@ def run_contingencies_screening():
         args.tap_changers,
     )
 
+    # Show the ranking results
     display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)
 
+    # If selected, replay the worst contingencies with Dynawo systematic analysis
     if args.replay_dynawo:
-        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
-        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER
+        dynawo_input_dir = input_dir_path / DYNAWO_FOLDER
+        dynawo_output_dir = output_dir_path / DYNAWO_FOLDER
 
         if args.dynamic_database is not None:
             dynamic_database = Path(args.dynamic_database).absolute()
         else:
             dynamic_database = None
 
+        # Prepare the necessary files
         config_file, contng_file = prepare_dynawo_SA(
             hades_input_file,
             sorted_loadflow_score_dict,
@@ -617,6 +595,7 @@ def run_contingencies_screening():
             dynamic_database,
         )
 
+        # Run the contingencies again
         run_dynawo_contingencies_SA_code(
             dynawo_input_dir,
             dynawo_output_dir,
@@ -625,11 +604,16 @@ def run_contingencies_screening():
             contng_file,
         )
 
+        # TODO: extract dynawo results data
+
+    # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
+        # Prepare the necessary files
         replay_hades_paths = prepare_hades_contingencies(
             sorted_loadflow_score_dict, hades_input_file, hades_output_file.parent, args.n_replay
         )
 
+        # Run the contingencies again
         for replay_hades_path in replay_hades_paths:
             hades_input_file, hades_output_file = run_hades_contingencies_code(
                 replay_hades_path,
@@ -639,8 +623,8 @@ def run_contingencies_screening():
             )
 
     if args.replay_dynawo_obo:
-        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
-        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER / "OneByOne"
+        dynawo_input_dir = input_dir_path / DYNAWO_FOLDER
+        dynawo_output_dir = output_dir_path / DYNAWO_FOLDER / "OneByOne"
 
         # TODO: Adapt it to the new files
         replay_dynawo_paths = prepare_dynawo_contingencies(
