@@ -1,5 +1,3 @@
-
-
 def analyze_loadflow_results_discrete(contingencies_dict, elements_dict):
     # TODO: Explain what should be done
 
