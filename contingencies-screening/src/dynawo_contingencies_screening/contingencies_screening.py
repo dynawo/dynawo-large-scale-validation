@@ -66,19 +66,6 @@ def argument_parser(command_list):
             "hades_output_file",
             help="enter the path to the hades output file",
         )
-    # TODO: Argument without any use
-    if "hades_original_file" in command_list:
-        p.add_argument(
-            "hades_original_file",
-            help="enter the path to the hades original file",
-        )
-
-    # TODO: Argument without any use
-    if "hades_contingency_file" in command_list:
-        p.add_argument(
-            "hades_contingency_file",
-            help="enter the path to the hades contingency file",
-        )
 
     if "contingency_element_name" in command_list:
         p.add_argument(
@@ -125,7 +112,6 @@ def argument_parser(command_list):
             action="store_true",
         )
 
-    # TODO: Argument without any use
     if "branch_disconnection_mode" in command_list:
         p.add_argument(
             "-b",
@@ -168,7 +154,6 @@ def dir_exists(input_dir, output_dir):
     # Check if exists output dir
     if output_dir.exists():
         remove_dir = input("The output directory exists, do you want to remove it? [y/N] ")
-        # TODO: Should be able to continue if directory exists?
         if remove_dir == "y" or remove_dir == "Y":
             # Check if output directory is the same as the input, or input
             # directory is subdirectory of the specified output directory
@@ -242,7 +227,6 @@ def create_contingencies_ranking_code(
         hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file
     )
 
-    # TODO: Explain types and check if commented code can be removed
     # Analyze Hades results
     match score_type:
         case 1:
@@ -488,7 +472,6 @@ def check_basecase_dir(input_dir):
     prepare_basecase.check_basecase_dir(Path(input_dir).absolute())
 
 
-# TODO: Function is not used
 def run_hades_contingencies():
     # Run a hades contingency through the tool
 
@@ -513,7 +496,6 @@ def run_hades_contingencies():
     )
 
 
-# TODO: Function is not used
 def create_contingencies_ranking():
     # Create a ranking with a contingency already executed
 
@@ -530,7 +512,6 @@ def create_contingencies_ranking():
     print(sorted_loadflow_score_dict)
 
 
-# TODO: Function is not used
 def run_dynawo_contingencies():
     # Run a dynawo contingency through the tool
 
@@ -542,26 +523,6 @@ def run_dynawo_contingencies():
         Path(args.input_dir).absolute() / DYNAWO_FOLDER,
         Path(args.output_dir).absolute() / DYNAWO_FOLDER,
         dynawo_launcher_solved,
-    )
-
-
-def create_dynawo_contingency():
-    # Create a single dynawo contingency
-
-    args = argument_parser(
-        [
-            "input_dir",
-            "output_dir",
-            "contingency_element_name",
-            "contingency_element_type",
-        ]
-    )
-
-    create_contingencies.generate_dynawo_contingency(
-        Path(args.input_dir).absolute() / DYNAWO_FOLDER,
-        Path(args.output_dir).absolute() / DYNAWO_FOLDER,
-        args.contingency_element_name,
-        args.contingency_element_type,
     )
 
 
@@ -582,12 +543,14 @@ def run_contingencies_screening():
             "dynamic_database",
         ]
     )
-    # TODO: Check if is needed every time to call Path constructor on input/output dir
+    input_dir_path = Path(args.input_dir).absolute()
+    output_dir_path = Path(args.output_dir).absolute()
+
     # Check the existence of the input and output directories
-    dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
+    dir_exists(input_dir_path, output_dir_path)
 
     # Check if input directory has the required format and files
-    prepare_basecase.check_basecase_dir(Path(args.input_dir).absolute())
+    prepare_basecase.check_basecase_dir(input_dir_path)
 
     # Check if specified launchers are files in the system path or directories to files
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
@@ -595,8 +558,8 @@ def run_contingencies_screening():
 
     # Run the contingencies with the specified hades launcher
     hades_input_file, hades_output_file = run_hades_contingencies_code(
-        Path(args.input_dir).absolute() / HADES_FOLDER,
-        Path(args.output_dir).absolute() / HADES_FOLDER,
+        input_dir_path / HADES_FOLDER,
+        output_dir_path / HADES_FOLDER,
         hades_launcher_solved,
         args.tap_changers,
     )
@@ -612,11 +575,10 @@ def run_contingencies_screening():
     # Show the ranking results
     display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)
 
-    # TODO: Check if matching elements can be executed only once for more than one replay type
     # If selected, replay the worst contingencies with Dynawo systematic analysis
     if args.replay_dynawo:
-        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
-        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER
+        dynawo_input_dir = input_dir_path / DYNAWO_FOLDER
+        dynawo_output_dir = output_dir_path / DYNAWO_FOLDER
 
         if args.dynamic_database is not None:
             dynamic_database = Path(args.dynamic_database).absolute()
@@ -642,6 +604,8 @@ def run_contingencies_screening():
             contng_file,
         )
 
+        # TODO: extract dynawo results data
+
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
         # Prepare the necessary files
@@ -659,8 +623,8 @@ def run_contingencies_screening():
             )
 
     if args.replay_dynawo_obo:
-        dynawo_input_dir = Path(args.input_dir).absolute() / DYNAWO_FOLDER
-        dynawo_output_dir = Path(args.output_dir).absolute() / DYNAWO_FOLDER / "OneByOne"
+        dynawo_input_dir = input_dir_path / DYNAWO_FOLDER
+        dynawo_output_dir = output_dir_path / DYNAWO_FOLDER / "OneByOne"
 
         # TODO: Adapt it to the new files
         replay_dynawo_paths = prepare_dynawo_contingencies(

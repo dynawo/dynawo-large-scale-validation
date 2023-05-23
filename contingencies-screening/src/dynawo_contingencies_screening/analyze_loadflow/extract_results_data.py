@@ -110,7 +110,6 @@ def get_max_min_voltages(root, ns, contingencies_list):
     # Create the dictionaries where the data will be stored
     max_voltages_dict = {key: [] for key in contingencies_list}
     min_voltages_dict = {key: [] for key in contingencies_list}
-    # TODO: Purpose of this?
     poste_node_volt_dict = {}
 
     for entry in root.iter("{%s}posteSurv" % ns):
@@ -135,7 +134,7 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
     # Once this is done, define these voltages for each of the postes
     for noeud in root.iter("{%s}noeud" % ns):
         variable = noeud.find("{%s}variables" % ns)
-        # TODO: Explain the following equation?
+        # Convert voltage value from base 100 to real value
         elements_dict["noeud"][int(noeud.attrib["num"])]["volt"] = (
             float(variable.attrib["v"])
             * float(
@@ -247,7 +246,6 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         contingencies_dict[key]["constr_volt"] = constraint_dict["contrTension"][key]
         contingencies_dict[key]["constr_flow"] = constraint_dict["contrTransit"][key]
 
-        # TODO: Explain this?
         constr_gen_Q = [
             constr_i
             for constr_i in constraint_dict["contrGroupe"][key]

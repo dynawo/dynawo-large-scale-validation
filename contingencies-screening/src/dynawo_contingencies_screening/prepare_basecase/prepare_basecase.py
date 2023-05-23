@@ -33,4 +33,20 @@ def check_basecase_dir(input_dir):
     else:
         exit("Error: 'hades' directory in the input folder should not be empty")
 
-    # TODO: Check dynawo directory
+    # Check dynawo dir is not empty and contains the iidm file
+    has_next = next((input_dir / "dynawo").iterdir(), None)
+    if has_next is not None:
+        for file in (input_dir / "dynawo").iterdir():
+            iidm_file = list((input_dir / "dynawo").glob("*.*iidm"))
+            if len(iidm_file) == 0:
+                exit(
+                    "Error: 'dynawo' directory in the input folder "
+                    "does not contain the 'iidm' case-file"
+                )
+            if file != iidm_file[0]:
+                exit(
+                    "Error: 'dynawo' directory in the input folder "
+                    "should only contain the 'iidm' case-file"
+                )
+    else:
+        exit("Error: 'dynawo' directory in the input folder should not be empty")
