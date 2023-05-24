@@ -295,9 +295,65 @@ def get_dynawo_constraint_data(dynawo_contingencies_dict, dynawo_constraints_fol
                 dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
 
 
-def collect_dynawo_results(parsed_dynawo_xml, constraints_dir):
-    # Get the root and the namespacing of the file
-    root = parsed_dynawo_xml.getroot()
+def get_dynawo_tap_data(output_file_root, ns):
+    # Create the tap data dictionary
+    dynawo_taps_dict = {"phase_taps": [], "ratio_taps": []}
+
+    # Extract the tap data depending on its type
+    for phase_tap in output_file_root.iter("{%s}phaseTapChanger" % ns):
+        phase_tap_dict = {}
+
+        # Get the associated transformer id
+        phase_tap_parent = phase_tap.getparent()
+        phase_tap_dict["transformerID"] = phase_tap_parent.attrib["id"]
+
+        # Add the tap attributes
+        phase_tap_dict.update(phase_tap.attrib)
+
+        # Get all nested data
+        phase_tap_dict["step"] = []
+        for element in phase_tap.iter():
+            # Skip element if it is the root
+            if element is not phase_tap:
+                # Watch for elements different from step
+                if element.tag != "{%s}step" % ns:
+                    phase_tap_dict["terminalRef"] = element.attrib
+                else:
+                    phase_tap_dict["step"].append(element.attrib)
+
+        # Add entry to main dictionary
+        dynawo_taps_dict["phase_taps"].append(phase_tap_dict)
+
+    for ratio_tap in output_file_root.iter("{%s}ratioTapChanger" % ns):
+        ratio_tap_dict = {}
+
+        # Get the associated transformer id
+        ratio_tap_parent = ratio_tap.getparent()
+        ratio_tap_dict["transformerID"] = ratio_tap_parent.attrib["id"]
+
+        # Add the tap attributes
+        ratio_tap_dict.update(ratio_tap.attrib)
+
+        # Get all nested data
+        ratio_tap_dict["step"] = []
+        for element in ratio_tap.iter():
+            # Skip element if it is the root
+            if element is not ratio_tap:
+                # Watch for elements different from step
+                if element.tag != "{%s}step" % ns:
+                    ratio_tap_dict["terminalRef"] = element.attrib
+                else:
+                    ratio_tap_dict["step"].append(element.attrib)
+
+        # Add entry to main dictionary
+        dynawo_taps_dict["ratio_taps"].append(ratio_tap_dict)
+
+    return dynawo_taps_dict
+
+
+def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml,  constraints_dir):
+    # Get the root and the namespacing of the aggregated file
+    root = parsed_aggregated_xml.getroot()
     ns = etree.QName(root).namespace
 
     # Create the contingencies dictionary
@@ -306,4 +362,11 @@ def collect_dynawo_results(parsed_dynawo_xml, constraints_dir):
     # Extract all the constraint data
     get_dynawo_constraint_data(dynawo_contingencies_dict, constraints_dir)
 
-    return dynawo_contingencies_dict
+    # Get the root and the namespacing of the output file
+    root = parsed_output_xml.getroot()
+    ns = etree.QName(root).namespace
+
+    # Extract all the tap changer data
+    dynawo_tap_dict = get_dynawo_tap_data(root, ns)
+
+    return dynawo_contingencies_dict, dynawo_tap_dict
