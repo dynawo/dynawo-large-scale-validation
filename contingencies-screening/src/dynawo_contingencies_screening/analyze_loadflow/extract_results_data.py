@@ -1,4 +1,5 @@
 from lxml import etree
+from dynawo_contingencies_screening.commons import manage_files
 
 
 def get_elements_dict(parsed_hades_input_file):
@@ -260,3 +261,49 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         contingencies_dict[key]["constr_gen_U"] = constr_gen_U
 
     return elements_dict, contingencies_dict
+
+
+def get_dynawo_contingencies(dynawo_xml_root, ns):
+    contingencies_dict = {}
+
+    for contg in dynawo_xml_root.iter("{%s}scenarioResults" % ns):
+        contg_id = contg.attrib["id"]
+        contingencies_dict[contg_id] = {"status": contg.attrib["status"], "constraints": []}
+
+    return contingencies_dict
+
+
+def get_dynawo_constraint_data(dynawo_contingencies_dict, dynawo_constraints_folder):
+    # Check results of all the contingencies
+    for contg in dynawo_contingencies_dict.keys():
+        # Get the constraints data from converged contingencies
+        if dynawo_contingencies_dict[contg]["status"] == "CONVERGENCE":
+            # Get the contingency constraints file path
+            constraints_file_name = "constraints_" + contg + ".xml"
+            constraints_file = dynawo_constraints_folder / constraints_file_name
+
+            # Parse the constraints file
+            parsed_constraints_file = manage_files.parse_xml_file(constraints_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_constraints_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the constraint data
+            for entry in root.iter("{%s}constraint" % ns):
+                # Add the constraint data to main dictionary
+                dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
+
+
+def collect_dynawo_results(parsed_dynawo_xml, constraints_dir):
+    # Get the root and the namespacing of the file
+    root = parsed_dynawo_xml.getroot()
+    ns = etree.QName(root).namespace
+
+    # Create the contingencies dictionary
+    dynawo_contingencies_dict = get_dynawo_contingencies(root, ns)
+
+    # Extract all the constraint data
+    get_dynawo_constraint_data(dynawo_contingencies_dict, constraints_dir)
+
+    return dynawo_contingencies_dict

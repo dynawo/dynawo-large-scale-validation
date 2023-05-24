@@ -1115,9 +1115,9 @@ def create_dynawo_SA(
 
     # Save the JSON files
     with open(dynawo_output_folder / "config.json", "w") as outfile:
-        json.dump(config_dict, outfile)
+        json.dump(config_dict, outfile, indent=2)
 
     with open(dynawo_output_folder / "contng.json", "w") as outfile:
-        json.dump(contng_dict, outfile)
+        json.dump(contng_dict, outfile, indent=2)
 
     return dynawo_output_folder / "config.json", dynawo_output_folder / "contng.json"

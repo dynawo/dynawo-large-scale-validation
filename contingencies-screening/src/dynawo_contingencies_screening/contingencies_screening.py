@@ -420,6 +420,18 @@ def run_dynawo_contingencies_SA_code(
     run_dynawo.run_dynaflow_SA(input_dir, output_dir, dynawo_launcher, config_file, contng_file)
 
 
+def extract_dynawo_results(dynawo_output_folder):
+    # Parse the results of the contingencies
+    dynawo_output_xml = dynawo_output_folder / "aggregatedResults.xml"
+    parsed_results_file = manage_files.parse_xml_file(dynawo_output_xml)
+
+    # Collect the dynawo contingencies data
+    constraints_dir = dynawo_output_folder / "constraints"
+    dynawo_contingency_data = extract_results_data.collect_dynawo_results(
+        parsed_results_file, constraints_dir
+    )
+
+
 def display_results_table(output_dir, sorted_loadflow_score_dict):
     str_table = "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
         "POS",
@@ -605,6 +617,7 @@ def run_contingencies_screening():
         )
 
         # TODO: extract dynawo results data
+        extract_dynawo_results(dynawo_output_dir)
 
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
