@@ -162,6 +162,7 @@ def get_fault_data(root, ns, contingencies_list):
     constraint_dict["contrGroupe"] = {key: [] for key in contingencies_list}
     coef_report_dict = {key: [] for key in contingencies_list}
     res_node_dict = {key: [] for key in contingencies_list}
+    tap_changers_dict = {key: [] for key in contingencies_list}
 
     for contingency in root.iter("{%s}defaut" % ns):
         # Collect the data from the 'resLF' tag
@@ -175,54 +176,65 @@ def get_fault_data(root, ns, contingencies_list):
         )
 
         # Collect the constraints data
-        for constraint in load_flow_branch:
-            if constraint.tag in [
+        for subelement in load_flow_branch:
+            if subelement.tag in [
                 "{%s}contrTransit" % ns,
                 "{%s}contrTension" % ns,
                 "{%s}contrGroupe" % ns,
             ]:
                 constraint_entry = {
-                    "job": constraint.attrib["ouvrage"],
-                    "before": constraint.attrib["avant"],
-                    "after": constraint.attrib["apres"],
-                    "limit": constraint.attrib["limite"],
+                    "job": subelement.attrib["ouvrage"],
+                    "before": subelement.attrib["avant"],
+                    "after": subelement.attrib["apres"],
+                    "limit": subelement.attrib["limite"],
                 }
 
                 # Check for the constraint type
-                if constraint.tag == ("{%s}contrGroupe" % ns):
-                    constraint_entry["typeLim"] = int(constraint.attrib["typeLim"])
-                    constraint_entry["type"] = constraint.attrib["type"]
+                if subelement.tag == ("{%s}contrGroupe" % ns):
+                    constraint_entry["typeLim"] = int(subelement.attrib["typeLim"])
+                    constraint_entry["type"] = subelement.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
-                elif constraint.tag == ("{%s}contrTransit" % ns):
-                    constraint_entry["tempo"] = constraint.attrib["tempo"]
-                    constraint_entry["beforeMW"] = constraint.attrib["avantMW"]
-                    constraint_entry["afterMW"] = constraint.attrib["apresMW"]
-                    constraint_entry["sideOr"] = constraint.attrib["coteOr"]
+                elif subelement.tag == ("{%s}contrTransit" % ns):
+                    constraint_entry["tempo"] = subelement.attrib["tempo"]
+                    constraint_entry["beforeMW"] = subelement.attrib["avantMW"]
+                    constraint_entry["afterMW"] = subelement.attrib["apresMW"]
+                    constraint_entry["sideOr"] = subelement.attrib["coteOr"]
                     constraint_dict["contrTransit"][contingency_number].append(constraint_entry)
                 else:
-                    constraint_entry["threshType"] = constraint.attrib["typeSeuil"]
-                    constraint_entry["tempo"] = constraint.attrib["tempo"]
+                    constraint_entry["threshType"] = subelement.attrib["typeSeuil"]
+                    constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_dict["contrTension"][contingency_number].append(constraint_entry)
             # Get all coefReport entries
-            elif constraint.tag == "{%s}coefReport" % ns:
+            elif subelement.tag == "{%s}coefReport" % ns:
                 report_entry = {}
 
-                report_entry["num"] = constraint.attrib["num"]
-                report_entry["coefAmpere"] = constraint.attrib["coefAmpere"]
-                report_entry["coefMW"] = constraint.attrib["coefMW"]
-                report_entry["transitActN"] = constraint.attrib["transitActN"]
-                report_entry["transitAct"] = constraint.attrib["transitAct"]
-                report_entry["intensityN"] = constraint.attrib["intensiteN"]
-                report_entry["intensity"] = constraint.attrib["intensite"]
-                report_entry["charge"] = constraint.attrib["charge"]
-                report_entry["threshold"] = constraint.attrib["seuil"]
-                report_entry["sideOr"] = constraint.attrib["coteOr"]
+                report_entry["num"] = subelement.attrib["num"]
+                report_entry["coefAmpere"] = subelement.attrib["coefAmpere"]
+                report_entry["coefMW"] = subelement.attrib["coefMW"]
+                report_entry["transitActN"] = subelement.attrib["transitActN"]
+                report_entry["transitAct"] = subelement.attrib["transitAct"]
+                report_entry["intensityN"] = subelement.attrib["intensiteN"]
+                report_entry["intensity"] = subelement.attrib["intensite"]
+                report_entry["charge"] = subelement.attrib["charge"]
+                report_entry["threshold"] = subelement.attrib["seuil"]
+                report_entry["sideOr"] = subelement.attrib["coteOr"]
 
                 coef_report_dict[contingency_number].append(report_entry)
             # Get all resNoeud entries
-            elif constraint.tag == "{%s}resnoeud" % ns:
-                node_entry = {"job_number": constraint.attrib["numOuvrSurv"]}
+            elif subelement.tag == "{%s}resnoeud" % ns:
+                node_entry = {"quadripole_num": subelement.attrib["numOuvrSurv"]}
                 res_node_dict[contingency_number].append(node_entry)
+            # Get all resregleur entries
+            elif subelement.tag == "{%s}resregleur" % ns:
+                tap_entry = {}
+
+                tap_entry["quadripole_num"] = subelement.attrib["numOuvrSurv"]
+                tap_entry["previous_value"] = subelement.attrib["priseDeb"]
+                tap_entry["after_value"] = subelement.attrib["priseFin"]
+                tap_entry["diff_value"] = str(int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"]))
+                tap_entry["stopper"] = subelement.attrib["butee"]
+
+                tap_changers_dict[contingency_number].append(tap_entry)
 
     return (
         status_dict,
@@ -232,10 +244,11 @@ def get_fault_data(root, ns, contingencies_list):
         constraint_dict,
         coef_report_dict,
         res_node_dict,
+        tap_changers_dict,
     )
 
 
-def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output_file):
+def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output_file, tap_changers):
     # For each of the dict identifiers, insert the information of the result
     # of the contingency found in the outputs
 
@@ -260,6 +273,7 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         constraint_dict,
         coef_report_dict,
         res_node_dict,
+        tap_changers_dict
     ) = get_fault_data(root, ns, list(contingencies_dict.keys()))
 
     for key in contingencies_dict.keys():
@@ -286,5 +300,9 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         contingencies_dict[key]["constr_gen_U"] = constr_gen_U
         contingencies_dict[key]["coef_report"] = coef_report_dict[key]
         contingencies_dict[key]["res_node"] = res_node_dict[key]
+
+        # Skip tap_changers dictionary if option is not activated
+        if tap_changers:
+            contingencies_dict[key]["tap_changers"] = tap_changers_dict[key]
 
     return elements_dict, contingencies_dict
