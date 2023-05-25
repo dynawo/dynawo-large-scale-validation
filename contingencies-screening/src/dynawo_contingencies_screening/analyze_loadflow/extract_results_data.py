@@ -160,6 +160,8 @@ def get_fault_data(root, ns, contingencies_list):
     constraint_dict["contrTransit"] = {key: [] for key in contingencies_list}
     constraint_dict["contrTension"] = {key: [] for key in contingencies_list}
     constraint_dict["contrGroupe"] = {key: [] for key in contingencies_list}
+    coef_report_dict = {key: [] for key in contingencies_list}
+    res_node_dict = {key: [] for key in contingencies_list}
 
     for contingency in root.iter("{%s}defaut" % ns):
         # Collect the data from the 'resLF' tag
@@ -201,6 +203,26 @@ def get_fault_data(root, ns, contingencies_list):
                     constraint_entry["threshType"] = constraint.attrib["typeSeuil"]
                     constraint_entry["tempo"] = constraint.attrib["tempo"]
                     constraint_dict["contrTension"][contingency_number].append(constraint_entry)
+            # Get all coefReport entries
+            elif constraint.tag == "{%s}coefReport" % ns:
+                report_entry = {}
+
+                report_entry["num"] = constraint.attrib["num"]
+                report_entry["coefAmpere"] = constraint.attrib["coefAmpere"]
+                report_entry["coefMW"] = constraint.attrib["coefMW"]
+                report_entry["transitActN"] = constraint.attrib["transitActN"]
+                report_entry["transitAct"] = constraint.attrib["transitAct"]
+                report_entry["intensityN"] = constraint.attrib["intensiteN"]
+                report_entry["intensity"] = constraint.attrib["intensite"]
+                report_entry["charge"] = constraint.attrib["charge"]
+                report_entry["threshold"] = constraint.attrib["seuil"]
+                report_entry["sideOr"] = constraint.attrib["coteOr"]
+
+                coef_report_dict[contingency_number].append(report_entry)
+            # Get all resNoeud entries
+            elif constraint.tag == "{%s}resnoeud" % ns:
+                node_entry = {"job_number": constraint.attrib["numOuvrSurv"]}
+                res_node_dict[contingency_number].append(node_entry)
 
     return (
         status_dict,
@@ -208,6 +230,8 @@ def get_fault_data(root, ns, contingencies_list):
         iter_number_dict,
         calc_duration_dict,
         constraint_dict,
+        coef_report_dict,
+        res_node_dict,
     )
 
 
@@ -234,6 +258,8 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         iter_number_dict,
         calc_duration_dict,
         constraint_dict,
+        coef_report_dict,
+        res_node_dict,
     ) = get_fault_data(root, ns, list(contingencies_dict.keys()))
 
     for key in contingencies_dict.keys():
@@ -258,5 +284,7 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         ]
         contingencies_dict[key]["constr_gen_Q"] = constr_gen_Q
         contingencies_dict[key]["constr_gen_U"] = constr_gen_U
+        contingencies_dict[key]["coef_report"] = coef_report_dict[key]
+        contingencies_dict[key]["res_node"] = res_node_dict[key]
 
     return elements_dict, contingencies_dict
