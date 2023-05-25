@@ -351,7 +351,7 @@ def get_dynawo_tap_data(output_file_root, ns):
     return dynawo_taps_dict
 
 
-def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml,  constraints_dir):
+def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, constraints_dir):
     # Get the root and the namespacing of the aggregated file
     root = parsed_aggregated_xml.getroot()
     ns = etree.QName(root).namespace
@@ -366,7 +366,7 @@ def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml,  constraint
     root = parsed_output_xml.getroot()
     ns = etree.QName(root).namespace
 
-    # Extract all the tap changer data
+    # Extract all the tap changer data from de output loadflow without contg
     dynawo_tap_dict = get_dynawo_tap_data(root, ns)
 
     return dynawo_contingencies_dict, dynawo_tap_dict

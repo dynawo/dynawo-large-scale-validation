@@ -104,14 +104,6 @@ def argument_parser(command_list):
             action="store_true",
         )
 
-    if "replay_dynawo_obo" in command_list:
-        p.add_argument(
-            "-y",
-            "--replay_dynawo_obo",
-            help="replay the worst contingencies with Dynawo one by one",
-            action="store_true",
-        )
-
     if "branch_disconnection_mode" in command_list:
         p.add_argument(
             "-b",
@@ -551,7 +543,6 @@ def run_contingencies_screening():
             "tap_changers",
             "replay_hades_obo",
             "replay_dynawo",
-            "replay_dynawo_obo",
             "n_replay",
             "score_type",
             "dynamic_database",
@@ -618,7 +609,7 @@ def run_contingencies_screening():
             contng_file,
         )
 
-        # TODO: extract dynawo results data
+        # Extract dynawo results data
         extract_dynawo_results(dynawo_output_dir)
 
     # If selected, replay the worst contingencies with Hades one by one
@@ -635,20 +626,4 @@ def run_contingencies_screening():
                 replay_hades_path,
                 hades_launcher_solved,
                 args.tap_changers,
-            )
-
-    if args.replay_dynawo_obo:
-        dynawo_input_dir = input_dir_path / DYNAWO_FOLDER
-        dynawo_output_dir = output_dir_path / DYNAWO_FOLDER / "OneByOne"
-
-        # TODO: Adapt it to the new files
-        replay_dynawo_paths = prepare_dynawo_contingencies(
-            sorted_loadflow_score_dict, dynawo_input_dir, dynawo_output_dir, args.n_replay
-        )
-
-        for replay_dynawo_path in replay_dynawo_paths:
-            run_dynawo_contingencies_code(
-                replay_dynawo_path,
-                replay_dynawo_path,
-                dynawo_launcher_solved,
             )
