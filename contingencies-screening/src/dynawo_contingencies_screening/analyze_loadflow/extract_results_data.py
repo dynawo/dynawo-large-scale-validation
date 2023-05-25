@@ -86,7 +86,6 @@ def get_contingencies_dict(parsed_hades_input_file):
 
     contingencies_dict = {}
     for variante in root.iter("{%s}variante" % ns):
-
         affected_elements_list = []
         for quadex in variante.iter("{%s}quadex" % ns):
             affected_elements_list.append(quadex.text)
@@ -231,7 +230,9 @@ def get_fault_data(root, ns, contingencies_list):
                 tap_entry["quadripole_num"] = subelement.attrib["numOuvrSurv"]
                 tap_entry["previous_value"] = subelement.attrib["priseDeb"]
                 tap_entry["after_value"] = subelement.attrib["priseFin"]
-                tap_entry["diff_value"] = str(int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"]))
+                tap_entry["diff_value"] = str(
+                    int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"])
+                )
                 tap_entry["stopper"] = subelement.attrib["butee"]
 
                 tap_changers_dict[contingency_number].append(tap_entry)
@@ -248,7 +249,9 @@ def get_fault_data(root, ns, contingencies_list):
     )
 
 
-def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output_file, tap_changers):
+def collect_hades_results(
+    elements_dict, contingencies_dict, parsed_hades_output_file, tap_changers
+):
     # For each of the dict identifiers, insert the information of the result
     # of the contingency found in the outputs
 
@@ -273,7 +276,7 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         constraint_dict,
         coef_report_dict,
         res_node_dict,
-        tap_changers_dict
+        tap_changers_dict,
     ) = get_fault_data(root, ns, list(contingencies_dict.keys()))
 
     for key in contingencies_dict.keys():
