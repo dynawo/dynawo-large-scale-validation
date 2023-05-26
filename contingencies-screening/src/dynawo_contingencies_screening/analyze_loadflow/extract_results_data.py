@@ -273,14 +273,14 @@ def get_dynawo_contingencies(dynawo_xml_root, ns):
     return contingencies_dict
 
 
-def get_dynawo_constraint_data(dynawo_contingencies_dict, dynawo_constraints_folder):
+def get_dynawo_contingency_data(dynawo_contingencies_dict, dynawo_output_folder):
     # Check results of all the contingencies
     for contg in dynawo_contingencies_dict.keys():
-        # Get the constraints data from converged contingencies
+        # Get the contingency data from converged contingencies
         if dynawo_contingencies_dict[contg]["status"] == "CONVERGENCE":
             # Get the contingency constraints file path
             constraints_file_name = "constraints_" + contg + ".xml"
-            constraints_file = dynawo_constraints_folder / constraints_file_name
+            constraints_file = dynawo_output_folder / "constraints" / constraints_file_name
 
             # Parse the constraints file
             parsed_constraints_file = manage_files.parse_xml_file(constraints_file)
@@ -293,6 +293,19 @@ def get_dynawo_constraint_data(dynawo_contingencies_dict, dynawo_constraints_fol
             for entry in root.iter("{%s}constraint" % ns):
                 # Add the constraint data to main dictionary
                 dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
+
+            # Get the contingency output file for the tap data
+            contg_output_file = dynawo_output_folder / contg / "outputs" / "finalState" / "outputIIDM.xml"
+
+            # Parse the output file
+            parsed_output_file = manage_files.parse_xml_file(contg_output_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_output_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the contingency tap data to the main contingency dict
+            dynawo_contingencies_dict[contg]["tap_changers"] = get_dynawo_tap_data(root, ns)
 
 
 def get_dynawo_tap_data(output_file_root, ns):
@@ -351,7 +364,7 @@ def get_dynawo_tap_data(output_file_root, ns):
     return dynawo_taps_dict
 
 
-def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, constraints_dir):
+def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, dynawo_output_dir):
     # Get the root and the namespacing of the aggregated file
     root = parsed_aggregated_xml.getroot()
     ns = etree.QName(root).namespace
@@ -359,10 +372,10 @@ def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, constraints
     # Create the contingencies dictionary
     dynawo_contingencies_dict = get_dynawo_contingencies(root, ns)
 
-    # Extract all the constraint data
-    get_dynawo_constraint_data(dynawo_contingencies_dict, constraints_dir)
+    # Extract all the contingencies data
+    get_dynawo_contingency_data(dynawo_contingencies_dict, dynawo_output_dir)
 
-    # Get the root and the namespacing of the output file
+    # Get the root and the namespacing of the output file without contg
     root = parsed_output_xml.getroot()
     ns = etree.QName(root).namespace
 

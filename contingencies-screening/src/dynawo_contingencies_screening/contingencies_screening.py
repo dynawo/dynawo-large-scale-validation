@@ -420,9 +420,8 @@ def extract_dynawo_results(dynawo_output_folder):
     parsed_aggregated_file = manage_files.parse_xml_file(dynawo_aggregated_xml)
 
     # Collect the dynawo contingencies data
-    constraints_dir = dynawo_output_folder / "constraints"
     dynawo_contingency_data, dynawo_tap_data = extract_results_data.collect_dynawo_results(
-        parsed_output_file, parsed_aggregated_file, constraints_dir
+        parsed_output_file, parsed_aggregated_file, dynawo_output_folder
     )
 
 
