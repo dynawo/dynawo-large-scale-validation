@@ -100,6 +100,7 @@ def get_contingencies_dict(parsed_hades_input_file):
             "name": variante.attrib["nom"],
             "type": int(variante.attrib["type"]),
             "affected_elements": affected_elements_list,
+            "coefrepquad": int(variante.attrib["coefrepquad"]),
         }
 
     return contingencies_dict
@@ -147,6 +148,28 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
         elements_dict["poste"][poste]["volt"] = elements_dict["noeud"][node]["volt"]
 
     return elements_dict
+
+
+def get_line_flows(root, ns, contingencies_dict):
+
+    invert_dict = {}
+
+    for contg in contingencies_dict.keys():
+        if contingencies_dict[contg]["coefrepquad"] not in invert_dict:
+            invert_dict[contingencies_dict[contg]["coefrepquad"]] = contg
+        else:
+            exit("Ill-defined coefrepquad contingencies")
+
+    # Create the dictionaries where the data will be stored
+    line_flows_dict = {key: [] for key in contingencies_dict.keys()}
+
+    for entry in root.iter("{%s}resChargeMax" % ns):
+
+        line_flows_dict[invert_dict[int(entry.attrib["quadripole"])]].append(
+            [int(entry.attrib["numOuvrSurv"]), float(entry.attrib["chargeMax"])]
+        )
+
+    return line_flows_dict
 
 
 def get_fault_data(root, ns, contingencies_list):
@@ -267,6 +290,9 @@ def collect_hades_results(
     # Get poste voltages in order to compute continuous score
     elements_dict = get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict)
 
+    # Collect flow data and its contingencies
+    line_flows_dict = get_line_flows(root, ns, contingencies_dict)
+
     # Collect all the 'defaut' tag data
     (
         status_dict,
@@ -282,6 +308,7 @@ def collect_hades_results(
     for key in contingencies_dict.keys():
         contingencies_dict[key]["min_voltages"] = min_voltages_dict[key]
         contingencies_dict[key]["max_voltages"] = max_voltages_dict[key]
+        contingencies_dict[key]["max_flow"] = line_flows_dict[key]
         contingencies_dict[key]["status"] = status_dict[key]
         contingencies_dict[key]["cause"] = cause_dict[key]
         contingencies_dict[key]["n_iter"] = iter_number_dict[key]
