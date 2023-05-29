@@ -216,7 +216,7 @@ def create_contingencies_ranking_code(
 
     # Collect Hades results in dict format
     hades_elements_dict, hades_contingencies_dict = extract_results_data.collect_hades_results(
-        hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file
+        hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file, tap_changers
     )
 
     # Analyze Hades results

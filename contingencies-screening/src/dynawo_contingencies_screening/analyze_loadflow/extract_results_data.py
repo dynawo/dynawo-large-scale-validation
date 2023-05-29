@@ -101,6 +101,7 @@ def get_contingencies_dict(parsed_hades_input_file):
             "name": variante.attrib["nom"],
             "type": int(variante.attrib["type"]),
             "affected_elements": affected_elements_list,
+            "coefrepquad": int(variante.attrib["coefrepquad"]),
         }
 
     return contingencies_dict
@@ -150,6 +151,28 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
     return elements_dict
 
 
+def get_line_flows(root, ns, contingencies_dict):
+
+    invert_dict = {}
+
+    for contg in contingencies_dict.keys():
+        if contingencies_dict[contg]["coefrepquad"] not in invert_dict:
+            invert_dict[contingencies_dict[contg]["coefrepquad"]] = contg
+        else:
+            exit("Ill-defined coefrepquad contingencies")
+
+    # Create the dictionaries where the data will be stored
+    line_flows_dict = {key: [] for key in contingencies_dict.keys()}
+
+    for entry in root.iter("{%s}resChargeMax" % ns):
+
+        line_flows_dict[invert_dict[int(entry.attrib["quadripole"])]].append(
+            [int(entry.attrib["numOuvrSurv"]), float(entry.attrib["chargeMax"])]
+        )
+
+    return line_flows_dict
+
+
 def get_fault_data(root, ns, contingencies_list):
     # Create the dictionaries where we will store the data
     status_dict = {}
@@ -160,6 +183,9 @@ def get_fault_data(root, ns, contingencies_list):
     constraint_dict["contrTransit"] = {key: [] for key in contingencies_list}
     constraint_dict["contrTension"] = {key: [] for key in contingencies_list}
     constraint_dict["contrGroupe"] = {key: [] for key in contingencies_list}
+    coef_report_dict = {key: [] for key in contingencies_list}
+    res_node_dict = {key: [] for key in contingencies_list}
+    tap_changers_dict = {key: [] for key in contingencies_list}
 
     for contingency in root.iter("{%s}defaut" % ns):
         # Collect the data from the 'resLF' tag
@@ -173,34 +199,67 @@ def get_fault_data(root, ns, contingencies_list):
         )
 
         # Collect the constraints data
-        for constraint in load_flow_branch:
-            if constraint.tag in [
+        for subelement in load_flow_branch:
+            if subelement.tag in [
                 "{%s}contrTransit" % ns,
                 "{%s}contrTension" % ns,
                 "{%s}contrGroupe" % ns,
             ]:
                 constraint_entry = {
-                    "job": constraint.attrib["ouvrage"],
-                    "before": constraint.attrib["avant"],
-                    "after": constraint.attrib["apres"],
-                    "limit": constraint.attrib["limite"],
+                    "job": subelement.attrib["ouvrage"],
+                    "before": subelement.attrib["avant"],
+                    "after": subelement.attrib["apres"],
+                    "limit": subelement.attrib["limite"],
                 }
 
                 # Check for the constraint type
-                if constraint.tag == ("{%s}contrGroupe" % ns):
-                    constraint_entry["typeLim"] = int(constraint.attrib["typeLim"])
-                    constraint_entry["type"] = constraint.attrib["type"]
+                if subelement.tag == ("{%s}contrGroupe" % ns):
+                    constraint_entry["typeLim"] = int(subelement.attrib["typeLim"])
+                    constraint_entry["type"] = subelement.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
-                elif constraint.tag == ("{%s}contrTransit" % ns):
-                    constraint_entry["tempo"] = constraint.attrib["tempo"]
-                    constraint_entry["beforeMW"] = constraint.attrib["avantMW"]
-                    constraint_entry["afterMW"] = constraint.attrib["apresMW"]
-                    constraint_entry["sideOr"] = constraint.attrib["coteOr"]
+                elif subelement.tag == ("{%s}contrTransit" % ns):
+                    constraint_entry["tempo"] = subelement.attrib["tempo"]
+                    constraint_entry["beforeMW"] = subelement.attrib["avantMW"]
+                    constraint_entry["afterMW"] = subelement.attrib["apresMW"]
+                    constraint_entry["sideOr"] = subelement.attrib["coteOr"]
                     constraint_dict["contrTransit"][contingency_number].append(constraint_entry)
                 else:
-                    constraint_entry["threshType"] = constraint.attrib["typeSeuil"]
-                    constraint_entry["tempo"] = constraint.attrib["tempo"]
+                    constraint_entry["threshType"] = subelement.attrib["typeSeuil"]
+                    constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_dict["contrTension"][contingency_number].append(constraint_entry)
+            # Get all coefReport entries
+            elif subelement.tag == "{%s}coefReport" % ns:
+                report_entry = {}
+
+                report_entry["num"] = subelement.attrib["num"]
+                report_entry["coefAmpere"] = subelement.attrib["coefAmpere"]
+                report_entry["coefMW"] = subelement.attrib["coefMW"]
+                report_entry["transitActN"] = subelement.attrib["transitActN"]
+                report_entry["transitAct"] = subelement.attrib["transitAct"]
+                report_entry["intensityN"] = subelement.attrib["intensiteN"]
+                report_entry["intensity"] = subelement.attrib["intensite"]
+                report_entry["charge"] = subelement.attrib["charge"]
+                report_entry["threshold"] = subelement.attrib["seuil"]
+                report_entry["sideOr"] = subelement.attrib["coteOr"]
+
+                coef_report_dict[contingency_number].append(report_entry)
+            # Get all resNoeud entries
+            elif subelement.tag == "{%s}resnoeud" % ns:
+                node_entry = {"quadripole_num": subelement.attrib["numOuvrSurv"]}
+                res_node_dict[contingency_number].append(node_entry)
+            # Get all resregleur entries
+            elif subelement.tag == "{%s}resregleur" % ns:
+                tap_entry = {}
+
+                tap_entry["quadripole_num"] = subelement.attrib["numOuvrSurv"]
+                tap_entry["previous_value"] = subelement.attrib["priseDeb"]
+                tap_entry["after_value"] = subelement.attrib["priseFin"]
+                tap_entry["diff_value"] = str(
+                    int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"])
+                )
+                tap_entry["stopper"] = subelement.attrib["butee"]
+
+                tap_changers_dict[contingency_number].append(tap_entry)
 
     return (
         status_dict,
@@ -208,10 +267,15 @@ def get_fault_data(root, ns, contingencies_list):
         iter_number_dict,
         calc_duration_dict,
         constraint_dict,
+        coef_report_dict,
+        res_node_dict,
+        tap_changers_dict,
     )
 
 
-def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output_file):
+def collect_hades_results(
+    elements_dict, contingencies_dict, parsed_hades_output_file, tap_changers
+):
     # For each of the dict identifiers, insert the information of the result
     # of the contingency found in the outputs
 
@@ -227,6 +291,9 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
     # Get poste voltages in order to compute continuous score
     elements_dict = get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict)
 
+    # Collect flow data and its contingencies
+    line_flows_dict = get_line_flows(root, ns, contingencies_dict)
+
     # Collect all the 'defaut' tag data
     (
         status_dict,
@@ -234,11 +301,15 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         iter_number_dict,
         calc_duration_dict,
         constraint_dict,
+        coef_report_dict,
+        res_node_dict,
+        tap_changers_dict,
     ) = get_fault_data(root, ns, list(contingencies_dict.keys()))
 
     for key in contingencies_dict.keys():
         contingencies_dict[key]["min_voltages"] = min_voltages_dict[key]
         contingencies_dict[key]["max_voltages"] = max_voltages_dict[key]
+        contingencies_dict[key]["max_flow"] = line_flows_dict[key]
         contingencies_dict[key]["status"] = status_dict[key]
         contingencies_dict[key]["cause"] = cause_dict[key]
         contingencies_dict[key]["n_iter"] = iter_number_dict[key]
@@ -258,6 +329,12 @@ def collect_hades_results(elements_dict, contingencies_dict, parsed_hades_output
         ]
         contingencies_dict[key]["constr_gen_Q"] = constr_gen_Q
         contingencies_dict[key]["constr_gen_U"] = constr_gen_U
+        contingencies_dict[key]["coef_report"] = coef_report_dict[key]
+        contingencies_dict[key]["res_node"] = res_node_dict[key]
+
+        # Skip tap_changers dictionary if option is not activated
+        if tap_changers:
+            contingencies_dict[key]["tap_changers"] = tap_changers_dict[key]
 
     return elements_dict, contingencies_dict
 
