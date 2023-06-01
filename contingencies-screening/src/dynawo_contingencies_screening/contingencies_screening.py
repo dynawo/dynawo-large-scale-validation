@@ -17,7 +17,10 @@ from dynawo_contingencies_screening.prepare_basecase import (
     matching_elements,
 )
 from dynawo_contingencies_screening.run_dynawo import run_dynawo
-from dynawo_contingencies_screening.commons import manage_files
+from dynawo_contingencies_screening.commons import (
+    manage_files,
+    calc_case_diffs,
+)
 
 
 HADES_FOLDER = "hades"
@@ -266,11 +269,11 @@ def create_contingencies_ranking_code(
 
 
 def prepare_hades_contingencies(
-    sorted_loadflow_score_dict, hades_input_file, hades_output_folder, number_pos_replay
+    sorted_loadflow_score_list, hades_input_file, hades_output_folder, number_pos_replay
 ):
     # Create the worst contingencies manually in order to replay it with Hades launcher
     replay_contgs = [
-        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_dict
+        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
     ]
     replay_contgs = replay_contgs[:number_pos_replay]
 
@@ -309,14 +312,14 @@ def prepare_hades_contingencies(
 
 def prepare_dynawo_SA(
     hades_input_file,
-    sorted_loadflow_score_dict,
+    sorted_loadflow_score_list,
     dynawo_input_folder,
     dynawo_output_folder,
     number_pos_replay,
     dynamic_database,
 ):
     # Create the worst contingencies with JSON in order to replay it with Dynawo launcher
-    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_dict]
+    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
     replay_contgs = replay_contgs[:number_pos_replay]
 
     iidm_file = list(dynawo_input_folder.glob("*.*iidm"))[0]
@@ -332,7 +335,7 @@ def prepare_dynawo_SA(
 
     # Contingencies (N-1)
     # Generate the fist N(number_pos_replay) contingencies
-    config_file, contng_file = create_contingencies.create_dynawo_SA(
+    config_file, contng_file, contng_dict = create_contingencies.create_dynawo_SA(
         dynawo_output_folder,
         replay_contgs,
         dict_types_cont,
@@ -343,15 +346,15 @@ def prepare_dynawo_SA(
         matched_shunts,
     )
 
-    return config_file, contng_file
+    return config_file, contng_file, contng_dict
 
 
 def prepare_dynawo_contingencies(
-    sorted_loadflow_score_dict, dynawo_input_folder, dynawo_output_folder, number_pos_replay
+    sorted_loadflow_score_list, dynawo_input_folder, dynawo_output_folder, number_pos_replay
 ):
     # Create the worst contingencies manually in order to replay it with Dynawo launcher
     replay_contgs = [
-        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_dict
+        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
     ]
     replay_contgs = replay_contgs[:number_pos_replay]
 
@@ -424,8 +427,24 @@ def extract_dynawo_results(dynawo_output_folder):
         parsed_output_file, parsed_aggregated_file, dynawo_output_folder
     )
 
+    return dynawo_contingency_data
 
-def display_results_table(output_dir, sorted_loadflow_score_dict):
+
+def calculate_case_differences(
+    sorted_loadflow_score_list, dynawo_contingency_data, matching_contingencies_dict
+):
+    dict_diffs = {}
+    for case in matching_contingencies_dict["contingencies"]:
+        hades_key = calc_case_diffs.get_hades_id(case["id"], sorted_loadflow_score_list)
+        dict_diffs[case["id"]] = calc_case_diffs.calculate_diffs_hades_dynawo(
+            sorted_loadflow_score_list[hades_key], dynawo_contingency_data[case["id"]]
+        )
+
+    df_diffs = []
+    return df_diffs
+
+
+def display_results_table(output_dir, sorted_loadflow_score_list):
     str_table = "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
         "POS",
         "NUM",
@@ -443,7 +462,7 @@ def display_results_table(output_dir, sorted_loadflow_score_dict):
     )
 
     i_count = 0
-    for elem_list in sorted_loadflow_score_dict:
+    for elem_list in sorted_loadflow_score_list:
         i_count += 1
         str_table += "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
             i_count,
@@ -569,7 +588,7 @@ def run_contingencies_screening():
     )
 
     # Rank all contingencies based of the hades simulation results
-    sorted_loadflow_score_dict = create_contingencies_ranking_code(
+    sorted_loadflow_score_list = create_contingencies_ranking_code(
         hades_input_file,
         hades_output_file,
         args.score_type,
@@ -577,7 +596,7 @@ def run_contingencies_screening():
     )
 
     # Show the ranking results
-    display_results_table(Path(args.output_dir), sorted_loadflow_score_dict)
+    display_results_table(Path(args.output_dir), sorted_loadflow_score_list)
 
     # If selected, replay the worst contingencies with Dynawo systematic analysis
     if args.replay_dynawo:
@@ -590,9 +609,9 @@ def run_contingencies_screening():
             dynamic_database = None
 
         # Prepare the necessary files
-        config_file, contng_file = prepare_dynawo_SA(
+        config_file, contng_file, matching_contng_dict = prepare_dynawo_SA(
             hades_input_file,
-            sorted_loadflow_score_dict,
+            sorted_loadflow_score_list,
             dynawo_input_dir,
             dynawo_output_dir,
             args.n_replay,
@@ -609,13 +628,18 @@ def run_contingencies_screening():
         )
 
         # Extract dynawo results data
-        extract_dynawo_results(dynawo_output_dir)
+        dynawo_contingency_data = extract_dynawo_results(dynawo_output_dir)
+
+        # Calc diffs between dynawo and hades
+        df_diffs = calculate_case_differences(
+            sorted_loadflow_score_list, dynawo_contingency_data, matching_contng_dict
+        )
 
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
         # Prepare the necessary files
         replay_hades_paths = prepare_hades_contingencies(
-            sorted_loadflow_score_dict, hades_input_file, hades_output_file.parent, args.n_replay
+            sorted_loadflow_score_list, hades_input_file, hades_output_file.parent, args.n_replay
         )
 
         # Run the contingencies again

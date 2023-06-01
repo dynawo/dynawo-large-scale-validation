@@ -187,6 +187,18 @@ def get_fault_data(root, ns, contingencies_list):
     res_node_dict = {key: [] for key in contingencies_list}
     tap_changers_dict = {key: [] for key in contingencies_list}
 
+    groupe_name = {}
+    for groupe in root.iter("{%s}groupe" % ns):
+        groupe_name[int(groupe.attrib["num"])] = groupe.attrib["nom"]
+
+    quadripole_name = {}
+    for quadripole in root.iter("{%s}quadripole" % ns):
+        quadripole_name[int(quadripole.attrib["num"])] = quadripole.attrib["nom"]
+
+    node_name = {}
+    for node in root.iter("{%s}noeud" % ns):
+        node_name[int(node.attrib["num"])] = node.attrib["nom"]
+
     for contingency in root.iter("{%s}defaut" % ns):
         # Collect the data from the 'resLF' tag
         contingency_number = contingency.attrib["num"]
@@ -206,7 +218,7 @@ def get_fault_data(root, ns, contingencies_list):
                 "{%s}contrGroupe" % ns,
             ]:
                 constraint_entry = {
-                    "job": subelement.attrib["ouvrage"],
+                    "elem_num": int(subelement.attrib["ouvrage"]),
                     "before": subelement.attrib["avant"],
                     "after": subelement.attrib["apres"],
                     "limit": subelement.attrib["limite"],
@@ -214,16 +226,19 @@ def get_fault_data(root, ns, contingencies_list):
 
                 # Check for the constraint type
                 if subelement.tag == ("{%s}contrGroupe" % ns):
+                    constraint_entry["elem_name"] = groupe_name[constraint_entry["elem_num"]]
                     constraint_entry["typeLim"] = int(subelement.attrib["typeLim"])
                     constraint_entry["type"] = subelement.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
                 elif subelement.tag == ("{%s}contrTransit" % ns):
+                    constraint_entry["elem_name"] = quadripole_name[constraint_entry["elem_num"]]
                     constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_entry["beforeMW"] = subelement.attrib["avantMW"]
                     constraint_entry["afterMW"] = subelement.attrib["apresMW"]
                     constraint_entry["sideOr"] = subelement.attrib["coteOr"]
                     constraint_dict["contrTransit"][contingency_number].append(constraint_entry)
                 else:
+                    constraint_entry["elem_name"] = node_name[constraint_entry["elem_num"]]
                     constraint_entry["threshType"] = subelement.attrib["typeSeuil"]
                     constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_dict["contrTension"][contingency_number].append(constraint_entry)
