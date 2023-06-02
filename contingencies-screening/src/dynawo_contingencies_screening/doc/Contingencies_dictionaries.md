@@ -98,6 +98,7 @@ contingency simulation. *Note: this entry will not be present in the dictionary 
 [Tutorial](/contingencies-screening/src/dynawo_contingencies_screening/doc/Tutorial.md)
 document for further information).* The dictionary has the following entries:
   * *quadripole_num*
+  * *quadripole_name*
   * *previous_value*
   * *after_value*
   * *diff_value*

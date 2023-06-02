@@ -19,9 +19,28 @@ def compare_status(hades_status, dynawo_status):
 
 
 def compare_taps(hades_taps, dwo_taps):
-    print(hades_taps)
-    print(dwo_taps)
-    return 1000
+    taps_diffs_dict = {}
+    for hds_tap in hades_taps:
+        tap_diff_entry = {}
+        tap_name = hds_tap["quadripole_name"]
+
+        if hds_tap["quadripole_name"] in dwo_taps["phase_taps"].keys():
+            prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["phase_taps"][tap_name]["lowTapPosition"])
+            after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["phase_taps"][tap_name]["tapPosition"])
+
+            tap_diff_entry["previous_value"] = str(prev_value_diff)
+            tap_diff_entry["after_value"] = str(after_value_diff)
+
+        elif hds_tap["quadripole_name"] in dwo_taps["ratio_taps"].keys():
+            prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["ratio_taps"][tap_name]["lowTapPosition"])
+            after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["ratio_taps"][tap_name]["tapPosition"])
+
+            tap_diff_entry["previous_value"] = str(prev_value_diff)
+            tap_diff_entry["after_value"] = str(after_value_diff)
+
+        taps_diffs_dict["quadripole_name"] = tap_diff_entry
+
+    return taps_diffs_dict
 
 
 def calc_matching_volt_constr(matched_volt_constr):

@@ -265,8 +265,15 @@ def get_fault_data(root, ns, contingencies_list):
             # Get all resregleur entries
             elif subelement.tag == "{%s}resregleur" % ns:
                 tap_entry = {}
+                gen_name = ""
+
+                # Get the tap's generator name
+                for gen in root.iter("{%s}quadripole" % ns):
+                    if gen.attrib["num"] == subelement.attrib["numOuvrSurv"]:
+                        gen_name = gen.attrib["nom"]
 
                 tap_entry["quadripole_num"] = subelement.attrib["numOuvrSurv"]
+                tap_entry["quadripole_name"] = gen_name
                 tap_entry["previous_value"] = subelement.attrib["priseDeb"]
                 tap_entry["after_value"] = subelement.attrib["priseFin"]
                 tap_entry["diff_value"] = str(
