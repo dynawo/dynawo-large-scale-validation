@@ -24,6 +24,70 @@ def compare_taps(hades_taps, dwo_taps):
     return 1000
 
 
+def calc_matching_volt_constr(matched_volt_constr):
+    diff_marching_volt = 0
+
+    for case_diffs_list in matched_volt_constr.values():
+        for case_diffs in case_diffs_list:
+            print(case_diffs)
+        print()
+
+    return diff_marching_volt
+
+
+def calc_matching_flow_constr(matched_flow_constr):
+    diff_marching_flow = 0
+
+    for case_diffs_list in matched_flow_constr.values():
+        for case_diffs in case_diffs_list:
+            print(case_diffs)
+        print()
+
+    return diff_marching_flow
+
+
+def calc_matching_gen_Q_constr(matched_gen_Q_constr):
+    diff_marching_gen_Q = 0
+    # TODO: Implement it
+    return diff_marching_gen_Q
+
+
+def calc_matching_gen_U_constr(matched_gen_U_constr):
+    diff_marching_gen_U = 0
+    # TODO: Implement it
+    return diff_marching_gen_U
+
+
+def match_constraints(hades_constr, dwo_constraints):
+    matched_constr = {}
+
+    for constr_hds in hades_constr:
+        for constr_dwo in dwo_constraints:
+            if constr_hds["elem_name"] == constr_dwo["modelName"]:
+                if constr_hds["elem_name"] in matched_constr:
+                    matched_constr[constr_hds["elem_name"]].append([constr_hds, constr_dwo])
+                else:
+                    matched_constr[constr_hds["elem_name"]] = [[constr_hds, constr_dwo]]
+
+    return matched_constr
+
+
+def get_unmatched_constr(hades_constr, dwo_constraints, matched_constr):
+
+    unique_constr_hds = []
+    unique_constr_dwo = []
+
+    for constr_hds in hades_constr:
+        if constr_hds["elem_name"] not in matched_constr:
+            unique_constr_hds.append(constr_hds)
+
+    for constr_dwo in dwo_constraints:
+        if constr_dwo["elem_name"] not in matched_constr:
+            unique_constr_dwo.append(constr_dwo)
+
+    return unique_constr_hds, unique_constr_dwo
+
+
 def compare_constraints(
     hades_constr_volt, hades_constr_flow, hades_constr_gen_Q, hades_constr_gen_U, dwo_constraints
 ):
@@ -49,14 +113,28 @@ def compare_constraints(
             dwo_non_defined_constraints.append(constraint)
 
     # Compare volt constraints
-    matched_volt_constr = []
+    matched_volt_constr = match_constraints(hades_constr_volt, dwo_volt_constraints)
+    matched_flow_constr = match_constraints(hades_constr_flow, dwo_flow_constraints)
+    matched_gen_Q_constr = match_constraints(hades_constr_gen_Q, dwo_gen_Q_constraints)
+    matched_gen_U_constr = match_constraints(hades_constr_gen_U, dwo_gen_U_constraints)
 
-    for volt_constr_hds in hades_constr_volt:
-        for volt_constr_dwo in dwo_volt_constraints:
-            if volt_constr_hds["elem_name"] == volt_constr_dwo["modelName"]:
-                matched_volt_constr.append([volt_constr_hds, volt_constr_dwo])
+    unique_constr_volt_hds, unique_constr_volt_dwo = get_unmatched_constr(
+        hades_constr_volt, dwo_volt_constraints, matched_volt_constr
+    )
+    unique_constr_flow_hds, unique_constr_flow_dwo = get_unmatched_constr(
+        hades_constr_flow, dwo_flow_constraints, matched_flow_constr
+    )
+    unique_constr_gen_Q_hds, unique_constr_gen_Q_dwo = get_unmatched_constr(
+        hades_constr_gen_Q, dwo_gen_Q_constraints, matched_gen_Q_constr
+    )
+    unique_constr_gen_U_hds, unique_constr_gen_U_dwo = get_unmatched_constr(
+        hades_constr_gen_U, dwo_gen_U_constraints, matched_gen_U_constr
+    )
 
-    print(matched_volt_constr)
+    diff_marching_volt = calc_matching_volt_constr(matched_volt_constr)
+    diff_marching_flow = calc_matching_flow_constr(matched_flow_constr)
+    diff_marching_gen_Q = calc_matching_gen_Q_constr(matched_gen_Q_constr)
+    diff_marching_gen_U = calc_matching_gen_U_constr(matched_gen_U_constr)
 
     return 1000
 
