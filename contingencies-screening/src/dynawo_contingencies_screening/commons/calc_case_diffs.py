@@ -25,15 +25,23 @@ def compare_taps(hades_taps, dwo_taps):
         tap_name = hds_tap["quadripole_name"]
 
         if tap_name in dwo_taps["phase_taps"].keys():
-            prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["phase_taps"][tap_name]["lowTapPosition"])
-            after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["phase_taps"][tap_name]["tapPosition"])
+            prev_value_diff = int(hds_tap["previous_value"]) - int(
+                dwo_taps["phase_taps"][tap_name]["lowTapPosition"]
+            )
+            after_value_diff = int(hds_tap["after_value"]) - int(
+                dwo_taps["phase_taps"][tap_name]["tapPosition"]
+            )
 
             tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
             tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
 
         elif tap_name in dwo_taps["ratio_taps"].keys():
-            prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["ratio_taps"][tap_name]["lowTapPosition"])
-            after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["ratio_taps"][tap_name]["tapPosition"])
+            prev_value_diff = int(hds_tap["previous_value"]) - int(
+                dwo_taps["ratio_taps"][tap_name]["lowTapPosition"]
+            )
+            after_value_diff = int(hds_tap["after_value"]) - int(
+                dwo_taps["ratio_taps"][tap_name]["tapPosition"]
+            )
 
             tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
             tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
