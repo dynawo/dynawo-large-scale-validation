@@ -24,21 +24,21 @@ def compare_taps(hades_taps, dwo_taps):
         tap_diff_entry = {}
         tap_name = hds_tap["quadripole_name"]
 
-        if hds_tap["quadripole_name"] in dwo_taps["phase_taps"].keys():
+        if tap_name in dwo_taps["phase_taps"].keys():
             prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["phase_taps"][tap_name]["lowTapPosition"])
             after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["phase_taps"][tap_name]["tapPosition"])
 
-            tap_diff_entry["previous_value"] = str(prev_value_diff)
-            tap_diff_entry["after_value"] = str(after_value_diff)
+            tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
+            tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
 
-        elif hds_tap["quadripole_name"] in dwo_taps["ratio_taps"].keys():
+        elif tap_name in dwo_taps["ratio_taps"].keys():
             prev_value_diff = int(hds_tap["previous_value"]) - int(dwo_taps["ratio_taps"][tap_name]["lowTapPosition"])
             after_value_diff = int(hds_tap["after_value"]) - int(dwo_taps["ratio_taps"][tap_name]["tapPosition"])
 
-            tap_diff_entry["previous_value"] = str(prev_value_diff)
-            tap_diff_entry["after_value"] = str(after_value_diff)
+            tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
+            tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
 
-        taps_diffs_dict["quadripole_name"] = tap_diff_entry
+        taps_diffs_dict[tap_name] = tap_diff_entry
 
     return taps_diffs_dict
 
@@ -96,7 +96,7 @@ def calculate_diffs_hades_dynawo(hades_info, dwo_info):
         dict_diffs["conv_status"] = status_diff
 
         # Get tap diffs
-        if "tap_changers" in hades_info[1]:
+        if "tap_changers" in hades_info[1] and dwo_info["status"] == "CONVERGENCE":
             taps_diff = compare_taps(hades_info[1]["tap_changers"], dwo_info["tap_changers"])
 
         # Get constraint diffs
