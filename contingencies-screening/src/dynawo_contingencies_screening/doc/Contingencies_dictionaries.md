@@ -20,8 +20,8 @@ e.g.
 
 The dictionary that contains each specific contingency's resulting data has 
 the following key values:
-* **name**: Contains the name of the specific contingency.
-* **type**: Numerical value that represents the type of the specific contingency.
+* **name**: Contains the name of the speciic contingency.
+* **type**: Numerical value that representsf the type of the specific contingency.
 * **affected_elements**: List containing the numbers of the network elements affected 
 by the contingency.
 * **min_voltages**: List of tuples where each entry contains firstly the number of the 
@@ -43,7 +43,7 @@ Possible values can be as follows:
   * 8: Simulation final state is unknown.
 * **cause**: Numerical value that represents the cause of the contingency's simulation final 
 status value.
-* **n_iter**: Numerical value that represents the number of iterations the simulation needed 
+* **n_iter**: Numerical value that represents the number of iterations the NR simulation needed 
 in order to reach a final state value.
 * **calc_duration**: Numerical value that represents the time needed for the contingency 
 simulation to reach a final state value.
