@@ -5,6 +5,7 @@ import pandas as pd
 import pickle
 from numpy import mean, std
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedKFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
@@ -78,7 +79,6 @@ def convert_dict_to_df(contingencies_dict, elements_dict, disc_cont, score_targe
         # Continuous
         for key in contingencies_dict.keys():
             if contingencies_dict[key]["status"] == 0:
-
                 value_min_voltages = human_analysis.calc_diff_volt(
                     contingencies_dict[key]["min_voltages"], elements_dict["poste"]
                 )
@@ -200,7 +200,6 @@ def argument_parser(command_list):
 
 
 def train_test_loadflow_results():
-
     args = argument_parser(["df_path", "model_path"])
 
     df_path = Path(args.df_path)
@@ -214,6 +213,7 @@ def train_test_loadflow_results():
 
     model_GBR = GradientBoostingRegressor()
     model_RF = RandomForestRegressor(max_depth=3, random_state=0)
+    model_LR = LinearRegression()
 
     cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=0)
 
@@ -223,10 +223,15 @@ def train_test_loadflow_results():
     n_scores_RF = cross_val_score(
         model_RF, X, y, scoring="neg_mean_absolute_error", cv=cv, n_jobs=-1, error_score="raise"
     )
+    n_scores_LR = cross_val_score(
+        model_LR, X, y, scoring="neg_mean_absolute_error", cv=cv, n_jobs=-1, error_score="raise"
+    )
 
     print("MAE GBR: %.3f (%.3f)" % (mean(n_scores_GBR), std(n_scores_GBR)))
 
     print("MAE RF: %.3f (%.3f)" % (mean(n_scores_RF), std(n_scores_RF)))
+
+    print("MAE LR: %.3f (%.3f)" % (mean(n_scores_LR), std(n_scores_LR)))
 
     # fit the model on the whole dataset
     model_GBR = GradientBoostingRegressor()
@@ -235,7 +240,11 @@ def train_test_loadflow_results():
     model_RF = RandomForestRegressor(max_depth=3, random_state=0)
     model_RF.fit(X, y)
 
+    model_LR = LinearRegression()
+    model_LR.fit(X, y)
+
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
     pickle.dump(model_RF, open(model_path / "RF_model.pkl", "wb"))
+    pickle.dump(model_LR, open(model_path / "LR_model.pkl", "wb"))
 
     print("Models saved")
