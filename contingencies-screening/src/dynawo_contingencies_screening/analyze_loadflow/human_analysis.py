@@ -37,10 +37,10 @@ def analyze_loadflow_results_discrete(contingencies_dict, elements_dict):
                 total_tap_value = 0
                 for tap in contingencies_dict[key]["tap_changers"]:
                     match tap["stopper"]:
-                        case '0':
-                            total_tap_value += (abs(int(tap["diff_value"])) * w_tap)
-                        case '1' | '2' | '3':
-                            total_tap_value += (STD_TAP_VALUE * w_tap)
+                        case "0":
+                            total_tap_value += abs(int(tap["diff_value"])) * w_tap
+                        case "1" | "2" | "3":
+                            total_tap_value += STD_TAP_VALUE * w_tap
                 contingencies_dict[key]["final_score"] += total_tap_value
         else:
             match contingencies_dict[key]["status"]:
