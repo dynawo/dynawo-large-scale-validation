@@ -693,9 +693,9 @@ def generate_dynawo_load_contingency(
     ns = etree.QName(root).namespace
 
     dynawo_load = None
-    for l in root.iter("{%s}load" % ns):
-        if element_name == l.get("id") and l.get("bus") is not None:
-            dynawo_load = l
+    for load in root.iter("{%s}load" % ns):
+        if element_name == load.get("id") and load.get("bus") is not None:
+            dynawo_load = load
             break
 
     # If element does not exist, exit program

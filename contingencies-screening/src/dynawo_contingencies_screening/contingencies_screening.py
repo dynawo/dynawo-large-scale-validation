@@ -22,7 +22,6 @@ from dynawo_contingencies_screening.commons import (
     calc_case_diffs,
 )
 
-
 HADES_FOLDER = "hades"
 DYNAWO_FOLDER = "dynawo"
 REPLAY_NUM = 25
@@ -128,7 +127,9 @@ def argument_parser(command_list):
         p.add_argument(
             "-s",
             "--score_type",
-            help="Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning disc, 4 = machine learning cont",
+            help="Define the type of scoring used in the ranking (1 = discrete human made, "
+                 "2 = continuous human made, 3 = machine learning disc, "
+                 "4 = machine learning cont",
             type=int,
             default=DEFAULT_SCORE,
         )
@@ -174,7 +175,7 @@ def solve_launcher(launcher):
 
 
 def run_hades_contingencies_code(
-    hades_input_folder, hades_output_folder, hades_launcher, tap_changers
+        hades_input_folder, hades_output_folder, hades_launcher, tap_changers
 ):
     # Find hades input file
     hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
@@ -185,14 +186,14 @@ def run_hades_contingencies_code(
     # Create output dir
     os.makedirs(hades_output_folder, exist_ok=True)
 
-    # Run hades file (assuming all contingencies are run through the security analysis in a single run)
+    # Run hades file (assuming all contingencies are run through the security analysis
+    # in a single run)
     run_hades.run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
 
     return hades_input_file, hades_output_file
 
 
 def sort_ranking(elem):
-    lambda x: x[1]["final_score"]
     if type(elem[1]["final_score"]) == str:
         if elem[1]["final_score"] == "Divergence":
             return 999999999
@@ -203,7 +204,7 @@ def sort_ranking(elem):
 
 
 def create_contingencies_ranking_code(
-    hades_input_file, hades_output_file, score_type, tap_changers
+        hades_input_file, hades_output_file, score_type, tap_changers
 ):
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
@@ -269,7 +270,7 @@ def create_contingencies_ranking_code(
 
 
 def prepare_hades_contingencies(
-    sorted_loadflow_score_list, hades_input_file, hades_output_folder, number_pos_replay
+        sorted_loadflow_score_list, hades_input_file, hades_output_folder, number_pos_replay
 ):
     # Create the worst contingencies manually in order to replay it with Hades launcher
     replay_contgs = [
@@ -311,12 +312,12 @@ def prepare_hades_contingencies(
 
 
 def prepare_dynawo_SA(
-    hades_input_file,
-    sorted_loadflow_score_list,
-    dynawo_input_folder,
-    dynawo_output_folder,
-    number_pos_replay,
-    dynamic_database,
+        hades_input_file,
+        sorted_loadflow_score_list,
+        dynawo_input_folder,
+        dynawo_output_folder,
+        number_pos_replay,
+        dynamic_database,
 ):
     # Create the worst contingencies with JSON in order to replay it with Dynawo launcher
     replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
@@ -350,7 +351,7 @@ def prepare_dynawo_SA(
 
 
 def prepare_dynawo_contingencies(
-    sorted_loadflow_score_list, dynawo_input_folder, dynawo_output_folder, number_pos_replay
+        sorted_loadflow_score_list, dynawo_input_folder, dynawo_output_folder, number_pos_replay
 ):
     # Create the worst contingencies manually in order to replay it with Dynawo launcher
     replay_contgs = [
@@ -406,7 +407,7 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 
 def run_dynawo_contingencies_SA_code(
-    input_dir, output_dir, dynawo_launcher, config_file, contng_file
+        input_dir, output_dir, dynawo_launcher, config_file, contng_file
 ):
     # Create output dir
     os.makedirs(output_dir, exist_ok=True)
@@ -431,7 +432,7 @@ def extract_dynawo_results(dynawo_output_folder):
 
 
 def calculate_case_differences(
-    sorted_loadflow_score_list, dynawo_contingency_data, matching_contingencies_dict
+        sorted_loadflow_score_list, dynawo_contingency_data, matching_contingencies_dict
 ):
     dict_diffs = {}
     for case in matching_contingencies_dict["contingencies"]:
@@ -445,45 +446,34 @@ def calculate_case_differences(
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
-    str_table = "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
-        "POS",
-        "NUM",
-        "NAME",
-        "AFFECTED_ELEM",
-        "STATUS",
-        "MIN_VOLT",
-        "MAX_VOLT",
-        "N_ITER",
-        "CONSTR_GEN_Q",
-        "CONSTR_GEN_U",
-        "CONSTR_VOLT",
-        "CONSTR_FLOW",
-        "FINAL_SCORE",
-    )
+    str_table = "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} " \
+                "{:<14} {:<14} {:<14} {:<14}\n".format("POS", "NUM", "NAME", "AFFECTED_ELEM",
+                                                       "STATUS", "MIN_VOLT", "MAX_VOLT",
+                                                       "N_ITER", "CONSTR_GEN_Q", "CONSTR_GEN_U",
+                                                       "CONSTR_VOLT", "CONSTR_FLOW", "FINAL_SCORE",
+                                                       )
 
     i_count = 0
     for elem_list in sorted_loadflow_score_list:
         i_count += 1
-        str_table += "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14}\n".format(
-            i_count,
-            elem_list[0],
-            elem_list[1]["name"],
-            str(len(elem_list[1]["affected_elements"])),
-            str(elem_list[1]["status"]),
-            str(len(elem_list[1]["min_voltages"])),
-            str(len(elem_list[1]["max_voltages"])),
-            str(elem_list[1]["n_iter"]),
-            str(len(elem_list[1]["constr_gen_Q"])),
-            str(len(elem_list[1]["constr_gen_U"])),
-            str(len(elem_list[1]["constr_volt"])),
-            str(len(elem_list[1]["constr_flow"])),
-            elem_list[1]["final_score"],
-        )
+        str_table += "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} " \
+                     "{:<14} {:<14} {:<14}\n".format(i_count, elem_list[0], elem_list[1]["name"],
+                                                     str(len(elem_list[1]["affected_elements"])),
+                                                     str(elem_list[1]["status"]),
+                                                     str(len(elem_list[1]["min_voltages"])),
+                                                     str(len(elem_list[1]["max_voltages"])),
+                                                     str(elem_list[1]["n_iter"]),
+                                                     str(len(elem_list[1]["constr_gen_Q"])),
+                                                     str(len(elem_list[1]["constr_gen_U"])),
+                                                     str(len(elem_list[1]["constr_volt"])),
+                                                     str(len(elem_list[1]["constr_flow"])),
+                                                     elem_list[1]["final_score"],
+                                                     )
 
     print(str_table)
 
     text_file = open(output_dir / "results_table.txt", "w")
-    n = text_file.write(str_table)
+    text_file.write(str_table)
     text_file.close()
 
 

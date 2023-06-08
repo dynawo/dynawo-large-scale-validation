@@ -9,8 +9,8 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
     # Get all the connected branches' name
     for dynawo_branch in dynawo_iidm_root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
         if (
-            (dynawo_branch.get("p1") == None or dynawo_branch.get("q1") == None)
-            or (dynawo_branch.get("p2") == None or dynawo_branch.get("q2") == None)
+            (dynawo_branch.get("p1") is None or dynawo_branch.get("q1") is None)
+            or (dynawo_branch.get("p2") is None or dynawo_branch.get("q2") is None)
             or (float(dynawo_branch.get("p1")) == 0.0 and float(dynawo_branch.get("q1")) == 0.0)
             or (float(dynawo_branch.get("p2")) == 0.0 and float(dynawo_branch.get("q2")) == 0.0)
         ):
