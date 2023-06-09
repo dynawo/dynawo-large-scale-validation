@@ -76,8 +76,14 @@ def calc_diff_volt(contingency_values, loadflow_values):
 
 
 def calc_constr_gen_Q(contingency_values):
-    # TODO: Imporve it
-    return len(contingency_values)
+    constr_gen_Q_score = 0
+    w_voltage_level = 0.1
+    base_value = 0.5
+
+    for entry in contingency_values:
+        constr_gen_Q_score += entry["typeLim"] * w_voltage_level + base_value
+
+    return round(constr_gen_Q_score, 1)
 
 
 def calc_constr_gen_U(contingency_values):
@@ -86,10 +92,12 @@ def calc_constr_gen_U(contingency_values):
 
 
 def calc_constr_volt(contingency_values):
-    # TODO: Imporve it
     final_value = 0
+    w_thresh_value = 0.5
 
     for volt_constr in contingency_values:
+        exceeding_volt = round(float(volt_constr["after"]) - float(volt_constr["limit"]), 0)
+        final_value += exceeding_volt * (int(volt_constr["threshType"]) * w_thresh_value)
         tempo = int(volt_constr["tempo"])
         if tempo == 99999:
             final_value += 5
@@ -128,7 +136,6 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:
-
             diff_min_voltages = calc_diff_volt(
                 contingencies_dict[key]["min_voltages"], elements_dict["poste"]
             )
@@ -158,11 +165,10 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
                 total_tap_value = 0
                 for tap in contingencies_dict[key]["tap_changers"]:
                     match tap["stopper"]:
-                        case 0:
-                            total_tap_value += abs(tap["diff_value"]) * w_tap
-                        case 1, 2, 3:
+                        case "0":
+                            total_tap_value += abs(int(tap["diff_value"])) * w_tap
+                        case "1" | "2" | "3":
                             total_tap_value += STD_TAP_VALUE * w_tap
-
                 contingencies_dict[key]["final_score"] += total_tap_value
         else:
             match contingencies_dict[key]["status"]:
