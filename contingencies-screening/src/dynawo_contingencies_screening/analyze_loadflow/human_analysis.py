@@ -77,18 +77,24 @@ def calc_diff_volt(contingency_values, loadflow_values):
 
 def calc_constr_gen_Q(contingency_values):
     constr_gen_Q_score = 0
-    w_voltage_level = 0.1
+    w_reactive_level = 0.1
     base_value = 0.5
 
     for entry in contingency_values:
-        constr_gen_Q_score += entry["typeLim"] * w_voltage_level + base_value
+        constr_gen_Q_score += int(entry["type"]) * w_reactive_level + base_value
 
     return round(constr_gen_Q_score, 1)
 
 
 def calc_constr_gen_U(contingency_values):
-    # TODO: Imporve it
-    return len(contingency_values)
+    constr_gen_U_score = 0
+    w_voltage_level = 0.1
+    base_value = 0.5
+
+    for entry in contingency_values:
+        constr_gen_U_score += int(entry["type"]) * w_voltage_level + base_value
+
+    return round(constr_gen_U_score, 1)
 
 
 def calc_constr_volt(contingency_values):
@@ -108,10 +114,13 @@ def calc_constr_volt(contingency_values):
 
 
 def calc_constr_flow(contingency_values):
-    # TODO: Imporve it
     final_value = 0
-    for volt_constr in contingency_values:
-        tempo = int(volt_constr["tempo"])
+    w_thresh_value = 0.5
+
+    for flow_constr in contingency_values:
+        exceeding_flow = round(float(flow_constr["after"]) - float(flow_constr["limit"]), 0)
+        final_value += exceeding_flow * w_thresh_value
+        tempo = int(flow_constr["tempo"])
         if tempo == 9999:
             final_value += 10
         else:
