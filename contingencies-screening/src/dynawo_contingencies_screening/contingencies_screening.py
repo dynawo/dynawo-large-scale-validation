@@ -456,9 +456,14 @@ def display_results_table(output_dir, sorted_loadflow_score_list):
     i_count = 0
     for elem_list in sorted_loadflow_score_list:
         i_count += 1
+        n_affected_elements = 0
+
+        for poste in elem_list[1]["affected_elements"]:
+            n_affected_elements += len(poste["elements_list"])
+
         str_table += "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} " \
                      "{:<14} {:<14} {:<14}\n".format(i_count, elem_list[0], elem_list[1]["name"],
-                                                     str(len(elem_list[1]["affected_elements"])),
+                                                     str(n_affected_elements),
                                                      str(elem_list[1]["status"]),
                                                      str(len(elem_list[1]["min_voltages"])),
                                                      str(len(elem_list[1]["max_voltages"])),

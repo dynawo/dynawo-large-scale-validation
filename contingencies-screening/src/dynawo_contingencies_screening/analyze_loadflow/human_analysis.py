@@ -130,6 +130,18 @@ def calc_constr_flow(contingency_values):
     return final_value
 
 
+def calc_affected_elements(contingency_values, elements_dict):
+    final_value = 0
+    w_voltage_level = 0.1
+
+    for entry in contingency_values:
+        poste_num = int(entry["poste"])
+        poste_voltage_level = int(elements_dict["poste"][poste_num]["nivTension"])
+        final_value += poste_voltage_level * w_voltage_level * len(entry["elements_list"])
+
+    return final_value
+
+
 def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
     # TODO: Explain what should be done
     # TODO: Implement it
@@ -156,12 +168,15 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
             value_constr_gen_U = calc_constr_gen_U(contingencies_dict[key]["constr_gen_U"])
             value_constr_volt = calc_constr_volt(contingencies_dict[key]["constr_volt"])
             value_constr_flow = calc_constr_flow(contingencies_dict[key]["constr_flow"])
+            value_affected_elements = calc_affected_elements(
+                contingencies_dict[key]["affected_elements"], elements_dict
+            )
 
             contingencies_dict[key]["final_score"] = round(
                 (
                     (diff_min_voltages + diff_max_voltages) * w_volt
                     + contingencies_dict[key]["n_iter"] * w_iter
-                    + len(contingencies_dict[key]["affected_elements"]) * w_poste
+                    + value_affected_elements * w_poste
                     + value_constr_gen_Q * w_constr_gen_Q
                     + value_constr_gen_U * w_constr_gen_U
                     + value_constr_volt * w_constr_volt

@@ -88,14 +88,20 @@ def get_contingencies_dict(parsed_hades_input_file):
     contingencies_dict = {}
     for variante in root.iter("{%s}variante" % ns):
         affected_elements_list = []
-        for quadex in variante.iter("{%s}quadex" % ns):
-            affected_elements_list.append(quadex.text)
-        for quador in variante.iter("{%s}quador" % ns):
-            affected_elements_list.append(quador.text)
-        for ouvrage in variante.iter("{%s}ouvrage" % ns):
-            affected_elements_list.append(ouvrage.attrib["num"])
-        for vscor in variante.iter("{%s}vscor" % ns):
-            affected_elements_list.append(vscor.text)
+
+        for affected_poste in variante.iter("{%s}posteimpacte" % ns):
+            affected_poste_dict = {"poste": affected_poste.attrib["numposte"], "elements_list": []}
+
+            for quadex in affected_poste.iter("{%s}quadex" % ns):
+                affected_poste_dict["elements_list"].append(quadex.text)
+            for quador in affected_poste.iter("{%s}quador" % ns):
+                affected_poste_dict["elements_list"].append(quador.text)
+            for ouvrage in affected_poste.iter("{%s}ouvrage" % ns):
+                affected_poste_dict["elements_list"].append(ouvrage.attrib["num"])
+            for vscor in affected_poste.iter("{%s}vscor" % ns):
+                affected_poste_dict["elements_list"].append(vscor.text)
+
+            affected_elements_list.append(affected_poste_dict)
 
         contingencies_dict[variante.attrib["num"]] = {
             "name": variante.attrib["nom"],
