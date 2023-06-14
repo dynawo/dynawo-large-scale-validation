@@ -428,6 +428,7 @@ def get_dynawo_tap_data(output_file_root, ns):
         # Add the tap attributes
         phase_tap_dict.update(phase_tap.attrib)
 
+        """
         # Get all nested data
         phase_tap_dict["step"] = []
         for element in phase_tap.iter():
@@ -438,6 +439,7 @@ def get_dynawo_tap_data(output_file_root, ns):
                     phase_tap_dict["terminalRef"] = element.attrib
                 else:
                     phase_tap_dict["step"].append(element.attrib)
+        """
 
         # Add entry to main dictionary
         dynawo_taps_dict["phase_taps"][phase_tap_transformer_id] = phase_tap_dict
@@ -452,6 +454,7 @@ def get_dynawo_tap_data(output_file_root, ns):
         # Add the tap attributes
         ratio_tap_dict.update(ratio_tap.attrib)
 
+        """
         # Get all nested data
         ratio_tap_dict["step"] = []
         for element in ratio_tap.iter():
@@ -462,6 +465,7 @@ def get_dynawo_tap_data(output_file_root, ns):
                     ratio_tap_dict["terminalRef"] = element.attrib
                 else:
                     ratio_tap_dict["step"].append(element.attrib)
+        """
 
         # Add entry to main dictionary
         dynawo_taps_dict["ratio_taps"][ratio_tap_transformer_id] = ratio_tap_dict
