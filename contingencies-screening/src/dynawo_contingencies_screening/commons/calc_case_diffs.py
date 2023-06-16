@@ -31,8 +31,70 @@ def match_3_dictionaries(keys1, keys2, keys3):
     return matching_keys, keys1_not_matching, keys2_not_matching, keys3_not_matching
 
 
+def get_tap_score_diff(tap1_diff, tap2_diff, lim1, lim2, block1, block2):
+
+    diff_score = 0
+    weight_diff = 10
+
+    # Get a score for tap diffs movement
+    if (
+        (tap1_diff < 0 and tap2_diff > 0)
+        or (tap1_diff > 0 and tap2_diff < 0)
+        or (tap1_diff < 0 and tap2_diff == 0)
+        or (tap1_diff == 0 and tap2_diff < 0)
+        or (tap1_diff > 0 and tap2_diff == 0)
+        or (tap1_diff == 0 and tap2_diff > 0)
+    ):
+        diff_score += (abs(tap1_diff) + abs(tap2_diff)) * weight_diff
+
+    elif (tap1_diff < 0 and tap2_diff < 0) or (tap1_diff > 0 and tap2_diff > 0):
+        diff_score += abs(abs(tap1_diff) - abs(tap2_diff)) * weight_diff
+
+    elif tap1_diff == 0 and tap2_diff == 0:
+        diff_score += 0
+
+    else:
+        print("Warning, tap diff case not contemplated.")
+
+    # Add to the movement difference score if the taps have been saturated or not
+    if (lim1 and not lim2) or (not lim1 and lim2):
+        diff_score += 1 * weight_diff
+
+    elif lim1 and lim2:
+        if (tap1_diff < 0 and tap2_diff > 0) or (tap1_diff > 0 and tap2_diff < 0):
+            diff_score += 3 * weight_diff
+        elif (tap1_diff < 0 and tap2_diff < 0) or (tap1_diff > 0 and tap2_diff > 0):
+            diff_score += 0.5 * weight_diff
+        else:
+            print("Warning, tap diff lim case not contemplated.")
+
+    elif not lim1 and not lim2:
+        diff_score += 0
+
+    else:
+        print("Warning, tap diff lim case not contemplated.")
+
+    # Add to movement difference score whether or not taps have been blocked
+    if (block1 and not block2) or (not block1 and block2):
+        diff_score += 5 * weight_diff
+
+    elif block1 and block2:
+        diff_score += 1 * weight_diff
+
+    elif not block1 and not block2:
+        diff_score += 0
+
+    else:
+        print("Warning, tap diff block case not contemplated.")
+
+    return diff_score
+
+
 def compare_taps(hades_taps, dwo_taps):
-    taps_diffs_dict = {}
+
+    # Matching of the contingencies and their names to later get a score based
+    # on the changes they have undergone
+    final_tap_score = 0
 
     set_phase_taps = set(dwo_taps["phase_taps"].keys())
     set_ratio_taps = set(dwo_taps["ratio_taps"].keys())
@@ -47,124 +109,86 @@ def compare_taps(hades_taps, dwo_taps):
         set_ratio_taps,
     )
 
-    for hds_tap in hades_taps:
-        tap_name = hds_tap["quadripole_name"]
-        tap_diff_entry = {}
-        '''
-        if tap_name in matching_keys:
-            if tap_name in set_ratio_taps:
+    print("matching_keys - matching_keys - matching_keys - matching_keys - matching_keys")
+    for matching_key in matching_keys:
+        if matching_key in dwo_taps["phase_taps"]:
+            dwo_diff = dwo_taps["phase_taps"][matching_key]
+        elif matching_key in dwo_taps["ratio_taps"]:
+            dwo_diff = dwo_taps["ratio_taps"][matching_key]
 
-                print(tap_name)
-                print("hades_diff")
-                print(int(hds_tap["previous_value"]) - int(hds_tap["after_value"]))
-                print("dwo_diff")
-                print(int(dwo_taps["ratio_taps"][tap_name]["tapPosition"]))
-                print()
-                print()
-                """
-                
-                prev_value_diff = int(hds_tap["previous_value"]) - int(
-                    dwo_taps["ratio_taps"][tap_name]["lowTapPosition"]
-                )
-                after_value_diff = int(hds_tap["after_value"]) - int(
-                    dwo_taps["ratio_taps"][tap_name]["tapPosition"]
-                )
-                
-                tap_diff_entry["tap_score"] = get_tap_score(ap_diff_entry["stopper"])
-                tap_diff_entry["hds_prev"] = 
-                tap_diff_entry["hds_post"] = 
-                tap_diff_entry["dwo_prev"] = 
-                tap_diff_entry["hds_post"] = 
+        hds_tap = {}
+        for hds_tap_ent in hades_taps:
+            if hds_tap_ent["quadripole_name"] == matching_key:
+                hds_tap = hds_tap_ent
+                break
 
-                print("Hades prev")
-                print(hds_tap["previous_value"])
-                print("Dwo prev")
-                print(dwo_taps["ratio_taps"][tap_name]["lowTapPosition"])
-                print("Hades after")
-                print(hds_tap["after_value"])
-                print("Dwo after")
-                print(dwo_taps["ratio_taps"][tap_name]["tapPosition"])
-                print()
-                print()
-                """
-            else:
-                print(tap_name)
-                print("hades_diff")
-                print(int(hds_tap["previous_value"]) - int(hds_tap["after_value"]))
-                print("dwo_diff_ph")
-                print(int(dwo_taps["phase_taps"][tap_name]["tapPosition"]))
-                print()
-                print()
-                """
-                prev_value_diff = int(hds_tap["previous_value"]) - int(
-                    dwo_taps["phase_taps"][tap_name]["lowTapPosition"]
-                )
-                after_value_diff = int(hds_tap["after_value"]) - int(
-                    dwo_taps["phase_taps"][tap_name]["tapPosition"]
-                )
-                print("Hades prev")
-                print(hds_tap["previous_value"])
-                print("Dwo prev")
-                print(dwo_taps["phase_taps"][tap_name]["lowTapPosition"])
-                print("Hades after")
-                print(hds_tap["after_value"])
-                print("Dwo after")
-                print(dwo_taps["phase_taps"][tap_name]["tapPosition"])
-                print()
-                print()
-                """
-        '''
+        hds_diff = hds_tap["diff_value"]
+        lim_hds = False
+        block_hds = False
+        if int(hds_tap["stopper"]) == 2 or int(hds_tap["stopper"]) == 1:
+            lim_hds = True
+        elif int(hds_tap["stopper"]) == 3:
+            block_hds = True
 
-    for tap_name in keys_ratio_not_matching:
-        if int(dwo_taps["ratio_taps"][tap_name]["tapPosition"]) != 0:
-            print(tap_name)
-            print(int(dwo_taps["ratio_taps"][tap_name]["tapPosition"]))
+        # TODO: get block and lim dwo
+        final_tap_score += get_tap_score_diff(hds_diff, dwo_diff, lim_hds, False, block_hds, False)
 
+        print(matching_key)
+        print(hds_diff, dwo_diff)
+
+    print(
+        "keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching"
+    )
+    for hades_key in keys_hades_not_matching:
+        hds_tap = {}
+        for hds_tap_ent in hades_taps:
+            if hds_tap_ent["quadripole_name"] == hades_key:
+                hds_tap = hds_tap_ent
+                break
+
+        hds_diff = hds_tap["diff_value"]
+        lim_hds = False
+        block_hds = False
+        if int(hds_tap["stopper"]) == 2 or int(hds_tap["stopper"]) == 1:
+            lim_hds = True
+        elif int(hds_tap["stopper"]) == 3:
+            block_hds = True
+
+        final_tap_score += get_tap_score_diff(hds_diff, 0, lim_hds, False, block_hds, False)
+
+        print(hades_key)
+        print(hds_diff, 0)
+
+    print(
+        "keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching"
+    )
+    for dwo_key in keys_phase_not_matching:
+        dwo_diff = dwo_taps["phase_taps"][dwo_key]
+
+        # TODO: get block and lim dwo
+        final_tap_score += get_tap_score_diff(0, dwo_diff, False, False, False, False)
+        print(dwo_key)
+        print(0, dwo_diff)
+
+    print(
+        "keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching"
+    )
+    for dwo_key in keys_ratio_not_matching:
+        dwo_diff = dwo_taps["ratio_taps"][dwo_key]
+
+        # TODO: get block and lim dwo
+        final_tap_score += get_tap_score_diff(0, dwo_diff, False, False, False, False)
+
+        print(dwo_key)
+        print(0, dwo_diff)
+
+    print(final_tap_score)
     print()
     print()
     print()
     print()
 
-    # TODO: Treat non matching parts
-
-    """
-    for hds_tap in hades_taps:
-        print(hds_tap)
-        tap_diff_entry = {}
-        tap_name = hds_tap["quadripole_name"]
-
-        if tap_name in dwo_taps["phase_taps"].keys():
-            print(tap_name)
-            prev_value_diff = int(hds_tap["previous_value"]) - int(
-                dwo_taps["phase_taps"][tap_name]["lowTapPosition"]
-            )
-            after_value_diff = int(hds_tap["after_value"]) - int(
-                dwo_taps["phase_taps"][tap_name]["tapPosition"]
-            )
-
-            tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
-            tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
-
-        elif tap_name in dwo_taps["ratio_taps"].keys():
-            print(tap_name)
-            prev_value_diff = int(hds_tap["previous_value"]) - int(
-                dwo_taps["ratio_taps"][tap_name]["lowTapPosition"]
-            )
-            after_value_diff = int(hds_tap["after_value"]) - int(
-                dwo_taps["ratio_taps"][tap_name]["tapPosition"]
-            )
-
-            tap_diff_entry["previous_value_diff"] = str(abs(prev_value_diff))
-            tap_diff_entry["after_value_diff"] = str(abs(after_value_diff))
-
-        else:
-            print("pepe")
-
-        taps_diffs_dict[tap_name] = tap_diff_entry
-    
-    return taps_diffs_dict
-    """
-    return {}
+    return final_tap_score
 
 
 def calc_matching_volt_constr(matched_volt_constr):
@@ -281,7 +305,7 @@ def compare_constraints(
     diff_marching_gen_Q = calc_matching_gen_Q_constr(matched_gen_Q_constr)
     diff_marching_gen_U = calc_matching_gen_U_constr(matched_gen_U_constr)
 
-    return 1000
+    return diff_marching_volt + diff_marching_flow + diff_marching_gen_Q + diff_marching_gen_U
 
 
 def calculate_diffs_hades_dynawo(hades_info, dwo_info):
@@ -313,4 +337,6 @@ def calculate_diffs_hades_dynawo(hades_info, dwo_info):
             dwo_info["constraints"],
         )
 
-    return dict_diffs
+        dict_diffs["diff_value"] = abs(taps_diff) + abs(constraints_diffs)
+
+    return [dict_diffs["conv_status"], dict_diffs["diff_value"]]

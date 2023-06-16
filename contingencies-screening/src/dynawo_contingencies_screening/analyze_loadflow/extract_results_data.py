@@ -276,9 +276,10 @@ def get_fault_data(root, ns, contingencies_list):
                 tap_entry["quadripole_name"] = gen_name
                 tap_entry["previous_value"] = subelement.attrib["priseDeb"]
                 tap_entry["after_value"] = subelement.attrib["priseFin"]
-                tap_entry["diff_value"] = str(
-                    int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"])
+                tap_entry["diff_value"] = int(subelement.attrib["priseFin"]) - int(
+                    subelement.attrib["priseDeb"]
                 )
+
                 tap_entry["stopper"] = subelement.attrib["butee"]
 
                 tap_changers_dict[contingency_number].append(tap_entry)
@@ -481,67 +482,38 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
     for phase_tap_id in dynawo_contingencies_dict[contingency_name]["tap_changers"][
         "phase_taps"
     ].keys():
-        phase_tap_diff = {}
         contg_phase_tap = dynawo_contingencies_dict[contingency_name]["tap_changers"][
             "phase_taps"
         ][phase_tap_id]
 
-        # Check if contg tap key is in nocontg dict
         if phase_tap_id in dynawo_nocontg_tap_dict["phase_taps"]:
-            # Get the tap data
+
             nocontg_phase_tap = dynawo_nocontg_tap_dict["phase_taps"][phase_tap_id]
+            phase_tap_diff = int(contg_phase_tap["tapPosition"]) - int(
+                nocontg_phase_tap["tapPosition"]
+            )
 
-            # Calculate the differences
-            for attrib_name in contg_phase_tap.keys():
-                if attrib_name in ["lowTapPosition", "tapPosition", "targetDeadband"]:
-                    phase_tap_diff[attrib_name] = str(
-                        int(contg_phase_tap[attrib_name]) - int(nocontg_phase_tap[attrib_name])
-                    )
-                elif attrib_name in ["regulationValue"]:
-                    phase_tap_diff[attrib_name] = str(
-                        float(contg_phase_tap[attrib_name]) - float(nocontg_phase_tap[attrib_name])
-                    )
-                elif attrib_name in ["regulating"]:
-                    phase_tap_diff[attrib_name] = str(
-                        bool(contg_phase_tap[attrib_name]) - bool(nocontg_phase_tap[attrib_name])
-                    )
-                elif attrib_name == "regulationMode":
-                    # Check if value is different(1) or equal(0)
-                    if contg_phase_tap[attrib_name] == nocontg_phase_tap[attrib_name]:
-                        phase_tap_diff[attrib_name] = "0"
-                    else:
-                        phase_tap_diff[attrib_name] = "1"
-
-        tap_diff_dict["phase_taps"][phase_tap_id] = phase_tap_diff
+            if phase_tap_diff != 0:
+                tap_diff_dict["phase_taps"][phase_tap_id] = phase_tap_diff
 
     # Differences between ratio_taps
     # Will be calculated as contg_tap_value - nocontg_tap_value
     for ratio_tap_id in dynawo_contingencies_dict[contingency_name]["tap_changers"][
         "ratio_taps"
     ].keys():
-        ratio_tap_diff = {}
         contg_ratio_tap = dynawo_contingencies_dict[contingency_name]["tap_changers"][
             "ratio_taps"
         ][ratio_tap_id]
 
         if ratio_tap_id in dynawo_nocontg_tap_dict["ratio_taps"]:
+
             nocontg_ratio_tap = dynawo_nocontg_tap_dict["ratio_taps"][ratio_tap_id]
+            ratio_tap_diff = int(contg_ratio_tap["tapPosition"]) - int(
+                nocontg_ratio_tap["tapPosition"]
+            )
 
-            for attrib_name in contg_ratio_tap.keys():
-                if attrib_name in ["lowTapPosition", "tapPosition", "targetDeadband"]:
-                    ratio_tap_diff[attrib_name] = str(
-                        int(contg_ratio_tap[attrib_name]) - int(nocontg_ratio_tap[attrib_name])
-                    )
-                elif attrib_name in ["targetV"]:
-                    ratio_tap_diff[attrib_name] = str(
-                        float(contg_ratio_tap[attrib_name]) - float(nocontg_ratio_tap[attrib_name])
-                    )
-                elif attrib_name in ["loadTapChangingCapabilities", "regulating"]:
-                    ratio_tap_diff[attrib_name] = str(
-                        bool(contg_ratio_tap[attrib_name]) - bool(nocontg_ratio_tap[attrib_name])
-                    )
-
-        tap_diff_dict["ratio_taps"][ratio_tap_id] = ratio_tap_diff
+            if ratio_tap_diff != 0:
+                tap_diff_dict["ratio_taps"][ratio_tap_id] = ratio_tap_diff
 
     dynawo_contingencies_dict[contingency_name]["tap_diffs"] = tap_diff_dict
 

@@ -305,8 +305,9 @@ def prepare_hades_contingencies(
             if hades_output_file != -1:
                 hades_output_list.append(hades_output_file)
         else:
-            # TODO: Implement other types of contingencies (ex. N-k)
-            continue
+            print(
+                "Due to the nature of Hades SA, this program does not support non-N-1 contingencies. How for example, N - k."
+            )
 
     return hades_output_list
 
@@ -392,8 +393,9 @@ def prepare_dynawo_contingencies(
             if dynawo_output_file != -1:
                 dynawo_output_list.append(dynawo_output_file)
         else:
-            # TODO: Implement other types of contingencies (ex. N-k)
-            continue
+            print(
+                "Due to the nature of Hades SA, this program does not support non-N-1 contingencies. How for example, N - k."
+            )
 
     return dynawo_output_list
 
@@ -437,12 +439,15 @@ def calculate_case_differences(
     dict_diffs = {}
     for case in matching_contingencies_dict["contingencies"]:
         hades_key = calc_case_diffs.get_hades_id(case["id"], sorted_loadflow_score_list)
-        dict_diffs[case["id"]] = calc_case_diffs.calculate_diffs_hades_dynawo(
-            sorted_loadflow_score_list[hades_key], dynawo_contingency_data[case["id"]]
-        )
 
-    df_diffs = []
-    return df_diffs
+        if case["id"] in dynawo_contingency_data:
+            dict_diffs[case["id"]] = calc_case_diffs.calculate_diffs_hades_dynawo(
+                sorted_loadflow_score_list[hades_key], dynawo_contingency_data[case["id"]]
+            )
+        else:
+            print("WARNING: Case " + case["id"] + " not executed by Dynaflow.")
+
+    return pd.DataFrame.from_dict(dict_diffs, orient="index", columns=["STATUS", "DIFF_SCORE"])
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
@@ -641,6 +646,8 @@ def run_contingencies_screening():
         df_diffs = calculate_case_differences(
             sorted_loadflow_score_list, dynawo_contingency_data, matching_contng_dict
         )
+
+        df_diffs.to_csv(output_dir_path / "hds_dwo_diffs.csv", index=False, sep=";")
 
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:

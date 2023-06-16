@@ -189,7 +189,7 @@ def create_hades_contingency_n_1(
     # Create output dir
     os.makedirs(hades_output_folder / replay_cont, exist_ok=True)
 
-    # TODO: Get the disconnection mode from input file
+    # Due to the nature of Hades SA, this program does not support non-two-sided contingencies.
     disconnection_mode = "BOTH"
 
     # Generate contingency file
@@ -261,7 +261,7 @@ def create_dynawo_contingency_n_1(
             else:
                 shutil.copy2(src_path, dst_path)
 
-    # TODO: Get the disconnection mode from input file
+    # Due to the nature of Hades SA, this program does not support non-two-sided contingencies.
     disconnection_mode = "BOTH"
 
     # Generate contingency file
