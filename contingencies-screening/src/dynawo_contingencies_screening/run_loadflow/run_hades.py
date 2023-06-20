@@ -28,10 +28,10 @@ def activate_tap_changers(hades_file, activate_taps):
 
 
 def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers):
-    # Get the output folder (using hades_output_file parent folder) to be able to copy the input file
-    # into the ouputs folder, and with this last file (copy of the input located in the output folder),
-    # run hades through Python with the launcher provided in the arguments, leaving the result in the
-    # hades_output_file
+    # Get the output folder (using hades_output_file parent folder) to be able to
+    # copy the input file into the outputs folder, and with this last file (copy of
+    # the input located in the output folder), run hades through Python with the
+    # launcher provided in the arguments, leaving the result in the hades_output_file
 
     # We obtain the output folder path
     # and copy the input file there
@@ -40,7 +40,7 @@ def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
         shutil.copy(hades_input_file, output_folder)
 
     # Activate tap changers if needed
-    activate_tap_changers(output_folder / (hades_input_file.name), tap_changers)
+    activate_tap_changers(output_folder / hades_input_file.name, tap_changers)
 
     # Run the simulation on the specified hades launcher
     subprocess.run(
@@ -49,7 +49,7 @@ def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
         + " && "
         + str(hades_launcher)
         + " "
-        + str(output_folder / (hades_input_file.name))
+        + str(output_folder / hades_input_file.name)
         + " "
         + str(hades_output_file),
         shell=True,

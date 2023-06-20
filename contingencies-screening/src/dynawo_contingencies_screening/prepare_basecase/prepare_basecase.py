@@ -6,11 +6,13 @@ def check_basecase_dir(input_dir):
     # Check input has both directories
     if not (input_dir / "dynawo").is_dir():
         exit(
-            "Error: missing 'dynawo' directory in the input folder (name must be as shown in this message)"
+            "Error: missing 'dynawo' directory in the input folder "
+            "(name must be as shown in this message)"
         )
     if not (input_dir / "hades").is_dir():
         exit(
-            "Error: missing 'hades' directory in the input folder (name must be as shown in this message)"
+            "Error: missing 'hades' directory in the input folder "
+            "(name must be as shown in this message)"
         )
 
     # Check for unnecessary elements in the directory

@@ -1,4 +1,5 @@
 from lxml import etree
+from dynawo_contingencies_screening.commons import manage_files
 
 
 def get_elements_dict(parsed_hades_input_file):
@@ -186,6 +187,18 @@ def get_fault_data(root, ns, contingencies_list):
     res_node_dict = {key: [] for key in contingencies_list}
     tap_changers_dict = {key: [] for key in contingencies_list}
 
+    groupe_name = {}
+    for groupe in root.iter("{%s}groupe" % ns):
+        groupe_name[int(groupe.attrib["num"])] = groupe.attrib["nom"]
+
+    quadripole_name = {}
+    for quadripole in root.iter("{%s}quadripole" % ns):
+        quadripole_name[int(quadripole.attrib["num"])] = quadripole.attrib["nom"]
+
+    node_name = {}
+    for node in root.iter("{%s}noeud" % ns):
+        node_name[int(node.attrib["num"])] = node.attrib["nom"]
+
     for contingency in root.iter("{%s}defaut" % ns):
         # Collect the data from the 'resLF' tag
         contingency_number = contingency.attrib["num"]
@@ -205,7 +218,7 @@ def get_fault_data(root, ns, contingencies_list):
                 "{%s}contrGroupe" % ns,
             ]:
                 constraint_entry = {
-                    "job": subelement.attrib["ouvrage"],
+                    "elem_num": int(subelement.attrib["ouvrage"]),
                     "before": subelement.attrib["avant"],
                     "after": subelement.attrib["apres"],
                     "limit": subelement.attrib["limite"],
@@ -213,16 +226,19 @@ def get_fault_data(root, ns, contingencies_list):
 
                 # Check for the constraint type
                 if subelement.tag == ("{%s}contrGroupe" % ns):
+                    constraint_entry["elem_name"] = groupe_name[constraint_entry["elem_num"]]
                     constraint_entry["typeLim"] = int(subelement.attrib["typeLim"])
                     constraint_entry["type"] = subelement.attrib["type"]
                     constraint_dict["contrGroupe"][contingency_number].append(constraint_entry)
                 elif subelement.tag == ("{%s}contrTransit" % ns):
+                    constraint_entry["elem_name"] = quadripole_name[constraint_entry["elem_num"]]
                     constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_entry["beforeMW"] = subelement.attrib["avantMW"]
                     constraint_entry["afterMW"] = subelement.attrib["apresMW"]
                     constraint_entry["sideOr"] = subelement.attrib["coteOr"]
                     constraint_dict["contrTransit"][contingency_number].append(constraint_entry)
                 else:
+                    constraint_entry["elem_name"] = node_name[constraint_entry["elem_num"]]
                     constraint_entry["threshType"] = subelement.attrib["typeSeuil"]
                     constraint_entry["tempo"] = subelement.attrib["tempo"]
                     constraint_dict["contrTension"][contingency_number].append(constraint_entry)
@@ -249,13 +265,21 @@ def get_fault_data(root, ns, contingencies_list):
             # Get all resregleur entries
             elif subelement.tag == "{%s}resregleur" % ns:
                 tap_entry = {}
+                gen_name = ""
+
+                # Get the tap's generator name
+                for gen in root.iter("{%s}quadripole" % ns):
+                    if gen.attrib["num"] == subelement.attrib["numOuvrSurv"]:
+                        gen_name = gen.attrib["nom"]
 
                 tap_entry["quadripole_num"] = subelement.attrib["numOuvrSurv"]
+                tap_entry["quadripole_name"] = gen_name
                 tap_entry["previous_value"] = subelement.attrib["priseDeb"]
                 tap_entry["after_value"] = subelement.attrib["priseFin"]
-                tap_entry["diff_value"] = str(
-                    int(subelement.attrib["priseFin"]) - int(subelement.attrib["priseDeb"])
+                tap_entry["diff_value"] = int(subelement.attrib["priseFin"]) - int(
+                    subelement.attrib["priseDeb"]
                 )
+
                 tap_entry["stopper"] = subelement.attrib["butee"]
 
                 tap_changers_dict[contingency_number].append(tap_entry)
@@ -336,3 +360,182 @@ def collect_hades_results(
             contingencies_dict[key]["tap_changers"] = tap_changers_dict[key]
 
     return elements_dict, contingencies_dict
+
+
+def get_dynawo_contingencies(dynawo_xml_root, ns):
+    contingencies_dict = {}
+
+    for contg in dynawo_xml_root.iter("{%s}scenarioResults" % ns):
+        contg_id = contg.attrib["id"]
+        contingencies_dict[contg_id] = {"status": contg.attrib["status"], "constraints": []}
+
+    return contingencies_dict
+
+
+def get_dynawo_contingency_data(
+    dynawo_contingencies_dict, dynawo_nocontg_tap_dict, dynawo_output_folder
+):
+    # Check results of all the contingencies
+    for contg in dynawo_contingencies_dict.keys():
+        # Get the contingency data from converged contingencies
+        if dynawo_contingencies_dict[contg]["status"] == "CONVERGENCE":
+            # Get the contingency constraints file path
+            constraints_file_name = "constraints_" + contg + ".xml"
+            constraints_file = dynawo_output_folder / "constraints" / constraints_file_name
+
+            # Parse the constraints file
+            parsed_constraints_file = manage_files.parse_xml_file(constraints_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_constraints_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the constraint data
+            for entry in root.iter("{%s}constraint" % ns):
+                # Add the constraint data to main dictionary
+                dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
+
+            # Get the contingency output file for the tap data
+            contg_output_file = (
+                dynawo_output_folder / contg / "outputs" / "finalState" / "outputIIDM.xml"
+            )
+
+            # Parse the output file
+            parsed_output_file = manage_files.parse_xml_file(contg_output_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_output_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the contingency tap data to the main contingency dict
+            dynawo_contingencies_dict[contg]["tap_changers"] = get_dynawo_tap_data(root, ns)
+
+            # Compare taps with no contingency case
+            get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, contg)
+
+
+def get_dynawo_tap_data(output_file_root, ns):
+    # Create the tap data dictionary
+    dynawo_taps_dict = {"phase_taps": {}, "ratio_taps": {}}
+
+    # Extract the tap data depending on its type
+    for phase_tap in output_file_root.iter("{%s}phaseTapChanger" % ns):
+        phase_tap_dict = {}
+
+        # Get the associated transformer id
+        phase_tap_parent = phase_tap.getparent()
+        phase_tap_transformer_id = phase_tap_parent.attrib["id"]
+
+        # Add the tap attributes
+        phase_tap_dict.update(phase_tap.attrib)
+
+        """
+        # Get all nested data
+        phase_tap_dict["step"] = []
+        for element in phase_tap.iter():
+            # Skip element if it is the root
+            if element is not phase_tap:
+                # Watch for elements different from step
+                if element.tag != "{%s}step" % ns:
+                    phase_tap_dict["terminalRef"] = element.attrib
+                else:
+                    phase_tap_dict["step"].append(element.attrib)
+        """
+
+        # Add entry to main dictionary
+        dynawo_taps_dict["phase_taps"][phase_tap_transformer_id] = phase_tap_dict
+
+    for ratio_tap in output_file_root.iter("{%s}ratioTapChanger" % ns):
+        ratio_tap_dict = {}
+
+        # Get the associated transformer id
+        ratio_tap_parent = ratio_tap.getparent()
+        ratio_tap_transformer_id = ratio_tap_parent.attrib["id"]
+
+        # Add the tap attributes
+        ratio_tap_dict.update(ratio_tap.attrib)
+
+        """
+        # Get all nested data
+        ratio_tap_dict["step"] = []
+        for element in ratio_tap.iter():
+            # Skip element if it is the root
+            if element is not ratio_tap:
+                # Watch for elements different from step
+                if element.tag != "{%s}step" % ns:
+                    ratio_tap_dict["terminalRef"] = element.attrib
+                else:
+                    ratio_tap_dict["step"].append(element.attrib)
+        """
+
+        # Add entry to main dictionary
+        dynawo_taps_dict["ratio_taps"][ratio_tap_transformer_id] = ratio_tap_dict
+
+    return dynawo_taps_dict
+
+
+def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, contingency_name):
+    tap_diff_dict = {"phase_taps": {}, "ratio_taps": {}}
+
+    # Differences between phase_taps
+    # Will be calculated as contg_tap_value - nocontg_tap_value
+    for phase_tap_id in dynawo_contingencies_dict[contingency_name]["tap_changers"][
+        "phase_taps"
+    ].keys():
+        contg_phase_tap = dynawo_contingencies_dict[contingency_name]["tap_changers"][
+            "phase_taps"
+        ][phase_tap_id]
+
+        if phase_tap_id in dynawo_nocontg_tap_dict["phase_taps"]:
+
+            nocontg_phase_tap = dynawo_nocontg_tap_dict["phase_taps"][phase_tap_id]
+            phase_tap_diff = int(contg_phase_tap["tapPosition"]) - int(
+                nocontg_phase_tap["tapPosition"]
+            )
+
+            if phase_tap_diff != 0:
+                tap_diff_dict["phase_taps"][phase_tap_id] = phase_tap_diff
+
+    # Differences between ratio_taps
+    # Will be calculated as contg_tap_value - nocontg_tap_value
+    for ratio_tap_id in dynawo_contingencies_dict[contingency_name]["tap_changers"][
+        "ratio_taps"
+    ].keys():
+        contg_ratio_tap = dynawo_contingencies_dict[contingency_name]["tap_changers"][
+            "ratio_taps"
+        ][ratio_tap_id]
+
+        if ratio_tap_id in dynawo_nocontg_tap_dict["ratio_taps"]:
+
+            nocontg_ratio_tap = dynawo_nocontg_tap_dict["ratio_taps"][ratio_tap_id]
+            ratio_tap_diff = int(contg_ratio_tap["tapPosition"]) - int(
+                nocontg_ratio_tap["tapPosition"]
+            )
+
+            if ratio_tap_diff != 0:
+                tap_diff_dict["ratio_taps"][ratio_tap_id] = ratio_tap_diff
+
+    dynawo_contingencies_dict[contingency_name]["tap_diffs"] = tap_diff_dict
+
+
+def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, dynawo_output_dir):
+    # Get the root and the namespacing of the output file without contingencies
+    root = parsed_output_xml.getroot()
+    ns = etree.QName(root).namespace
+
+    # Extract all the tap changer data from de output loadflow without contingencies
+    dynawo_nocont_tap_dict = get_dynawo_tap_data(root, ns)
+
+    # Get the root and the namespacing of the aggregated file
+    root = parsed_aggregated_xml.getroot()
+    ns = etree.QName(root).namespace
+
+    # Create the contingencies dictionary
+    dynawo_contingencies_dict = get_dynawo_contingencies(root, ns)
+
+    # Extract all the contingencies data
+    get_dynawo_contingency_data(
+        dynawo_contingencies_dict, dynawo_nocont_tap_dict, dynawo_output_dir
+    )
+
+    return dynawo_contingencies_dict, dynawo_nocont_tap_dict

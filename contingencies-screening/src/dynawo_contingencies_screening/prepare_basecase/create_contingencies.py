@@ -189,7 +189,7 @@ def create_hades_contingency_n_1(
     # Create output dir
     os.makedirs(hades_output_folder / replay_cont, exist_ok=True)
 
-    # TODO: Get the disconnection mode from input file
+    # Due to the nature of Hades SA, this program does not support non-two-sided contingencies.
     disconnection_mode = "BOTH"
 
     # Generate contingency file
@@ -261,7 +261,7 @@ def create_dynawo_contingency_n_1(
             else:
                 shutil.copy2(src_path, dst_path)
 
-    # TODO: Get the disconnection mode from input file
+    # Due to the nature of Hades SA, this program does not support non-two-sided contingencies.
     disconnection_mode = "BOTH"
 
     # Generate contingency file
@@ -693,9 +693,9 @@ def generate_dynawo_load_contingency(
     ns = etree.QName(root).namespace
 
     dynawo_load = None
-    for l in root.iter("{%s}load" % ns):
-        if element_name == l.get("id") and l.get("bus") is not None:
-            dynawo_load = l
+    for load in root.iter("{%s}load" % ns):
+        if element_name == load.get("id") and load.get("bus") is not None:
+            dynawo_load = load
             break
 
     # If element does not exist, exit program
@@ -1115,9 +1115,9 @@ def create_dynawo_SA(
 
     # Save the JSON files
     with open(dynawo_output_folder / "config.json", "w") as outfile:
-        json.dump(config_dict, outfile)
+        json.dump(config_dict, outfile, indent=2)
 
     with open(dynawo_output_folder / "contng.json", "w") as outfile:
-        json.dump(contng_dict, outfile)
+        json.dump(contng_dict, outfile, indent=2)
 
-    return dynawo_output_folder / "config.json", dynawo_output_folder / "contng.json"
+    return dynawo_output_folder / "config.json", dynawo_output_folder / "contng.json", contng_dict
