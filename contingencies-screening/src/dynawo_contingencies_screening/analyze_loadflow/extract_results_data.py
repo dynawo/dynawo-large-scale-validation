@@ -372,6 +372,29 @@ def get_dynawo_contingencies(dynawo_xml_root, ns):
     return contingencies_dict
 
 
+def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
+    for entry in root.iter("{%s}event" % ns):
+        # Look for the "Generator : min/max reactive power limit reached
+        if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
+                entry.attrib["message"] == "Generator : maximum reactive power limit reached"):
+            limit_constr = {}
+
+            limit_constr["modelName"] = entry.attrib["modelName"]
+
+            # Create the description from the timelimit message
+            if "minimum" in entry.attrib["message"]:
+                limit_constr["description"] = "min Q limit reached"
+                limit_constr["kind"] = "QInfQMin"
+            else:
+                limit_constr["description"] = "max Q limit reached"
+                limit_constr["kind"] = "QSupQMax"
+
+            limit_constr["time"] = entry.attrib["time"]
+            limit_constr["type"] = "Generator"
+
+            dwo_constraint_list.append(limit_constr)
+
+
 def get_dynawo_contingency_data(
     dynawo_contingencies_dict, dynawo_nocontg_tap_dict, dynawo_output_folder
 ):
@@ -394,6 +417,20 @@ def get_dynawo_contingency_data(
             for entry in root.iter("{%s}constraint" % ns):
                 # Add the constraint data to main dictionary
                 dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
+
+            # Get the contingency timeline file path
+            timeline_file_name = "timeline_" + contg + ".xml"
+            timeline_file = dynawo_output_folder / "timeLine" / timeline_file_name
+
+            # Parse the timeline file
+            parsed_timeline_file = manage_files.parse_xml_file(timeline_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_timeline_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the timeline constraint data
+            get_dynawo_timeline_constraints(root, ns, dynawo_contingencies_dict[contg]["constraints"])
 
             # Get the contingency output file for the tap data
             contg_output_file = (
