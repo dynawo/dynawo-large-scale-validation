@@ -45,7 +45,7 @@ def get_tap_score_diff(tap1_diff, tap2_diff, lim1, lim2, block1, block2):
         or (tap1_diff > 0 and tap2_diff == 0)
         or (tap1_diff == 0 and tap2_diff > 0)
     ):
-        diff_score += (abs(tap1_diff) + abs(tap2_diff)) * weight_diff
+        diff_score += (abs(tap1_diff) + abs(tap2_diff)) * 2 * weight_diff
 
     elif (tap1_diff < 0 and tap2_diff < 0) or (tap1_diff > 0 and tap2_diff > 0):
         diff_score += abs(abs(tap1_diff) - abs(tap2_diff)) * weight_diff
@@ -184,44 +184,67 @@ def compare_taps(hades_taps, dwo_taps):
 
     print(final_tap_score)
     print()
-    print()
-    print()
-    print()
 
     return final_tap_score
 
 
-def calc_matching_volt_constr(matched_volt_constr):
+def calc_volt_constr(matched_volt_constr, unique_constr_hds, unique_constr_dwo):
     diff_marching_volt = 0
 
+    print("volt_constr")
     for case_diffs_list in matched_volt_constr.values():
         for case_diffs in case_diffs_list:
-            pass
-            # print(case_diffs)
-        # print()
+            print(case_diffs)
+        print()
+
+    print("---")
+    for case_diffs in unique_constr_hds:
+        print(case_diffs["elem_name"])
+    print()
+
+    print("---")
+    for case_diffs in unique_constr_dwo:
+        print(case_diffs["modelName"])
+    print()
 
     return diff_marching_volt
 
 
-def calc_matching_flow_constr(matched_flow_constr):
+def calc_flow_constr(matched_flow_constr, unique_constr_hds, unique_constr_dwo):
     diff_marching_flow = 0
 
+    print("flow_constr")
     for case_diffs_list in matched_flow_constr.values():
         for case_diffs in case_diffs_list:
             pass
-            # print(case_diffs)
-        # print()
+            print(case_diffs)
+        print()
+
+    print("---")
+    for case_diffs in unique_constr_hds:
+        print(case_diffs)
+    print()
+
+    print("---")
+    for case_diffs in unique_constr_dwo:
+        print(case_diffs)
+    print()
+
+    print()
+    print()
+    print()
+    print()
 
     return diff_marching_flow
 
 
-def calc_matching_gen_Q_constr(matched_gen_Q_constr):
+def calc_gen_Q_constr(matched_gen_Q_constr, unique_constr_hds, unique_constr_dwo):
     diff_marching_gen_Q = 0
     # TODO: Implement it
     return diff_marching_gen_Q
 
 
-def calc_matching_gen_U_constr(matched_gen_U_constr):
+def calc_gen_U_constr(matched_gen_U_constr, unique_constr_hds, unique_constr_dwo):
     diff_marching_gen_U = 0
     # TODO: Implement it
     return diff_marching_gen_U
@@ -268,15 +291,19 @@ def compare_constraints(
     dwo_non_defined_constraints = []
 
     for constraint in dwo_constraints:
-        if constraint["type"] == "Node":
+        if constraint["kind"] == "UInfUmin" or constraint["kind"] == "USupUmax":
             dwo_volt_constraints.append(constraint)
-        elif constraint["type"] == "Line":
+        elif (
+            constraint["kind"] == "PATL"
+            or constraint["kind"] == "OverloadOpen"
+            or constraint["kind"] == "OverloadUp"
+        ):
             dwo_flow_constraints.append(constraint)
         # TODO: Change this condition
-        elif constraint["type"] == "Pending":
+        elif constraint["kind"] == "Pending":
             dwo_gen_Q_constraints.append(constraint)
         # TODO: Change this condition
-        elif constraint["type"] == "Pending":
+        elif constraint["kind"] == "Pending":
             dwo_gen_U_constraints.append(constraint)
         else:
             dwo_non_defined_constraints.append(constraint)
@@ -300,10 +327,18 @@ def compare_constraints(
         hades_constr_gen_U, dwo_gen_U_constraints, matched_gen_U_constr
     )
 
-    diff_marching_volt = calc_matching_volt_constr(matched_volt_constr)
-    diff_marching_flow = calc_matching_flow_constr(matched_flow_constr)
-    diff_marching_gen_Q = calc_matching_gen_Q_constr(matched_gen_Q_constr)
-    diff_marching_gen_U = calc_matching_gen_U_constr(matched_gen_U_constr)
+    diff_marching_volt = calc_volt_constr(
+        matched_volt_constr, unique_constr_volt_hds, unique_constr_volt_dwo
+    )
+    diff_marching_flow = calc_flow_constr(
+        matched_flow_constr, unique_constr_flow_hds, unique_constr_flow_dwo
+    )
+    diff_marching_gen_Q = calc_gen_Q_constr(
+        matched_gen_Q_constr, unique_constr_gen_Q_hds, unique_constr_gen_Q_dwo
+    )
+    diff_marching_gen_U = calc_gen_U_constr(
+        matched_gen_U_constr, unique_constr_gen_U_hds, unique_constr_gen_U_dwo
+    )
 
     return diff_marching_volt + diff_marching_flow + diff_marching_gen_Q + diff_marching_gen_U
 
