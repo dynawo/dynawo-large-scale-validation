@@ -152,7 +152,6 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
 
 
 def get_line_flows(root, ns, contingencies_dict):
-
     invert_dict = {}
 
     for contg in contingencies_dict.keys():
@@ -165,7 +164,6 @@ def get_line_flows(root, ns, contingencies_dict):
     line_flows_dict = {key: [] for key in contingencies_dict.keys()}
 
     for entry in root.iter("{%s}resChargeMax" % ns):
-
         line_flows_dict[invert_dict[int(entry.attrib["quadripole"])]].append(
             [int(entry.attrib["numOuvrSurv"]), float(entry.attrib["chargeMax"])]
         )
@@ -376,7 +374,8 @@ def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
     for entry in root.iter("{%s}event" % ns):
         # Look for the "Generator : min/max reactive power limit reached
         if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
-                entry.attrib["message"] == "Generator : maximum reactive power limit reached"):
+            entry.attrib["message"] == "Generator : maximum reactive power limit reached"
+        ):
             limit_constr = {}
 
             limit_constr["modelName"] = entry.attrib["modelName"]
@@ -430,7 +429,9 @@ def get_dynawo_contingency_data(
             ns = etree.QName(root).namespace
 
             # Extract the timeline constraint data
-            get_dynawo_timeline_constraints(root, ns, dynawo_contingencies_dict[contg]["constraints"])
+            get_dynawo_timeline_constraints(
+                root, ns, dynawo_contingencies_dict[contg]["constraints"]
+            )
 
             # Get the contingency output file for the tap data
             contg_output_file = (
@@ -524,7 +525,6 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
         ][phase_tap_id]
 
         if phase_tap_id in dynawo_nocontg_tap_dict["phase_taps"]:
-
             nocontg_phase_tap = dynawo_nocontg_tap_dict["phase_taps"][phase_tap_id]
             phase_tap_diff = int(contg_phase_tap["tapPosition"]) - int(
                 nocontg_phase_tap["tapPosition"]
@@ -543,7 +543,6 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
         ][ratio_tap_id]
 
         if ratio_tap_id in dynawo_nocontg_tap_dict["ratio_taps"]:
-
             nocontg_ratio_tap = dynawo_nocontg_tap_dict["ratio_taps"][ratio_tap_id]
             ratio_tap_diff = int(contg_ratio_tap["tapPosition"]) - int(
                 nocontg_ratio_tap["tapPosition"]
