@@ -371,27 +371,39 @@ def get_dynawo_contingencies(dynawo_xml_root, ns):
 
 
 def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
-    for entry in root.iter("{%s}event" % ns):
-        # Look for the "Generator : min/max reactive power limit reached
-        if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
-            entry.attrib["message"] == "Generator : maximum reactive power limit reached"
-        ):
-            limit_constr = {}
+    # Reverse the timeline events
+    timeline = root.findall("{%s}event" % ns)
+    timeline = list(reversed(timeline))
 
-            limit_constr["modelName"] = entry.attrib["modelName"]
+    checked_models = set()
 
-            # Create the description from the timelimit message
-            if "minimum" in entry.attrib["message"]:
-                limit_constr["description"] = "min Q limit reached"
-                limit_constr["kind"] = "QInfQMin"
-            else:
-                limit_constr["description"] = "max Q limit reached"
-                limit_constr["kind"] = "QSupQMax"
+    for entry in timeline:
+        # Check if model name is in checked elements
+        if entry.attrib["modelName"] in checked_models:
+            continue
+        else:
+            checked_models.add(entry.attrib["modelName"])
 
-            limit_constr["time"] = entry.attrib["time"]
-            limit_constr["type"] = "Generator"
+            # Look for the "Generator : min/max reactive power limit reached
+            if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
+                entry.attrib["message"] == "Generator : maximum reactive power limit reached"
+            ):
+                limit_constr = {}
 
-            dwo_constraint_list.append(limit_constr)
+                limit_constr["modelName"] = entry.attrib["modelName"]
+
+                # Create the description from the timelimit message
+                if "minimum" in entry.attrib["message"]:
+                    limit_constr["description"] = "min Q limit reached"
+                    limit_constr["kind"] = "QInfQMin"
+                else:
+                    limit_constr["description"] = "max Q limit reached"
+                    limit_constr["kind"] = "QSupQMax"
+
+                limit_constr["time"] = entry.attrib["time"]
+                limit_constr["type"] = "Generator"
+
+                dwo_constraint_list.append(limit_constr)
 
 
 def get_dynawo_contingency_data(
