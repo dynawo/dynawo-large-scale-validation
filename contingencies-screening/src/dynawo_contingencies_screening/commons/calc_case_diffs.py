@@ -189,65 +189,115 @@ def compare_taps(hades_taps, dwo_taps):
 
 
 def calc_volt_constr(matched_volt_constr, unique_constr_hds, unique_constr_dwo):
-    diff_marching_volt = 0
+    diff_score_volt = 0
 
-    print("volt_constr")
+    weight_diff = 20
+
+    # TODO: Check double constraints
+    # TODO: Evaluate other options
+    print("calc_volt_constr")
     for case_diffs_list in matched_volt_constr.values():
         for case_diffs in case_diffs_list:
-            print(case_diffs)
-        print()
+            print(case_diffs[0]["typeSeuil"], case_diffs[1]["kind"])
+            if int(case_diffs[0]["typeSeuil"]) == 1 and case_diffs[1]["kind"] == "UInfUmin":
+                diff_score_volt += weight_diff * 1
+            elif int(case_diffs[0]["typeSeuil"]) == 1 and case_diffs[1]["kind"] == "USupUmax":
+                diff_score_volt += weight_diff * 5
+            elif int(case_diffs[0]["typeSeuil"]) == 0 and case_diffs[1]["kind"] == "UInfUmin":
+                diff_score_volt += weight_diff * 5
+            elif int(case_diffs[0]["typeSeuil"]) == 0 and case_diffs[1]["kind"] == "USupUmax":
+                diff_score_volt += weight_diff * 1
+            else:
+                print("Volt constraint type not matched.")
 
-    print("---")
     for case_diffs in unique_constr_hds:
-        print(case_diffs["elem_name"])
-    print()
-
-    print("---")
+        weight_diff += weight_diff * 3
     for case_diffs in unique_constr_dwo:
-        print(case_diffs["modelName"])
-    print()
+        weight_diff += weight_diff * 3
 
-    return diff_marching_volt
+    return diff_score_volt
 
 
 def calc_flow_constr(matched_flow_constr, unique_constr_hds, unique_constr_dwo):
-    diff_marching_flow = 0
+    diff_score_flow = 0
 
-    print("flow_constr")
+    weight_diff = 20
+
+    # TODO: Check double constraints
+    # TODO: Evaluate other options
+    print("calc_flow_constr")
     for case_diffs_list in matched_flow_constr.values():
         for case_diffs in case_diffs_list:
-            pass
-            print(case_diffs)
-        print()
+            print(case_diffs[1]["kind"])
+            if case_diffs[1]["kind"] == "OverloadUp":
+                if (case_diffs[0]["sideOr"] == "true" and int(case_diffs[1]["side"]) == 1) or (
+                    case_diffs[0]["sideOr"] == "false" and int(case_diffs[1]["side"]) == 2
+                ):
+                    diff_score_flow += weight_diff * 1
+                else:
+                    diff_score_flow += weight_diff * 4
+                    print("Different side", case_diffs[0]["sideOr"], case_diffs[1]["side"])
+            elif case_diffs[1]["kind"] == "OverloadOpen":
+                if (case_diffs[0]["sideOr"] == "true" and int(case_diffs[1]["side"]) == 1) or (
+                    case_diffs[0]["sideOr"] == "false" and int(case_diffs[1]["side"]) == 2
+                ):
+                    diff_score_flow += weight_diff * 3
+                else:
+                    diff_score_flow += weight_diff * 4
+                    print("Different side", case_diffs[0]["sideOr"], case_diffs[1]["side"])
+            elif case_diffs[1]["kind"] == "PATL":
+                if (case_diffs[0]["sideOr"] == "true" and int(case_diffs[1]["side"]) == 1) or (
+                    case_diffs[0]["sideOr"] == "false" and int(case_diffs[1]["side"]) == 2
+                ):
+                    diff_score_flow += weight_diff * 3
+                else:
+                    diff_score_flow += weight_diff * 4
+                    print("Different side", case_diffs[0]["sideOr"], case_diffs[1]["side"])
+            else:
+                print("flow constraint type not matched.")
 
-    print("---")
     for case_diffs in unique_constr_hds:
-        print(case_diffs)
-    print()
-
-    print("---")
+        weight_diff += weight_diff * 3
     for case_diffs in unique_constr_dwo:
-        print(case_diffs)
-    print()
+        weight_diff += weight_diff * 3
 
-    print()
-    print()
-    print()
-    print()
-
-    return diff_marching_flow
+    return diff_score_flow
 
 
 def calc_gen_Q_constr(matched_gen_Q_constr, unique_constr_hds, unique_constr_dwo):
-    diff_marching_gen_Q = 0
-    # TODO: Implement it
-    return diff_marching_gen_Q
+    diff_score_gen_Q = 0
+
+    weight_diff = 20
+
+    # TODO: Check double constraints
+    # TODO: Evaluate other options
+    print("calc_gen_Q_constr")
+    for case_diffs_list in matched_gen_Q_constr.values():
+        for case_diffs in case_diffs_list:
+            print(case_diffs[0]["typeLim"], case_diffs[1]["kind"])
+            if int(case_diffs[0]["typeLim"]) == 1 and case_diffs[1]["kind"] == "QInfQMin":
+                diff_score_gen_Q += weight_diff * 1
+            elif int(case_diffs[0]["typeLim"]) == 1 and case_diffs[1]["kind"] == "QSupQMax":
+                diff_score_gen_Q += weight_diff * 5
+            elif int(case_diffs[0]["typeLim"]) == 0 and case_diffs[1]["kind"] == "QInfQMin":
+                diff_score_gen_Q += weight_diff * 5
+            elif int(case_diffs[0]["typeLim"]) == 0 and case_diffs[1]["kind"] == "QSupQMax":
+                diff_score_gen_Q += weight_diff * 1
+            else:
+                print("gen_Q constraint type not matched.")
+
+    for case_diffs in unique_constr_hds:
+        weight_diff += weight_diff * 3
+    for case_diffs in unique_constr_dwo:
+        weight_diff += weight_diff * 3
+
+    return diff_score_gen_Q
 
 
 def calc_gen_U_constr(matched_gen_U_constr, unique_constr_hds, unique_constr_dwo):
-    diff_marching_gen_U = 0
+    diff_score_gen_U = 0
     # TODO: Implement it
-    return diff_marching_gen_U
+    return diff_score_gen_U
 
 
 def match_constraints(hades_constr, dwo_constraints):
@@ -299,8 +349,7 @@ def compare_constraints(
             or constraint["kind"] == "OverloadUp"
         ):
             dwo_flow_constraints.append(constraint)
-        # TODO: Change this condition
-        elif constraint["kind"] == "Pending":
+        elif constraint["kind"] == "QInfQMin" or constraint["kind"] == "QSupQMax":
             dwo_gen_Q_constraints.append(constraint)
         # TODO: Change this condition
         elif constraint["kind"] == "Pending":
@@ -327,20 +376,20 @@ def compare_constraints(
         hades_constr_gen_U, dwo_gen_U_constraints, matched_gen_U_constr
     )
 
-    diff_marching_volt = calc_volt_constr(
+    diff_score_volt = calc_volt_constr(
         matched_volt_constr, unique_constr_volt_hds, unique_constr_volt_dwo
     )
-    diff_marching_flow = calc_flow_constr(
+    diff_score_flow = calc_flow_constr(
         matched_flow_constr, unique_constr_flow_hds, unique_constr_flow_dwo
     )
-    diff_marching_gen_Q = calc_gen_Q_constr(
+    diff_score_gen_Q = calc_gen_Q_constr(
         matched_gen_Q_constr, unique_constr_gen_Q_hds, unique_constr_gen_Q_dwo
     )
-    diff_marching_gen_U = calc_gen_U_constr(
+    diff_score_gen_U = calc_gen_U_constr(
         matched_gen_U_constr, unique_constr_gen_U_hds, unique_constr_gen_U_dwo
     )
-
-    return diff_marching_volt + diff_marching_flow + diff_marching_gen_Q + diff_marching_gen_U
+    print(diff_score_volt + diff_score_flow + diff_score_gen_Q + diff_score_gen_U)
+    return diff_score_volt + diff_score_flow + diff_score_gen_Q + diff_score_gen_U
 
 
 def calculate_diffs_hades_dynawo(hades_info, dwo_info):

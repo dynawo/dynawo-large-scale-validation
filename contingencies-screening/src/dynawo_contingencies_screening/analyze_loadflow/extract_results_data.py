@@ -405,6 +405,8 @@ def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
 
                 dwo_constraint_list.append(limit_constr)
 
+    return dwo_constraint_list
+
 
 def get_dynawo_contingency_data(
     dynawo_contingencies_dict, dynawo_nocontg_tap_dict, dynawo_output_folder
@@ -441,7 +443,7 @@ def get_dynawo_contingency_data(
             ns = etree.QName(root).namespace
 
             # Extract the timeline constraint data
-            get_dynawo_timeline_constraints(
+            dynawo_contingencies_dict[contg]["constraints"] = get_dynawo_timeline_constraints(
                 root, ns, dynawo_contingencies_dict[contg]["constraints"]
             )
 
