@@ -152,7 +152,6 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
 
 
 def get_line_flows(root, ns, contingencies_dict):
-
     invert_dict = {}
 
     for contg in contingencies_dict.keys():
@@ -165,7 +164,6 @@ def get_line_flows(root, ns, contingencies_dict):
     line_flows_dict = {key: [] for key in contingencies_dict.keys()}
 
     for entry in root.iter("{%s}resChargeMax" % ns):
-
         line_flows_dict[invert_dict[int(entry.attrib["quadripole"])]].append(
             [int(entry.attrib["numOuvrSurv"]), float(entry.attrib["chargeMax"])]
         )
@@ -372,6 +370,42 @@ def get_dynawo_contingencies(dynawo_xml_root, ns):
     return contingencies_dict
 
 
+def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
+    # Reverse the timeline events
+    timeline = root.findall("{%s}event" % ns)
+    timeline = list(reversed(timeline))
+
+    checked_models = set()
+
+    for entry in timeline:
+        # Check if model name is in checked elements
+        if entry.attrib["modelName"] in checked_models:
+            continue
+        else:
+            checked_models.add(entry.attrib["modelName"])
+
+            # Look for the "Generator : min/max reactive power limit reached
+            if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
+                entry.attrib["message"] == "Generator : maximum reactive power limit reached"
+            ):
+                limit_constr = {}
+
+                limit_constr["modelName"] = entry.attrib["modelName"]
+
+                # Create the description from the timelimit message
+                if "minimum" in entry.attrib["message"]:
+                    limit_constr["description"] = "min Q limit reached"
+                    limit_constr["kind"] = "QInfQMin"
+                else:
+                    limit_constr["description"] = "max Q limit reached"
+                    limit_constr["kind"] = "QSupQMax"
+
+                limit_constr["time"] = entry.attrib["time"]
+                limit_constr["type"] = "Generator"
+
+                dwo_constraint_list.append(limit_constr)
+
+
 def get_dynawo_contingency_data(
     dynawo_contingencies_dict, dynawo_nocontg_tap_dict, dynawo_output_folder
 ):
@@ -394,6 +428,22 @@ def get_dynawo_contingency_data(
             for entry in root.iter("{%s}constraint" % ns):
                 # Add the constraint data to main dictionary
                 dynawo_contingencies_dict[contg]["constraints"].append(entry.attrib)
+
+            # Get the contingency timeline file path
+            timeline_file_name = "timeline_" + contg + ".xml"
+            timeline_file = dynawo_output_folder / "timeLine" / timeline_file_name
+
+            # Parse the timeline file
+            parsed_timeline_file = manage_files.parse_xml_file(timeline_file)
+
+            # Get the root and the namespacing of the file
+            root = parsed_timeline_file.getroot()
+            ns = etree.QName(root).namespace
+
+            # Extract the timeline constraint data
+            get_dynawo_timeline_constraints(
+                root, ns, dynawo_contingencies_dict[contg]["constraints"]
+            )
 
             # Get the contingency output file for the tap data
             contg_output_file = (
@@ -487,7 +537,6 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
         ][phase_tap_id]
 
         if phase_tap_id in dynawo_nocontg_tap_dict["phase_taps"]:
-
             nocontg_phase_tap = dynawo_nocontg_tap_dict["phase_taps"][phase_tap_id]
             phase_tap_diff = int(contg_phase_tap["tapPosition"]) - int(
                 nocontg_phase_tap["tapPosition"]
@@ -506,7 +555,6 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
         ][ratio_tap_id]
 
         if ratio_tap_id in dynawo_nocontg_tap_dict["ratio_taps"]:
-
             nocontg_ratio_tap = dynawo_nocontg_tap_dict["ratio_taps"][ratio_tap_id]
             ratio_tap_diff = int(contg_ratio_tap["tapPosition"]) - int(
                 nocontg_ratio_tap["tapPosition"]
