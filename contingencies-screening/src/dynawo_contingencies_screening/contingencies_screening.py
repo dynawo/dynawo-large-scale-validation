@@ -447,7 +447,9 @@ def calculate_case_differences(
         else:
             print("WARNING: Case " + case["id"] + " not executed by Dynaflow.")
 
-    return pd.DataFrame.from_dict(dict_diffs, orient="index", columns=["STATUS", "DIFF_SCORE"])
+    return pd.DataFrame.from_dict(
+        dict_diffs, orient="index", columns=["NAME", "STATUS", "DIFF_SCORE"]
+    )
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list):
@@ -647,6 +649,7 @@ def run_contingencies_screening():
             sorted_loadflow_score_list, dynawo_contingency_data, matching_contng_dict
         )
 
+        df_diffs = df_diffs.sort_values("DIFF_SCORE", ascending=False)
         df_diffs.to_csv(output_dir_path / "hds_dwo_diffs.csv", index=False, sep=";")
 
     # If selected, replay the worst contingencies with Hades one by one

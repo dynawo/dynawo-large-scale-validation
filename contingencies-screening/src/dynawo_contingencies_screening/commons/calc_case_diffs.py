@@ -109,7 +109,6 @@ def compare_taps(hades_taps, dwo_taps):
         set_ratio_taps,
     )
 
-    print("matching_keys - matching_keys - matching_keys - matching_keys - matching_keys")
     for matching_key in matching_keys:
         if matching_key in dwo_taps["phase_taps"]:
             dwo_diff = dwo_taps["phase_taps"][matching_key]
@@ -133,12 +132,6 @@ def compare_taps(hades_taps, dwo_taps):
         # TODO: get block and lim dwo
         final_tap_score += get_tap_score_diff(hds_diff, dwo_diff, lim_hds, False, block_hds, False)
 
-        print(matching_key)
-        print(hds_diff, dwo_diff)
-
-    print(
-        "keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching - keys_hades_not_matching"
-    )
     for hades_key in keys_hades_not_matching:
         hds_tap = {}
         for hds_tap_ent in hades_taps:
@@ -156,34 +149,17 @@ def compare_taps(hades_taps, dwo_taps):
 
         final_tap_score += get_tap_score_diff(hds_diff, 0, lim_hds, False, block_hds, False)
 
-        print(hades_key)
-        print(hds_diff, 0)
-
-    print(
-        "keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching - keys_phase_not_matching"
-    )
     for dwo_key in keys_phase_not_matching:
         dwo_diff = dwo_taps["phase_taps"][dwo_key]
 
         # TODO: get block and lim dwo
         final_tap_score += get_tap_score_diff(0, dwo_diff, False, False, False, False)
-        print(dwo_key)
-        print(0, dwo_diff)
 
-    print(
-        "keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching - keys_ratio_not_matching"
-    )
     for dwo_key in keys_ratio_not_matching:
         dwo_diff = dwo_taps["ratio_taps"][dwo_key]
 
         # TODO: get block and lim dwo
         final_tap_score += get_tap_score_diff(0, dwo_diff, False, False, False, False)
-
-        print(dwo_key)
-        print(0, dwo_diff)
-
-    print(final_tap_score)
-    print()
 
     return final_tap_score
 
@@ -195,17 +171,19 @@ def calc_volt_constr(matched_volt_constr, unique_constr_hds, unique_constr_dwo):
 
     # TODO: Check double constraints
     # TODO: Evaluate other options
+    # TODO. Remove prints
     print("calc_volt_constr")
+    print(len(matched_volt_constr), len(unique_constr_hds), len(unique_constr_dwo))
     for case_diffs_list in matched_volt_constr.values():
         for case_diffs in case_diffs_list:
-            print(case_diffs[0]["typeSeuil"], case_diffs[1]["kind"])
-            if int(case_diffs[0]["typeSeuil"]) == 1 and case_diffs[1]["kind"] == "UInfUmin":
+            print(case_diffs[0]["threshType"], case_diffs[1]["kind"])
+            if int(case_diffs[0]["threshType"]) == 1 and case_diffs[1]["kind"] == "UInfUmin":
                 diff_score_volt += weight_diff * 1
-            elif int(case_diffs[0]["typeSeuil"]) == 1 and case_diffs[1]["kind"] == "USupUmax":
+            elif int(case_diffs[0]["threshType"]) == 1 and case_diffs[1]["kind"] == "USupUmax":
                 diff_score_volt += weight_diff * 5
-            elif int(case_diffs[0]["typeSeuil"]) == 0 and case_diffs[1]["kind"] == "UInfUmin":
+            elif int(case_diffs[0]["threshType"]) == 0 and case_diffs[1]["kind"] == "UInfUmin":
                 diff_score_volt += weight_diff * 5
-            elif int(case_diffs[0]["typeSeuil"]) == 0 and case_diffs[1]["kind"] == "USupUmax":
+            elif int(case_diffs[0]["threshType"]) == 0 and case_diffs[1]["kind"] == "USupUmax":
                 diff_score_volt += weight_diff * 1
             else:
                 print("Volt constraint type not matched.")
@@ -225,7 +203,9 @@ def calc_flow_constr(matched_flow_constr, unique_constr_hds, unique_constr_dwo):
 
     # TODO: Check double constraints
     # TODO: Evaluate other options
+    # TODO. Remove prints
     print("calc_flow_constr")
+    print(len(matched_flow_constr), len(unique_constr_hds), len(unique_constr_dwo))
     for case_diffs_list in matched_flow_constr.values():
         for case_diffs in case_diffs_list:
             print(case_diffs[1]["kind"])
@@ -271,10 +251,8 @@ def calc_gen_Q_constr(matched_gen_Q_constr, unique_constr_hds, unique_constr_dwo
 
     # TODO: Check double constraints
     # TODO: Evaluate other options
-    print("calc_gen_Q_constr")
     for case_diffs_list in matched_gen_Q_constr.values():
         for case_diffs in case_diffs_list:
-            print(case_diffs[0]["typeLim"], case_diffs[1]["kind"])
             if int(case_diffs[0]["typeLim"]) == 1 and case_diffs[1]["kind"] == "QInfQMin":
                 diff_score_gen_Q += weight_diff * 1
             elif int(case_diffs[0]["typeLim"]) == 1 and case_diffs[1]["kind"] == "QSupQMax":
@@ -388,7 +366,7 @@ def compare_constraints(
     diff_score_gen_U = calc_gen_U_constr(
         matched_gen_U_constr, unique_constr_gen_U_hds, unique_constr_gen_U_dwo
     )
-    print(diff_score_volt + diff_score_flow + diff_score_gen_Q + diff_score_gen_U)
+
     return diff_score_volt + diff_score_flow + diff_score_gen_Q + diff_score_gen_U
 
 
@@ -423,4 +401,4 @@ def calculate_diffs_hades_dynawo(hades_info, dwo_info):
 
         dict_diffs["diff_value"] = abs(taps_diff) + abs(constraints_diffs)
 
-    return [dict_diffs["conv_status"], dict_diffs["diff_value"]]
+    return [hades_info[1]["name"], dict_diffs["conv_status"], dict_diffs["diff_value"]]
