@@ -232,7 +232,7 @@ def create_contingencies_ranking_code(
 
             # Used to temporarily store dataframes, in order to use them for ML
             # df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
-            #     hades_contingencies_dict, hades_elements_dict, True, True
+            #     hades_contingencies_dict, hades_elements_dict, True, tap_changers, True
             # )
 
             # if (Path(os.getcwd()) / "disc_df.csv").is_file():
@@ -246,15 +246,19 @@ def create_contingencies_ranking_code(
             )
 
             # Used to temporarily store dataframes, in order to use them for ML
-            # df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
-            #     hades_contingencies_dict, hades_elements_dict, False, True
-            # )
+            df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
+                hades_contingencies_dict,
+                hades_elements_dict,
+                False,
+                tap_changers,
+                True,
+            )
 
-            # if (Path(os.getcwd()) / "cont_df.csv").is_file():
-            #     df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
-            #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
+            if (Path(os.getcwd()) / "cont_df.csv").is_file():
+                df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
+                df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
 
-            # df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
+            df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
         case 3:
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
                 hades_contingencies_dict, hades_elements_dict, True, tap_changers

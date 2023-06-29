@@ -91,7 +91,7 @@ simulation. The dictionary has the following entries:
   * *type*
 * **coef_report**: List of dictionaries containing the data regarding the reports from the contingency
 simulation.
-* **res_node**: List of dictionaries containing the number of the affected quadripoles.
+* **res_node**: List of dictionaries containing the number of blocked nodes after PV-PQ cycling.
 * **tap_changers**: List of dictionaries containing the tap changers data generated from the 
 contingency simulation. *Note: this entry will not be present in the dictionary if the 
 'tap_changers' option is not activated (see the 
