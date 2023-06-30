@@ -16,6 +16,17 @@ def analyze_loadflow_results_discrete(contingencies_dict, elements_dict):
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:
+            total_tap_value = 0
+
+            if "tap_changers" in contingencies_dict[key].keys():
+                for tap in contingencies_dict[key]["tap_changers"]:
+                    match int(tap["stopper"]):
+                        case 0:
+                            total_tap_value += abs(int(tap["diff_value"])) * w_tap
+                        case 1 | 2 | 3:
+                            total_tap_value += STD_TAP_VALUE * w_tap
+                contingencies_dict[key]["final_score"] += total_tap_value
+
             contingencies_dict[key]["final_score"] = round(
                 (
                     (
@@ -30,18 +41,10 @@ def analyze_loadflow_results_discrete(contingencies_dict, elements_dict):
                     + len(contingencies_dict[key]["constr_volt"]) * w_constr_volt
                     + len(contingencies_dict[key]["constr_flow"]) * w_constr_flow
                     + len(contingencies_dict[key]["res_node"]) * w_node
+                    + total_tap_value
                 ),
                 4,
             )
-            total_tap_value = 0
-            if "tap_changers" in contingencies_dict[key].keys():
-                for tap in contingencies_dict[key]["tap_changers"]:
-                    match int(tap["stopper"]):
-                        case 0:
-                            total_tap_value += abs(int(tap["diff_value"])) * w_tap
-                        case 1 | 2 | 3:
-                            total_tap_value += STD_TAP_VALUE * w_tap
-                contingencies_dict[key]["final_score"] += total_tap_value
         else:
             match contingencies_dict[key]["status"]:
                 case 1:
@@ -174,7 +177,6 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:
-
             diff_min_voltages = calc_diff_volt(
                 contingencies_dict[key]["min_voltages"], elements_dict["poste"]
             )
@@ -189,6 +191,15 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
             value_constr_volt = calc_constr_volt(contingencies_dict[key]["constr_volt"])
             value_constr_flow = calc_constr_flow(contingencies_dict[key]["constr_flow"])
 
+            total_tap_value = 0
+            if "tap_changers" in contingencies_dict[key].keys():
+                for tap in contingencies_dict[key]["tap_changers"]:
+                    match int(tap["stopper"]):
+                        case 0:
+                            total_tap_value += abs(tap["diff_value"]) * w_tap
+                        case 1 | 2 | 3:
+                            total_tap_value += STD_TAP_VALUE * w_tap
+
             contingencies_dict[key]["final_score"] = round(
                 (
                     (diff_min_voltages + diff_max_voltages) * w_volt
@@ -201,19 +212,10 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
                     + len(contingencies_dict[key]["res_node"]) * w_node
                     + diff_max_flows * w_flow
                     + len(contingencies_dict[key]["coef_report"]) * w_coefreport
+                    + total_tap_value
                 ),
                 4,
             )
-            total_tap_value = 0
-            if "tap_changers" in contingencies_dict[key].keys():
-                for tap in contingencies_dict[key]["tap_changers"]:
-                    match int(tap["stopper"]):
-                        case 0:
-                            total_tap_value += abs(tap["diff_value"]) * w_tap
-                        case 1 | 2 | 3:
-                            total_tap_value += STD_TAP_VALUE * w_tap
-
-                contingencies_dict[key]["final_score"] += total_tap_value
         else:
             match contingencies_dict[key]["status"]:
                 case 1:

@@ -456,47 +456,99 @@ def calculate_case_differences(
     )
 
 
-def display_results_table(output_dir, sorted_loadflow_score_list):
-    str_table = (
-        "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} "
-        "{:<14} {:<14} {:<14} {:<14}\n".format(
-            "POS",
-            "NUM",
-            "NAME",
-            "AFFECTED_ELEM",
-            "STATUS",
-            "MIN_VOLT",
-            "MAX_VOLT",
-            "N_ITER",
-            "CONSTR_GEN_Q",
-            "CONSTR_GEN_U",
-            "CONSTR_VOLT",
-            "CONSTR_FLOW",
-            "FINAL_SCORE",
-        )
-    )
-
-    i_count = 0
-    for elem_list in sorted_loadflow_score_list:
-        i_count += 1
-        str_table += (
-            "{:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} {:<14} "
-            "{:<14} {:<14} {:<14}\n".format(
-                i_count,
-                elem_list[0],
-                elem_list[1]["name"],
-                str(len(elem_list[1]["affected_elements"])),
-                str(elem_list[1]["status"]),
-                str(len(elem_list[1]["min_voltages"])),
-                str(len(elem_list[1]["max_voltages"])),
-                str(elem_list[1]["n_iter"]),
-                str(len(elem_list[1]["constr_gen_Q"])),
-                str(len(elem_list[1]["constr_gen_U"])),
-                str(len(elem_list[1]["constr_volt"])),
-                str(len(elem_list[1]["constr_flow"])),
-                elem_list[1]["final_score"],
+def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
+    if tap_changers:
+        str_table = (
+            "{:<7} {:<7} {:<14} {:<14} {:<7} {:<10} {:<10} {:<10} {:<13} "
+            "{:<13} {:<13} {:<13} {:<12} {:<10} {:<14} {:<14}\n".format(
+                "POS",
+                "NUM",
+                "NAME",
+                "AFFECTED_ELEM",
+                "STATUS",
+                "MIN_VOLT",
+                "MAX_VOLT",
+                "N_ITER",
+                "CONSTR_GEN_Q",
+                "CONSTR_GEN_U",
+                "CONSTR_VOLT",
+                "CONSTR_FLOW",
+                "COEF_REPORT",
+                "RES_NODE",
+                "TAP_CHANGERS",
+                "FINAL_SCORE",
             )
         )
+
+        i_count = 0
+        for elem_list in sorted_loadflow_score_list:
+            i_count += 1
+            str_table += (
+                "{:<7} {:<7} {:<14} {:<14} {:<7} {:<10} {:<10} {:<10} {:<13} {:<13} "
+                "{:<13} {:<13} {:<12} {:<10} {:<14} {:<14}\n".format(
+                    i_count,
+                    elem_list[0],
+                    elem_list[1]["name"],
+                    str(len(elem_list[1]["affected_elements"])),
+                    str(elem_list[1]["status"]),
+                    str(len(elem_list[1]["min_voltages"])),
+                    str(len(elem_list[1]["max_voltages"])),
+                    str(elem_list[1]["n_iter"]),
+                    str(len(elem_list[1]["constr_gen_Q"])),
+                    str(len(elem_list[1]["constr_gen_U"])),
+                    str(len(elem_list[1]["constr_volt"])),
+                    str(len(elem_list[1]["constr_flow"])),
+                    str(len(elem_list[1]["coef_report"])),
+                    str(len(elem_list[1]["res_node"])),
+                    str(len(elem_list[1]["tap_changers"])),
+                    elem_list[1]["final_score"],
+                )
+            )
+    else:
+        str_table = (
+            "{:<7} {:<7} {:<14} {:<14} {:<7} {:<10} {:<10} {:<10} {:<13} "
+            "{:<13} {:<13} {:<13} {:<12} {:<10} {:<14}\n".format(
+                "POS",
+                "NUM",
+                "NAME",
+                "AFFECTED_ELEM",
+                "STATUS",
+                "MIN_VOLT",
+                "MAX_VOLT",
+                "N_ITER",
+                "CONSTR_GEN_Q",
+                "CONSTR_GEN_U",
+                "CONSTR_VOLT",
+                "CONSTR_FLOW",
+                "COEF_REPORT",
+                "RES_NODE",
+                "FINAL_SCORE",
+            )
+        )
+
+        i_count = 0
+        for elem_list in sorted_loadflow_score_list:
+            i_count += 1
+            str_table += (
+                "{:<7} {:<7} {:<14} {:<14} {:<7} {:<10} {:<10} {:<10} {:<13} {:<13} "
+                "{:<13} {:<13} {:<12} {:<10} {:<14}\n".format(
+                    i_count,
+                    elem_list[0],
+                    elem_list[1]["name"],
+                    str(len(elem_list[1]["affected_elements"])),
+                    str(elem_list[1]["status"]),
+                    str(len(elem_list[1]["min_voltages"])),
+                    str(len(elem_list[1]["max_voltages"])),
+                    str(elem_list[1]["n_iter"]),
+                    str(len(elem_list[1]["constr_gen_Q"])),
+                    str(len(elem_list[1]["constr_gen_U"])),
+                    str(len(elem_list[1]["constr_volt"])),
+                    str(len(elem_list[1]["constr_flow"])),
+                    str(len(elem_list[1]["coef_report"])),
+                    str(len(elem_list[1]["res_node"])),
+                    elem_list[1]["final_score"],
+                )
+            )
 
     print(str_table)
 
@@ -614,7 +666,7 @@ def run_contingencies_screening():
     )
 
     # Show the ranking results
-    display_results_table(Path(args.output_dir), sorted_loadflow_score_list)
+    display_results_table(Path(args.output_dir), sorted_loadflow_score_list, args.tap_changers)
 
     # If selected, replay the worst contingencies with Dynawo systematic analysis
     if args.replay_dynawo:
