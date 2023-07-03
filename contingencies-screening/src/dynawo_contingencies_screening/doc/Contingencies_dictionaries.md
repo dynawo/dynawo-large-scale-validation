@@ -20,10 +20,12 @@ e.g.
 
 The dictionary that contains each specific contingency's resulting data has 
 the following key values:
-* **name**: Contains the name of the speciic contingency.
-* **type**: Numerical value that representsf the type of the specific contingency.
+* **name**: Contains the name of the specific contingency.
+* **type**: Numerical value that represents the type of the specific contingency.
 * **affected_elements**: List containing the numbers of the network elements affected 
 by the contingency.
+* **coefrepquad**: Numerical value representing the generator number where the contingency 
+originates from.
 * **min_voltages**: List of tuples where each entry contains firstly the number of the 
 network bus that, during the execution of this contingency, has achieved its minimum voltage 
 value from all the contingencies, and secondly said minimum voltage value.
@@ -103,6 +105,9 @@ document for further information).* The dictionary has the following entries:
   * *after_value*
   * *diff_value*
   * *stopper*
+* **final_score**: Value representing, either the contingency's final state if the calculation
+cannot converge, or a numerical value representing its severity.
+
 
 ## Dynawo continegncies dictionary
 
@@ -119,15 +124,18 @@ the following key values:
 * **status**: Final state of the contingency after its simulation with Dynawo.
 Possible values are: ['CONVERGENCE', 'DIVERGENCE'].
 * **constraints**: List of dictionaries containing the data regarding the exceeding of
-the minimum or the maximum allowed voltage value of a certain model element. The 
-element dictionary data contains the following elements:
+the minimum or the maximum allowed voltage value of a certain model element, or the minimum or 
+maximum reactive power value of a generator. 
+The element dictionary data contains the following elements:
   * *modelName*: Name of the affected element.
   * *description*: Description of the event affecting the element.
   * *time*: Simulation time when the described event occurred.
   * *type*: Type of the affected network element.
   * *kind*: Type of the event. Values can be: ['USupUmax', 'UInfUmin'].
-  * *limit*: Limit allowed value of the specific network element.
-  * *value*: Value achieved during the simulation in the network element.
+  * *limit*: Limit allowed value of the specific network element. This entry does not appear in
+  the reactive power of the generators entries.
+  * *value*: Value achieved during the simulation in the network element. This entry does not appear in
+  the reactive power of the generators entries.
 * **tap_changers**: Dictionary containing the resulting data of the tap changers that 
 have been activated during the simulation. This dictionary splits the tap changers into 
 two types:
