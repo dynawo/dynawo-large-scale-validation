@@ -156,17 +156,18 @@ def calc_constr_flow(contingency_values):
 def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
     # TODO: Explain what should be done
     # TODO: Implement it
-    w_volt = 10
-    w_iter = 10
-    w_poste = 10
-    w_constr_gen_Q = 10
-    w_constr_gen_U = 10
-    w_constr_volt = 10
-    w_constr_flow = 10
-    w_node = 10
-    w_tap = 100
-    w_flow = 10
-    w_coefreport = 10
+    w_volt_min = 0.566281091493307
+    w_volt_max = -0.06721766382154937
+    w_iter = 52.63078348800064
+    w_poste = 11.211954525873088
+    w_constr_gen_Q = 11.811702516620356
+    w_constr_gen_U = 5.542233338928781e-13
+    w_constr_volt = -2.5809773506039746
+    w_constr_flow = 17.806396803781176
+    w_node = 532.873402240127
+    w_tap = 0.6548352407617045
+    w_flow = 0.57145613867399
+    w_coefreport = 0.2005015258378391
 
     # dict_keys(['coef_report'])
 
@@ -191,7 +192,7 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
 
             contingencies_dict[key]["final_score"] = round(
                 (
-                    (diff_min_voltages + diff_max_voltages) * w_volt
+                    (diff_min_voltages * w_volt_min + diff_max_voltages * w_volt_max)
                     + contingencies_dict[key]["n_iter"] * w_iter
                     + len(contingencies_dict[key]["affected_elements"]) * w_poste
                     + value_constr_gen_Q * w_constr_gen_Q

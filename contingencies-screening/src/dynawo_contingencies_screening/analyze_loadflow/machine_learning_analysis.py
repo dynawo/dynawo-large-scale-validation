@@ -229,6 +229,12 @@ def argument_parser(command_list):
             help="enter the path to the training dataframe",
         )
 
+    if "df_target" in command_list:
+        p.add_argument(
+            "df_target",
+            help="enter the path to the training dataframe",
+        )
+
     if "model_path" in command_list:
         p.add_argument(
             "model_path",
@@ -240,13 +246,31 @@ def argument_parser(command_list):
 
 
 def train_test_loadflow_results():
-    args = argument_parser(["df_path", "model_path"])
+    pd.options.mode.chained_assignment = None  # default='warn'
+    args = argument_parser(["df_path", "df_target", "model_path"])
 
     df_path = Path(args.df_path)
+    df_target = Path(args.df_target)
     model_path = Path(args.model_path)
 
     # Analyze the loadflow results through machine learning models
-    contingencies_df = pd.read_csv(df_path, sep=";", index_col="NUM")
+    contingencies_df = pd.read_csv(df_path, sep=";")
+    target_df = pd.read_csv(df_target, sep=";")
+
+    contingencies_df = contingencies_df.drop(["NUM"], axis=1)
+    # Match target
+    target_dict = {}
+    for i in list(target_df.index):
+        if target_df.loc[i, "STATUS"] == "BOTH":
+            target_dict[target_df.loc[i, "NAME"]] = target_df.loc[i, "DIFF_SCORE"]
+
+    for i in list(contingencies_df.index):
+        if contingencies_df.loc[i, "NAME"] in target_dict:
+            contingencies_df["SCORE_TARGET"][i] = target_dict[contingencies_df.loc[i, "NAME"]]
+        else:
+            contingencies_df["SCORE_TARGET"][i] = None
+
+    contingencies_df = contingencies_df.dropna()
 
     y = contingencies_df.pop("SCORE_TARGET")
     X = contingencies_df.drop("NAME", axis=1)
@@ -282,6 +306,13 @@ def train_test_loadflow_results():
 
     model_LR = LinearRegression()
     model_LR.fit(X, y)
+
+    cols = list(X.columns)
+    coefs = list(model_LR.coef_)
+    print()
+    print("LR weights")
+    for i in range(len(cols)):
+        print(cols[i], coefs[i])
 
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
     pickle.dump(model_RF, open(model_path / "RF_model.pkl", "wb"))
