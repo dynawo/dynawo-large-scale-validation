@@ -38,6 +38,11 @@ This provides us with several options mentioned below:
           -d, --replay_dynawo   replay the worst contingencies with Dynawo
           -n N_REPLAY, --n_replay N_REPLAY
                                 define the number of worst contingencies to replay (FROM, TO, BOTH)
+          -s SCORE_TYPE, --score_type SCORE_TYPE
+                        Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning disc, 4 = machine learning cont
+          -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
+                        Path to obtain a different dynamic database when using Dynawo
+
 
 ### input_dir (required)
 
@@ -72,3 +77,12 @@ Enable the replay of the top N_REPLAY worst contingencies with Dynawo simulator.
 ### -n N_REPLAY, --n_replay N_REPLAY (default value: 25)
 
 Set the number for the top X contingencies to be replayed.
+
+### -s, --score_type
+
+Define the type of scoring used in the ranking. Possible values are: 
+[1 (discrete human made), 2 (continuous human made), 3 (machine learning discrete), 4 (machine learning continuous)]
+
+### -d, --dynamic_database
+
+Path for a custom Dynamo model database to be used in the Dynawo simulations. 
