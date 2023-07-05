@@ -267,6 +267,22 @@ def create_contingencies_ranking_code(
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
                 hades_contingencies_dict, hades_elements_dict, False, tap_changers
             )
+
+            # Used to temporarily store dataframes, in order to use them for ML
+            df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
+                hades_contingencies_dict,
+                hades_elements_dict,
+                False,
+                tap_changers,
+                True,
+            )
+
+            if (Path(os.getcwd()) / "cont_df.csv").is_file():
+                df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
+                df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
+
+            df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
+
         case _:
             exit("There is no defined score for the indicated option")
 
