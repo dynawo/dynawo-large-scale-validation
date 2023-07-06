@@ -4,7 +4,7 @@ from dynawo_contingencies_screening.prepare_basecase import create_contingencies
 
 
 def get_dynawo_branches(dynawo_iidm_root, ns):
-    dynawo_branches = []
+    dynawo_branches = {}
 
     # Get all the connected branches' name
     for dynawo_branch in dynawo_iidm_root.iter("{%s}line" % ns, "{%s}twoWindingsTransformer" % ns):
@@ -34,7 +34,7 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
         if bus_from is None or bus_to is None:  # skip branch
             continue
 
-        dynawo_branches.append(branch_name)
+        dynawo_branches[branch_name] = branch_type
 
     return dynawo_branches
 
@@ -61,7 +61,7 @@ def extract_matching_branches(hades_root, dynawo_iidm_root):
     hades_branches = get_hades_branches(hades_root)
 
     # Get the matching branches
-    matched_branches = [x for x in dynawo_branches if x in hades_branches]
+    matched_branches = dict([x for x in dynawo_branches.items() if list(x)[0] in hades_branches])
 
     return matched_branches
 

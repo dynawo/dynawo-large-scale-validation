@@ -1046,10 +1046,8 @@ def create_dynawo_SA(
     matched_loads,
     matched_shunts,
 ):
-
     # Check if a dynamic database is going to be used and create the needed JSON files
     if dynamic_database is not None:
-
         setting_xml = list(dynamic_database.glob("*setting*.xml"))[0]
         assembling_xml = list(dynamic_database.glob("*assembling*.xml"))[0]
 
@@ -1084,27 +1082,30 @@ def create_dynawo_SA(
 
     # Replay the contingencies
     for replay_cont in replay_contgs:
-
         match dict_types_cont[replay_cont]:
             case 1:
-                type_cont = "LINE"
-                if replay_cont not in matched_branches:
-                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                if replay_cont not in matched_branches.keys():
+                    print("Contingency " + replay_cont + " not matched in Dynawo.")
                     continue
+                else:
+                    if matched_branches[replay_cont] == "Line":
+                        type_cont = "LINE"
+                    elif matched_branches[replay_cont] in ["Transformer", "PhaseShitfer"]:
+                        type_cont = "TWOWINDINGSTRANSFORMER"
             case 2:
                 type_cont = "GENERATOR"
                 if replay_cont not in matched_generators:
-                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    print("Contingency " + replay_cont + " not matched in Dynawo.")
                     continue
             case 3:
                 type_cont = "LOAD"
                 if replay_cont not in matched_loads:
-                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    print("Contingency " + replay_cont + " not matched in Dynawo.")
                     continue
             case 4:
                 type_cont = "SHUNT_COMPENSATOR"
                 if replay_cont not in matched_shunts:
-                    print("Contingency " + replay_cont + "not matched in Dynawo.")
+                    print("Contingency " + replay_cont + " not matched in Dynawo.")
                     continue
             case _:
                 continue
