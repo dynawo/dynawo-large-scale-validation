@@ -16,7 +16,7 @@ def get_elements_dict(parsed_hades_input_file):
         poste_dict[int(poste.attrib["num"])] = {
             "nom": poste.attrib["nom"],
             "unom": poste.attrib["unom"],
-            "nivTension": poste.attrib["nivTension"],
+            "nivTension": int(poste.attrib["nivTension"]),
         }
 
     noeud_dict = {}
@@ -26,6 +26,9 @@ def get_elements_dict(parsed_hades_input_file):
             "poste": noeud.attrib["poste"],
             "vmax": noeud.attrib["vmax"],
             "vmin": noeud.attrib["vmin"],
+            "nivTension": poste_dict[int(noeud.attrib["poste"])]["nivTension"]
+            if int(noeud.attrib["poste"]) in poste_dict
+            else None,
         }
 
     groupe_dict = {}
@@ -36,6 +39,9 @@ def get_elements_dict(parsed_hades_input_file):
             "noeud": groupe.attrib["noeud"],
             "pmax": groupe.attrib["pmax"],
             "pmin": groupe.attrib["pmin"],
+            "nivTension": poste_dict[int(groupe.attrib["poste"])]["nivTension"]
+            if int(groupe.attrib["poste"]) in poste_dict
+            else None,
         }
 
     conso_dict = {}
@@ -44,6 +50,9 @@ def get_elements_dict(parsed_hades_input_file):
             "nom": conso.attrib["nom"],
             "poste": conso.attrib["poste"],
             "noeud": conso.attrib["noeud"],
+            "nivTension": poste_dict[int(conso.attrib["poste"])]["nivTension"]
+            if int(conso.attrib["poste"]) in poste_dict
+            else None,
         }
 
     shunt_dict = {}
@@ -52,6 +61,9 @@ def get_elements_dict(parsed_hades_input_file):
             "nom": shunt.attrib["nom"],
             "poste": shunt.attrib["poste"],
             "noeud": shunt.attrib["noeud"],
+            "nivTension": poste_dict[int(shunt.attrib["poste"])]["nivTension"]
+            if int(shunt.attrib["poste"]) in poste_dict
+            else None,
         }
 
     quadripole_dict = {}
@@ -66,6 +78,9 @@ def get_elements_dict(parsed_hades_input_file):
             "postex": quadripole.attrib["postex"],
             "resistance": quadripole.attrib["resistance"],
             "reactance": quadripole.attrib["reactance"],
+            "nivTension": poste_dict[int(quadripole.attrib["postor"])]["nivTension"]
+            if int(quadripole.attrib["postor"]) in poste_dict
+            else None,
         }
 
     elements_dict["poste"] = poste_dict
