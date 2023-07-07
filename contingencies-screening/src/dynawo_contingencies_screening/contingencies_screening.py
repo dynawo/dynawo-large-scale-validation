@@ -230,16 +230,6 @@ def create_contingencies_ranking_code(
                 hades_contingencies_dict, hades_elements_dict
             )
 
-            # Used to temporarily store dataframes, in order to use them for ML
-            # df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
-            #     hades_contingencies_dict, hades_elements_dict, True, tap_changers, True
-            # )
-
-            # if (Path(os.getcwd()) / "disc_df.csv").is_file():
-            #     df_ant = pd.read_csv(Path(os.getcwd()) / "disc_df.csv", sep=";", index_col="NUM")
-            #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
-
-            # df_temp.to_csv(Path(os.getcwd()) / "disc_df.csv", sep=";")
         case 2:
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
                 hades_contingencies_dict, hades_elements_dict
