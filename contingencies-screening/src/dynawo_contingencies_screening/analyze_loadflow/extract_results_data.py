@@ -16,7 +16,7 @@ def get_elements_dict(parsed_hades_input_file):
         poste_dict[int(poste.attrib["num"])] = {
             "nom": poste.attrib["nom"],
             "unom": poste.attrib["unom"],
-            "nivTension": int(poste.attrib["nivTension"]),
+            "volt_level": int(poste.attrib["nivTension"]),
         }
 
     noeud_dict = {}
@@ -26,7 +26,7 @@ def get_elements_dict(parsed_hades_input_file):
             "poste": noeud.attrib["poste"],
             "vmax": noeud.attrib["vmax"],
             "vmin": noeud.attrib["vmin"],
-            "nivTension": poste_dict[int(noeud.attrib["poste"])]["nivTension"]
+            "volt_level": poste_dict[int(noeud.attrib["poste"])]["volt_level"]
             if int(noeud.attrib["poste"]) in poste_dict
             else None,
         }
@@ -39,7 +39,7 @@ def get_elements_dict(parsed_hades_input_file):
             "noeud": groupe.attrib["noeud"],
             "pmax": groupe.attrib["pmax"],
             "pmin": groupe.attrib["pmin"],
-            "nivTension": poste_dict[int(groupe.attrib["poste"])]["nivTension"]
+            "volt_level": poste_dict[int(groupe.attrib["poste"])]["volt_level"]
             if int(groupe.attrib["poste"]) in poste_dict
             else None,
         }
@@ -50,7 +50,7 @@ def get_elements_dict(parsed_hades_input_file):
             "nom": conso.attrib["nom"],
             "poste": conso.attrib["poste"],
             "noeud": conso.attrib["noeud"],
-            "nivTension": poste_dict[int(conso.attrib["poste"])]["nivTension"]
+            "volt_level": poste_dict[int(conso.attrib["poste"])]["volt_level"]
             if int(conso.attrib["poste"]) in poste_dict
             else None,
         }
@@ -61,7 +61,7 @@ def get_elements_dict(parsed_hades_input_file):
             "nom": shunt.attrib["nom"],
             "poste": shunt.attrib["poste"],
             "noeud": shunt.attrib["noeud"],
-            "nivTension": poste_dict[int(shunt.attrib["poste"])]["nivTension"]
+            "volt_level": poste_dict[int(shunt.attrib["poste"])]["volt_level"]
             if int(shunt.attrib["poste"]) in poste_dict
             else None,
         }
@@ -78,7 +78,7 @@ def get_elements_dict(parsed_hades_input_file):
             "postex": quadripole.attrib["postex"],
             "resistance": quadripole.attrib["resistance"],
             "reactance": quadripole.attrib["reactance"],
-            "nivTension": poste_dict[int(quadripole.attrib["postor"])]["nivTension"]
+            "volt_level": poste_dict[int(quadripole.attrib["postor"])]["volt_level"]
             if int(quadripole.attrib["postor"]) in poste_dict
             else None,
         }

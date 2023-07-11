@@ -88,25 +88,30 @@ def calc_diff_max_flow(list_values):
     return sum_diffs
 
 
-def calc_constr_gen_Q(contingency_values):
+def calc_constr_gen_Q(contingency_values, elem_dict):
     # TODO: Check if it is okay for JL
+
     score_constr = len(contingency_values)
     for constr in contingency_values:
-        score_constr += abs(float(constr["after"]) - float(constr["before"]))
+        score_constr += abs(float(constr["after"]) - float(constr["before"])) * (
+            1 + elem_dict[constr["elem_num"]]["volt_level"] / 10
+        )
 
     return score_constr
 
 
-def calc_constr_gen_U(contingency_values):
+def calc_constr_gen_U(contingency_values, elem_dict):
     # TODO: Check if it is okay for JL
     score_constr = len(contingency_values)
     for constr in contingency_values:
-        score_constr += abs(float(constr["after"]) - float(constr["before"]))
+        score_constr += abs(float(constr["after"]) - float(constr["before"])) * (
+            1 + elem_dict[constr["elem_num"]]["volt_level"] / 10
+        )
 
     return score_constr
 
 
-def calc_constr_volt(contingency_values):
+def calc_constr_volt(contingency_values, elem_dict):
     # TODO: Check if it is okay for JL
     final_value = 0
 
@@ -120,17 +125,17 @@ def calc_constr_volt(contingency_values):
             if value > 100:
                 value = 100
 
-            final_value += value
+            final_value += value * (1 + elem_dict[volt_constr["elem_num"]]["volt_level"] / 10)
 
     return final_value
 
 
-def calc_constr_flow(contingency_values):
+def calc_constr_flow(contingency_values, elem_dict):
     # TODO: Check if it is okay for JL
     final_value = 0
 
-    for volt_constr in contingency_values:
-        tempo = int(volt_constr["tempo"])
+    for flow_constr in contingency_values:
+        tempo = int(flow_constr["tempo"])
         if tempo == 99999 or tempo == 9999:
             final_value += 5
         else:
@@ -139,7 +144,7 @@ def calc_constr_flow(contingency_values):
             if value > 100:
                 value = 100
 
-            final_value += value
+            final_value += value * (1 + elem_dict[flow_constr["elem_num"]]["volt_level"] / 10)
 
     """
     final_value = 0
@@ -159,22 +164,26 @@ def calc_constr_flow(contingency_values):
 def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
     # TODO: Explain what should be done
     # TODO: Implement it
-    w_volt_min = 0.566281091493307
-    w_volt_max = -0.06721766382154937
-    w_iter = 52.63078348800064
-    w_poste = 11.211954525873088
-    w_constr_gen_Q = 11.811702516620356
-    w_constr_gen_U = 5.542233338928781e-13
-    w_constr_volt = -2.5809773506039746
-    w_constr_flow = 17.806396803781176
-    w_node = 532.873402240127
-    w_tap = 0.6548352407617045
-    w_flow = 0.57145613867399
-    w_coefreport = 0.2005015258378391
+
+    w_volt_min = 0.48453439427510003
+    w_volt_max = -0.054528360371039364
+    w_iter = 58.49003508266973
+    w_poste = 11.40520295890738
+    w_constr_gen_Q = 6.5659622388617755
+    w_constr_gen_U = 6.963318810448982e-13
+    w_constr_volt = -2.2173873238553075
+    w_constr_flow = 17.40705542826712
+    w_node = 554.1470097201553
+    w_tap = 1.1482761323898152
+    w_flow = 0.6367911705557392
+    w_coefreport = 0.2262723051576275
+    independent_term = 3919.8977272417924
 
     # dict_keys(['coef_report'])
 
     # TODO: Investigate if the 'calc_duration' can be interesting
+
+    # TODO: Finished here, it remains to apply the new value of voltage level from the dictionary of elements dict to the calculations of the constraints
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:
@@ -187,10 +196,18 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
 
             diff_max_flows = calc_diff_max_flow(contingencies_dict[key]["max_flow"])
 
-            value_constr_gen_Q = calc_constr_gen_Q(contingencies_dict[key]["constr_gen_Q"])
-            value_constr_gen_U = calc_constr_gen_U(contingencies_dict[key]["constr_gen_U"])
-            value_constr_volt = calc_constr_volt(contingencies_dict[key]["constr_volt"])
-            value_constr_flow = calc_constr_flow(contingencies_dict[key]["constr_flow"])
+            value_constr_gen_Q = calc_constr_gen_Q(
+                contingencies_dict[key]["constr_gen_Q"], elements_dict["groupe"]
+            )
+            value_constr_gen_U = calc_constr_gen_U(
+                contingencies_dict[key]["constr_gen_U"], elements_dict["groupe"]
+            )
+            value_constr_volt = calc_constr_volt(
+                contingencies_dict[key]["constr_volt"], elements_dict["noeud"]
+            )
+            value_constr_flow = calc_constr_flow(
+                contingencies_dict[key]["constr_flow"], elements_dict["quadripole"]
+            )
 
             total_tap_value = 0
             if "tap_changers" in contingencies_dict[key].keys():
@@ -214,6 +231,7 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
                     + diff_max_flows * w_flow
                     + len(contingencies_dict[key]["coef_report"]) * w_coefreport
                     + total_tap_value
+                    + independent_term
                 ),
                 4,
             )

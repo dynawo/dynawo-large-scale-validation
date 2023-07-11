@@ -109,16 +109,16 @@ def convert_dict_to_df(
                     contingencies_dict[key]["max_flow"]
                 )
                 value_constr_gen_Q = human_analysis.calc_constr_gen_Q(
-                    contingencies_dict[key]["constr_gen_Q"]
+                    contingencies_dict[key]["constr_gen_Q"], elements_dict["groupe"]
                 )
                 value_constr_gen_U = human_analysis.calc_constr_gen_U(
-                    contingencies_dict[key]["constr_gen_U"]
+                    contingencies_dict[key]["constr_gen_U"], elements_dict["groupe"]
                 )
                 value_constr_volt = human_analysis.calc_constr_volt(
-                    contingencies_dict[key]["constr_volt"]
+                    contingencies_dict[key]["constr_volt"], elements_dict["noeud"]
                 )
                 value_constr_flow = human_analysis.calc_constr_flow(
-                    contingencies_dict[key]["constr_flow"]
+                    contingencies_dict[key]["constr_flow"], elements_dict["quadripole"]
                 )
                 value_n_iter = contingencies_dict[key]["n_iter"]
                 value_affected_elem = len(contingencies_dict[key]["affected_elements"])
@@ -311,6 +311,7 @@ def train_test_loadflow_results():
     coefs = list(model_LR.coef_)
     print()
     print("LR weights")
+    print("INTERCEPTION", model_LR.intercept_)
     for i in range(len(cols)):
         print(cols[i], coefs[i])
 
