@@ -204,7 +204,7 @@ def sort_ranking(elem):
 
 
 def create_contingencies_ranking_code(
-    hades_input_file, hades_output_file, score_type, tap_changers
+    hades_input_file, hades_output_file, output_dir_path, score_type, tap_changers
 ):
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
@@ -234,21 +234,6 @@ def create_contingencies_ranking_code(
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
                 hades_contingencies_dict, hades_elements_dict
             )
-
-            # Used to temporarily store dataframes, in order to use them for ML
-            df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
-                hades_contingencies_dict,
-                hades_elements_dict,
-                False,
-                tap_changers,
-                True,
-            )
-
-            if (Path(os.getcwd()) / "cont_df.csv").is_file():
-                df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
-                df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
-
-            df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
         case 3:
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
                 hades_contingencies_dict, hades_elements_dict, True, tap_changers
@@ -257,24 +242,24 @@ def create_contingencies_ranking_code(
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
                 hades_contingencies_dict, hades_elements_dict, False, tap_changers
             )
-
-            # Used to temporarily store dataframes, in order to use them for ML
-            df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
-                hades_contingencies_dict,
-                hades_elements_dict,
-                False,
-                tap_changers,
-                True,
-            )
-
-            if (Path(os.getcwd()) / "cont_df.csv").is_file():
-                df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
-                df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
-
-            df_temp.to_csv(Path(os.getcwd()) / "cont_df.csv", sep=";")
-
         case _:
             exit("There is no defined score for the indicated option")
+
+    # Used to temporarily store dataframes, in order to use them for ML
+    df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
+        hades_contingencies_dict,
+        hades_elements_dict,
+        False,
+        tap_changers,
+        True,
+    )
+
+    # if (Path(os.getcwd()) / "cont_df.csv").is_file():
+    #     df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
+    #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
+
+    # Save the DF as a csv file
+    df_temp.to_csv(output_dir_path / "cont_df.csv", sep=";")
 
     return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True)
 
@@ -667,6 +652,7 @@ def run_contingencies_screening():
     sorted_loadflow_score_list = create_contingencies_ranking_code(
         hades_input_file,
         hades_output_file,
+        output_dir_path,
         args.score_type,
         args.tap_changers,
     )
@@ -711,8 +697,13 @@ def run_contingencies_screening():
             sorted_loadflow_score_list, dynawo_contingency_data, matching_contng_dict
         )
 
-        df_diffs = df_diffs.sort_values("DIFF_SCORE", ascending=False)
-        df_diffs.to_csv(output_dir_path / "hds_dwo_diffs.csv", index=False, sep=";")
+        # Add new df_diffs columns to main contingencies DataFrame
+        df_contg = pd.read_csv(output_dir_path / "cont_df.csv", sep=";", index_col="NUM")
+        df_contg = pd.merge(df_contg, df_diffs, how='left', on='NAME')
+
+        # Sort by DIFF_SCORE column and save to csv file
+        df_contg = df_contg.sort_values("DIFF_SCORE", ascending=False)
+        df_contg.to_csv(output_dir_path / "cont_df.csv", index=False, sep=";")
 
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
