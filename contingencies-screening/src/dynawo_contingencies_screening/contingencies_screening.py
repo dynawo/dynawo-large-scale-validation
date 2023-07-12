@@ -254,12 +254,12 @@ def create_contingencies_ranking_code(
         True,
     )
 
-    # if (Path(os.getcwd()) / "cont_df.csv").is_file():
-    #     df_ant = pd.read_csv(Path(os.getcwd()) / "cont_df.csv", sep=";", index_col="NUM")
+    # if (Path(os.getcwd()) / "contg_df.csv").is_file():
+    #     df_ant = pd.read_csv(Path(os.getcwd()) / "contg_df.csv", sep=";", index_col="NUM")
     #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
 
     # Save the DF as a csv file
-    df_temp.to_csv(output_dir_path / "cont_df.csv", sep=";")
+    df_temp.to_csv(output_dir_path / "contg_df.csv", sep=";")
 
     return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True)
 
@@ -698,12 +698,12 @@ def run_contingencies_screening():
         )
 
         # Add new df_diffs columns to main contingencies DataFrame
-        df_contg = pd.read_csv(output_dir_path / "cont_df.csv", sep=";", index_col="NUM")
-        df_contg = pd.merge(df_contg, df_diffs, how='left', on='NAME')
+        df_contg = pd.read_csv(output_dir_path / "contg_df.csv", sep=";", index_col="NUM")
+        df_contg = pd.merge(df_contg, df_diffs, how="left", on="NAME")
 
         # Sort by DIFF_SCORE column and save to csv file
         df_contg = df_contg.sort_values("DIFF_SCORE", ascending=False)
-        df_contg.to_csv(output_dir_path / "cont_df.csv", index=False, sep=";")
+        df_contg.to_csv(output_dir_path / "contg_df.csv", index=False, sep=";")
 
     # If selected, replay the worst contingencies with Hades one by one
     if args.replay_hades_obo:
