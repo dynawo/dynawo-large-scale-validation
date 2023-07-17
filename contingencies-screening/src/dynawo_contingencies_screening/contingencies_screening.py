@@ -3,6 +3,8 @@ import shutil
 import copy
 import argparse
 import pandas as pd
+import math
+import numpy as np
 from pathlib import Path
 from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
@@ -504,6 +506,18 @@ def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
     text_file.close()
 
 
+def calc_rmse(df_contg):
+    df_contg = df_contg.loc[df_contg["STATUS"] == "BOTH"]
+
+    mse = np.square(
+        np.subtract(
+            df_contg["DIFF_SCORE"].astype("float"), df_contg["PREDICTED_SCORE"].astype("float")
+        )
+    ).mean()
+    rmse = math.sqrt(mse)
+    return rmse
+
+
 # From here:
 # command line executables
 
@@ -605,6 +619,16 @@ def run_contingencies_screening():
 
         # Sort by DIFF_SCORE column and save to csv file
         df_contg = df_contg.sort_values("DIFF_SCORE", ascending=False)
+
+        rmse = calc_rmse(df_contg.head(args.n_replay))
+        print()
+        print(
+            "RMSE of the "
+            + str(args.n_replay)
+            + " most interesting contingencies (predicted vs real diff score without divergence cases):\n"
+            + str(rmse)
+        )
+
         df_contg.to_csv(output_dir_path / "contg_df.csv", index=False, sep=";")
 
     # If selected, replay the worst contingencies with Hades one by one

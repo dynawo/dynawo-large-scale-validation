@@ -11,7 +11,7 @@ from sklearn.model_selection import RepeatedKFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
 
 
-def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, score_target=False):
+def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicted_score=False):
     contingencies_df = {
         "NUM": [],
         "NAME": [],
@@ -31,8 +31,8 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, score_ta
     if tap_changers:
         contingencies_df["TAP_CHANGERS"] = []
 
-    if score_target:
-        contingencies_df["SCORE_TARGET"] = []
+    if predicted_score:
+        contingencies_df["PREDICTED_SCORE"] = []
 
     error_contg = {}
 
@@ -86,8 +86,8 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, score_ta
         contingencies_df["COEF_REPORT"].append(value_coef_report)
         if tap_changers:
             contingencies_df["TAP_CHANGERS"].append(value_tap_changer)
-        if score_target:
-            contingencies_df["SCORE_TARGET"].append(contingencies_dict[key]["final_score"])
+        if predicted_score:
+            contingencies_df["PREDICTED_SCORE"].append(contingencies_dict[key]["final_score"])
 
         if contingencies_dict[key]["status"] != 0:
             match contingencies_dict[key]["status"]:
@@ -180,32 +180,21 @@ def argument_parser(command_list):
 
 def train_test_loadflow_results():
     pd.options.mode.chained_assignment = None  # default='warn'
-    args = argument_parser(["df_path", "df_target", "model_path"])
+    args = argument_parser(["df_path", "model_path"])
 
     df_path = Path(args.df_path)
-    df_target = Path(args.df_target)
     model_path = Path(args.model_path)
 
     # Analyze the loadflow results through machine learning models
     contingencies_df = pd.read_csv(df_path, sep=";")
-    target_df = pd.read_csv(df_target, sep=";")
 
-    contingencies_df = contingencies_df.drop(["NUM"], axis=1)
-    # Match target
-    target_dict = {}
-    for i in list(target_df.index):
-        if target_df.loc[i, "STATUS"] == "BOTH":
-            target_dict[target_df.loc[i, "NAME"]] = target_df.loc[i, "DIFF_SCORE"]
-
-    for i in list(contingencies_df.index):
-        if contingencies_df.loc[i, "NAME"] in target_dict:
-            contingencies_df["SCORE_TARGET"][i] = target_dict[contingencies_df.loc[i, "NAME"]]
-        else:
-            contingencies_df["SCORE_TARGET"][i] = None
-
+    # contingencies_df = contingencies_df.drop(["NUM"], axis=1)
+    contingencies_df = contingencies_df.drop(["PREDICTED_SCORE"], axis=1)
+    contingencies_df = contingencies_df.loc[contingencies_df["STATUS"] == "BOTH"]
+    contingencies_df = contingencies_df.drop(["STATUS"], axis=1)
     contingencies_df = contingencies_df.dropna()
 
-    y = contingencies_df.pop("SCORE_TARGET")
+    y = contingencies_df.pop("DIFF_SCORE")
     X = contingencies_df.drop("NAME", axis=1)
 
     model_GBR = GradientBoostingRegressor()
