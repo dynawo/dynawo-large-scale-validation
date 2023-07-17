@@ -42,7 +42,7 @@ def argument_parser(command_list):
     if "output_dir" in command_list:
         p.add_argument(
             "output_dir",
-            help="enter the path to the folder containing the case files",
+            help="enter the path to the output folder",
         )
 
     if "hades_launcher" in command_list:
@@ -57,31 +57,6 @@ def argument_parser(command_list):
             help="define the Dynawo launcher",
         )
 
-    if "hades_input_file" in command_list:
-        p.add_argument(
-            "hades_input_file",
-            help="enter the path to the hades input file",
-        )
-
-    if "hades_output_file" in command_list:
-        p.add_argument(
-            "hades_output_file",
-            help="enter the path to the hades output file",
-        )
-
-    if "contingency_element_name" in command_list:
-        p.add_argument(
-            "contingency_element_name",
-            help="enter the name of the contingency element",
-        )
-
-    if "contingency_element_type" in command_list:
-        p.add_argument(
-            "contingency_element_type",
-            help="enter the type of the contingency element",
-            type=int,
-        )
-
     if "tap_changers" in command_list:
         p.add_argument(
             "-t",
@@ -94,7 +69,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-a",
             "--replay_hades_obo",
-            help="replay the worst contingencies with Hades one by one",
+            help="replay the most interesting contingencies with Hades one by one",
             action="store_true",
         )
 
@@ -102,23 +77,15 @@ def argument_parser(command_list):
         p.add_argument(
             "-d",
             "--replay_dynawo",
-            help="replay the worst contingencies with Dynawo",
+            help="replay the most interesting contingencies with Dynawo",
             action="store_true",
-        )
-
-    if "branch_disconnection_mode" in command_list:
-        p.add_argument(
-            "-b",
-            "--branch_disconnection_mode",
-            help="define the branch_disconnection_mode (FROM, TO, BOTH)",
-            default="BOTH",
         )
 
     if "n_replay" in command_list:
         p.add_argument(
             "-n",
             "--n_replay",
-            help="define the number of worst contingencies to replay (FROM, TO, BOTH)",
+            help="define the number of most interesting contingencies to replay",
             type=int,
             default=REPLAY_NUM,
         )
@@ -127,7 +94,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-s",
             "--score_type",
-            help="Define the type of scoring used in the ranking (1 = human made, "
+            help="define the type of scoring used in the ranking (1 = human made, "
             "2 = machine learning",
             type=int,
             default=DEFAULT_SCORE,
@@ -137,7 +104,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-b",
             "--dynamic_database",
-            help="Path to obtain a different dynamic database when using Dynawo",
+            help="path to use a standalone dynamic database when running Dynamo",
             default=None,
         )
 
