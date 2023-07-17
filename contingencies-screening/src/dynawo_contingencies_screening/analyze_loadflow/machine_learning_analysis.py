@@ -11,9 +11,7 @@ from sklearn.model_selection import RepeatedKFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
 
 
-def convert_dict_to_df(
-    contingencies_dict, elements_dict, disc_cont, tap_changers, score_target=False
-):
+def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, score_target=False):
     contingencies_df = {
         "NUM": [],
         "NAME": [],
@@ -37,141 +35,80 @@ def convert_dict_to_df(
         contingencies_df["SCORE_TARGET"] = []
 
     error_contg = {}
-    # If we want continuous data or discrete
-    if disc_cont:
-        # Discrete
-        for key in contingencies_dict.keys():
-            value_min_voltages = len(contingencies_dict[key]["min_voltages"])
-            value_max_voltages = len(contingencies_dict[key]["max_voltages"])
-            value_constr_gen_Q = len(contingencies_dict[key]["constr_gen_Q"])
-            value_constr_gen_U = len(contingencies_dict[key]["constr_gen_U"])
-            value_constr_volt = len(contingencies_dict[key]["constr_volt"])
-            value_constr_flow = len(contingencies_dict[key]["constr_flow"])
-            value_n_iter = contingencies_dict[key]["n_iter"]
-            value_affected_elem = len(contingencies_dict[key]["affected_elements"])
 
-            value_tap_changer = 0
-            if tap_changers:
-                STD_TAP_VALUE = 20
-                for tap in contingencies_dict[key]["tap_changers"]:
-                    match int(tap["stopper"]):
-                        case 0:
-                            value_tap_changer += abs(tap["diff_value"])
-                        case 1 | 2 | 3:
-                            value_tap_changer += STD_TAP_VALUE
+    for key in contingencies_dict.keys():
+        value_min_voltages = human_analysis.calc_diff_volt(
+            contingencies_dict[key]["min_voltages"], elements_dict["poste"]
+        )
+        value_max_voltages = human_analysis.calc_diff_volt(
+            contingencies_dict[key]["max_voltages"], elements_dict["poste"]
+        )
+        value_max_flows = human_analysis.calc_diff_max_flow(contingencies_dict[key]["max_flow"])
+        value_constr_gen_Q = human_analysis.calc_constr_gen_Q(
+            contingencies_dict[key]["constr_gen_Q"], elements_dict["groupe"]
+        )
+        value_constr_gen_U = human_analysis.calc_constr_gen_U(
+            contingencies_dict[key]["constr_gen_U"], elements_dict["groupe"]
+        )
+        value_constr_volt = human_analysis.calc_constr_volt(
+            contingencies_dict[key]["constr_volt"], elements_dict["noeud"]
+        )
+        value_constr_flow = human_analysis.calc_constr_flow(
+            contingencies_dict[key]["constr_flow"], elements_dict["quadripole"]
+        )
+        value_n_iter = contingencies_dict[key]["n_iter"]
+        value_affected_elem = len(contingencies_dict[key]["affected_elements"])
+        value_constr_res_node = len(contingencies_dict[key]["res_node"])
+        value_coef_report = len(contingencies_dict[key]["coef_report"])
 
-            contingencies_df["NUM"].append(key)
-            contingencies_df["NAME"].append(contingencies_dict[key]["name"])
-            contingencies_df["MIN_VOLT"].append(value_min_voltages)
-            contingencies_df["MAX_VOLT"].append(value_max_voltages)
-            contingencies_df["N_ITER"].append(value_n_iter)
-            contingencies_df["AFFECTED_ELEM"].append(value_affected_elem)
-            contingencies_df["CONSTR_GEN_Q"].append(value_constr_gen_Q)
-            contingencies_df["CONSTR_GEN_U"].append(value_constr_gen_U)
-            contingencies_df["CONSTR_VOLT"].append(value_constr_volt)
-            contingencies_df["CONSTR_FLOW"].append(value_constr_flow)
-            if tap_changers:
-                contingencies_df["TAP_CHANGERS"].append(value_tap_changer)
-            if score_target:
-                contingencies_df["SCORE_TARGET"].append(contingencies_dict[key]["final_score"])
+        value_tap_changer = 0
+        if tap_changers:
+            STD_TAP_VALUE = 20
+            for tap in contingencies_dict[key]["tap_changers"]:
+                match int(tap["stopper"]):
+                    case 0:
+                        value_tap_changer += abs(tap["diff_value"])
+                    case 1 | 2 | 3:
+                        value_tap_changer += STD_TAP_VALUE
 
-            if contingencies_dict[key]["status"] != 0:
-                match contingencies_dict[key]["status"]:
-                    case 1:
-                        error_contg[key] = "Divergence"
-                    case 2:
-                        error_contg[key] = "Generic fail"
-                    case 3:
-                        error_contg[key] = "No computation"
-                    case 4:
-                        error_contg[key] = "Interrupted"
-                    case 5:
-                        error_contg[key] = "No output"
-                    case 6:
-                        error_contg[key] = "Nonrealistic solution"
-                    case 7:
-                        error_contg[key] = "Power balance fail"
-                    case 8:
-                        error_contg[key] = "Timeout"
-                    case _:
-                        error_contg[key] = "Final state unknown"
-    else:
-        # Continuous
-        for key in contingencies_dict.keys():
-            value_min_voltages = human_analysis.calc_diff_volt(
-                contingencies_dict[key]["min_voltages"], elements_dict["poste"]
-            )
-            value_max_voltages = human_analysis.calc_diff_volt(
-                contingencies_dict[key]["max_voltages"], elements_dict["poste"]
-            )
-            value_max_flows = human_analysis.calc_diff_max_flow(
-                contingencies_dict[key]["max_flow"]
-            )
-            value_constr_gen_Q = human_analysis.calc_constr_gen_Q(
-                contingencies_dict[key]["constr_gen_Q"], elements_dict["groupe"]
-            )
-            value_constr_gen_U = human_analysis.calc_constr_gen_U(
-                contingencies_dict[key]["constr_gen_U"], elements_dict["groupe"]
-            )
-            value_constr_volt = human_analysis.calc_constr_volt(
-                contingencies_dict[key]["constr_volt"], elements_dict["noeud"]
-            )
-            value_constr_flow = human_analysis.calc_constr_flow(
-                contingencies_dict[key]["constr_flow"], elements_dict["quadripole"]
-            )
-            value_n_iter = contingencies_dict[key]["n_iter"]
-            value_affected_elem = len(contingencies_dict[key]["affected_elements"])
-            value_constr_res_node = len(contingencies_dict[key]["res_node"])
-            value_coef_report = len(contingencies_dict[key]["coef_report"])
+        contingencies_df["NUM"].append(key)
+        contingencies_df["NAME"].append(contingencies_dict[key]["name"])
+        contingencies_df["MIN_VOLT"].append(value_min_voltages)
+        contingencies_df["MAX_VOLT"].append(value_max_voltages)
+        contingencies_df["MAX_FLOW"].append(value_max_flows)
+        contingencies_df["N_ITER"].append(value_n_iter)
+        contingencies_df["AFFECTED_ELEM"].append(value_affected_elem)
+        contingencies_df["CONSTR_GEN_Q"].append(value_constr_gen_Q)
+        contingencies_df["CONSTR_GEN_U"].append(value_constr_gen_U)
+        contingencies_df["CONSTR_VOLT"].append(value_constr_volt)
+        contingencies_df["CONSTR_FLOW"].append(value_constr_flow)
+        contingencies_df["RES_NODE"].append(value_constr_res_node)
+        contingencies_df["COEF_REPORT"].append(value_coef_report)
+        if tap_changers:
+            contingencies_df["TAP_CHANGERS"].append(value_tap_changer)
+        if score_target:
+            contingencies_df["SCORE_TARGET"].append(contingencies_dict[key]["final_score"])
 
-            value_tap_changer = 0
-            if tap_changers:
-                STD_TAP_VALUE = 20
-                for tap in contingencies_dict[key]["tap_changers"]:
-                    match int(tap["stopper"]):
-                        case 0:
-                            value_tap_changer += abs(tap["diff_value"])
-                        case 1 | 2 | 3:
-                            value_tap_changer += STD_TAP_VALUE
-
-            contingencies_df["NUM"].append(key)
-            contingencies_df["NAME"].append(contingencies_dict[key]["name"])
-            contingencies_df["MIN_VOLT"].append(value_min_voltages)
-            contingencies_df["MAX_VOLT"].append(value_max_voltages)
-            contingencies_df["MAX_FLOW"].append(value_max_flows)
-            contingencies_df["N_ITER"].append(value_n_iter)
-            contingencies_df["AFFECTED_ELEM"].append(value_affected_elem)
-            contingencies_df["CONSTR_GEN_Q"].append(value_constr_gen_Q)
-            contingencies_df["CONSTR_GEN_U"].append(value_constr_gen_U)
-            contingencies_df["CONSTR_VOLT"].append(value_constr_volt)
-            contingencies_df["CONSTR_FLOW"].append(value_constr_flow)
-            contingencies_df["RES_NODE"].append(value_constr_res_node)
-            contingencies_df["COEF_REPORT"].append(value_coef_report)
-            if tap_changers:
-                contingencies_df["TAP_CHANGERS"].append(value_tap_changer)
-            if score_target:
-                contingencies_df["SCORE_TARGET"].append(contingencies_dict[key]["final_score"])
-
-            if contingencies_dict[key]["status"] != 0:
-                match contingencies_dict[key]["status"]:
-                    case 1:
-                        error_contg[key] = "Divergence"
-                    case 2:
-                        error_contg[key] = "Generic fail"
-                    case 3:
-                        error_contg[key] = "No computation"
-                    case 4:
-                        error_contg[key] = "Interrupted"
-                    case 5:
-                        error_contg[key] = "No output"
-                    case 6:
-                        error_contg[key] = "Nonrealistic solution"
-                    case 7:
-                        error_contg[key] = "Power balance fail"
-                    case 8:
-                        error_contg[key] = "Timeout"
-                    case _:
-                        error_contg[key] = "Final state unknown"
+        if contingencies_dict[key]["status"] != 0:
+            match contingencies_dict[key]["status"]:
+                case 1:
+                    error_contg[key] = "Divergence"
+                case 2:
+                    error_contg[key] = "Generic fail"
+                case 3:
+                    error_contg[key] = "No computation"
+                case 4:
+                    error_contg[key] = "Interrupted"
+                case 5:
+                    error_contg[key] = "No output"
+                case 6:
+                    error_contg[key] = "Nonrealistic solution"
+                case 7:
+                    error_contg[key] = "Power balance fail"
+                case 8:
+                    error_contg[key] = "Timeout"
+                case _:
+                    error_contg[key] = "Final state unknown"
 
     return pd.DataFrame.from_dict(contingencies_df, orient="columns").set_index("NUM"), error_contg
 
@@ -186,23 +123,19 @@ def predict_scores(contingencies_df, model_filename):
     return contg_scores
 
 
-def analyze_loadflow_results(contingencies_dict, elements_dict, disc_cont, tap_changers):
+def analyze_loadflow_results(contingencies_dict, elements_dict, tap_changers):
     # Analyze the loadflow results through machine learning models
 
     contingencies_df, error_contg = convert_dict_to_df(
-        contingencies_dict, elements_dict, disc_cont, tap_changers
+        contingencies_dict, elements_dict, tap_changers
     )
 
     model_path = Path(os.path.dirname(os.path.realpath(__file__)))
 
-    if disc_cont and tap_changers:
-        model_path = model_path / "ML_disc_taps.pkl"
-    elif disc_cont and not tap_changers:
-        model_path = model_path / "ML_disc_no_taps.pkl"
-    elif not disc_cont and tap_changers:
-        model_path = model_path / "ML_cont_taps.pkl"
+    if tap_changers:
+        model_path = model_path / "ML_taps.pkl"
     else:
-        model_path = model_path / "ML_cont_no_taps.pkl"
+        model_path = model_path / "ML_no_taps.pkl"
 
     contg_scores = predict_scores(
         contingencies_df,

@@ -375,10 +375,6 @@ def calculate_diffs_hades_dynawo(hades_info, dwo_info):
             dwo_info["constraints"],
         )
 
-        print(hades_info[1]["name"])
-        print(abs(taps_diff))
-        print(abs(constraints_diffs))
-        print()
         dict_diffs["diff_value"] = abs(taps_diff) + abs(constraints_diffs)
 
     return [hades_info[1]["name"], dict_diffs["conv_status"], dict_diffs["diff_value"]]

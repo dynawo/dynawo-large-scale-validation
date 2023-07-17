@@ -127,9 +127,8 @@ def argument_parser(command_list):
         p.add_argument(
             "-s",
             "--score_type",
-            help="Define the type of scoring used in the ranking (1 = discrete human made, "
-            "2 = continuous human made, 3 = machine learning disc, "
-            "4 = machine learning cont",
+            help="Define the type of scoring used in the ranking (1 = human made, "
+            "2 = machine learning",
             type=int,
             default=DEFAULT_SCORE,
         )
@@ -226,21 +225,12 @@ def create_contingencies_ranking_code(
     # Analyze Hades results
     match score_type:
         case 1:
-            hades_contingencies_dict = human_analysis.analyze_loadflow_results_discrete(
-                hades_contingencies_dict, hades_elements_dict
-            )
-
-        case 2:
             hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
                 hades_contingencies_dict, hades_elements_dict
             )
-        case 3:
+        case 2:
             hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-                hades_contingencies_dict, hades_elements_dict, True, tap_changers
-            )
-        case 4:
-            hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-                hades_contingencies_dict, hades_elements_dict, False, tap_changers
+                hades_contingencies_dict, hades_elements_dict, tap_changers
             )
         case _:
             exit("There is no defined score for the indicated option")
@@ -249,7 +239,6 @@ def create_contingencies_ranking_code(
     df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
         hades_contingencies_dict,
         hades_elements_dict,
-        False,
         tap_changers,
         True,
     )
@@ -555,60 +544,6 @@ def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
 def check_basecase_dir(input_dir):
     # Run the BASECASE directory check
     prepare_basecase.check_basecase_dir(Path(input_dir).absolute())
-
-
-def run_hades_contingencies():
-    # Run a hades contingency through the tool
-
-    args = argument_parser(["input_dir", "output_dir", "hades_launcher", "tap_changers"])
-
-    dir_exists(Path(args.input_dir).absolute(), Path(args.output_dir).absolute())
-
-    hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
-
-    hades_input_file, hades_output_file = run_hades_contingencies_code(
-        Path(args.input_dir).absolute() / HADES_FOLDER,
-        Path(args.output_dir).absolute() / HADES_FOLDER,
-        hades_launcher_solved,
-        args.tap_changers,
-    )
-
-    print(
-        "Hades "
-        + str(hades_input_file)
-        + " file executed. Results file in: "
-        + str(hades_output_file)
-    )
-
-
-def create_contingencies_ranking():
-    # Create a ranking with a contingency already executed
-
-    args = argument_parser(["hades_input_file", "hades_output_file", "score_type", "tap_changers"])
-
-    sorted_loadflow_score_dict = create_contingencies_ranking_code(
-        Path(args.hades_input_file).absolute(),
-        Path(args.hades_output_file).absolute(),
-        args.score_type,
-        args.tap_changers,
-    )
-
-    print("Results ranking:")
-    print(sorted_loadflow_score_dict)
-
-
-def run_dynawo_contingencies():
-    # Run a dynawo contingency through the tool
-
-    args = argument_parser(["input_dir", "output_dir", "dynawo_launcher"])
-
-    dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
-
-    run_dynawo_contingencies_code(
-        Path(args.input_dir).absolute() / DYNAWO_FOLDER,
-        Path(args.output_dir).absolute() / DYNAWO_FOLDER,
-        dynawo_launcher_solved,
-    )
 
 
 def run_contingencies_screening():
