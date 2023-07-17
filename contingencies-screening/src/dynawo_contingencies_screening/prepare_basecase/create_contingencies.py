@@ -1091,7 +1091,7 @@ def create_dynawo_SA(
                     if matched_branches[replay_cont] == "Line":
                         type_cont = "LINE"
                     elif matched_branches[replay_cont] in ["Transformer", "PhaseShitfer"]:
-                        type_cont = "TWOWINDINGSTRANSFORMER"
+                        type_cont = "TWO_WINDINGS_TRANSFORMER"
             case 2:
                 type_cont = "GENERATOR"
                 if replay_cont not in matched_generators:
