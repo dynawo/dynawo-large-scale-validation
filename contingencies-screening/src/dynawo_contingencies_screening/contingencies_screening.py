@@ -106,7 +106,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-b",
             "--dynamic_database",
-            help="path to use a standalone dynamic database when running Dynamo",
+            help="path to use a standalone dynamic database when running Dynawo",
             default=None,
         )
 
