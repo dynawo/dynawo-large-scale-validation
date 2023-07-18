@@ -87,7 +87,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-n",
             "--n_replay",
-            help="define the number of most interesting contingencies to replay",
+            help="define the number of most interesting contingencies to replay (default = " + str(REPLAY_NUM) + ")",
             type=int,
             default=REPLAY_NUM,
         )
@@ -97,7 +97,7 @@ def argument_parser(command_list):
             "-s",
             "--score_type",
             help="define the type of scoring used in the ranking (1 = human made, "
-            "2 = machine learning",
+            "2 = machine learning)",
             type=int,
             default=DEFAULT_SCORE,
         )
