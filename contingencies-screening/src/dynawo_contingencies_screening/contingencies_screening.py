@@ -87,7 +87,9 @@ def argument_parser(command_list):
         p.add_argument(
             "-n",
             "--n_replay",
-            help="define the number of most interesting contingencies to replay (default = " + str(REPLAY_NUM) + ")",
+            help="define the number of most interesting contingencies to replay (default = "
+            + str(REPLAY_NUM)
+            + ")",
             type=int,
             default=REPLAY_NUM,
         )
@@ -108,6 +110,14 @@ def argument_parser(command_list):
             "--dynamic_database",
             help="path to use a standalone dynamic database when running Dynawo",
             default=None,
+        )
+
+    if "multithreading" in command_list:
+        p.add_argument(
+            "-m",
+            "--multithreading",
+            help="enable multithreading executions in Hades",
+            action="store_true",
         )
 
     args = p.parse_args()
@@ -143,7 +153,7 @@ def solve_launcher(launcher):
 
 
 def run_hades_contingencies_code(
-    hades_input_folder, hades_output_folder, hades_launcher, tap_changers
+    hades_input_folder, hades_output_folder, hades_launcher, tap_changers, multithreading
 ):
     # Find hades input file
     hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
@@ -156,7 +166,9 @@ def run_hades_contingencies_code(
 
     # Run hades file (assuming all contingencies are run through the security analysis
     # in a single run)
-    run_hades.run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers)
+    run_hades.run_hades(
+        hades_input_file, hades_output_file, hades_launcher, tap_changers, multithreading
+    )
 
     return hades_input_file, hades_output_file
 
@@ -541,6 +553,7 @@ def run_contingencies_screening():
             "n_replay",
             "score_type",
             "dynamic_database",
+            "multithreading",
         ]
     )
     input_dir_path = Path(args.input_dir).absolute()
@@ -562,6 +575,7 @@ def run_contingencies_screening():
         output_dir_path / HADES_FOLDER,
         hades_launcher_solved,
         args.tap_changers,
+        args.multithreading,
     )
 
     # Rank all contingencies based of the hades simulation results
@@ -645,4 +659,5 @@ def run_contingencies_screening():
                 replay_hades_path,
                 hades_launcher_solved,
                 args.tap_changers,
+                args.multithreading,
             )
