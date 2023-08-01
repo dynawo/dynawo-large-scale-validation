@@ -65,11 +65,10 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicte
         if tap_changers:
             STD_TAP_VALUE = 20
             for tap in contingencies_dict[key]["tap_changers"]:
-                match int(tap["stopper"]):
-                    case 0:
-                        value_tap_changer += abs(tap["diff_value"])
-                    case 1 | 2 | 3:
-                        value_tap_changer += STD_TAP_VALUE
+                if int(tap["stopper"]) == 0:
+                    value_tap_changer += abs(tap["diff_value"])
+                else:
+                    value_tap_changer += STD_TAP_VALUE
 
         contingencies_df["NUM"].append(key)
         contingencies_df["NAME"].append(contingencies_dict[key]["name"])
@@ -90,25 +89,24 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicte
             contingencies_df["PREDICTED_SCORE"].append(contingencies_dict[key]["final_score"])
 
         if contingencies_dict[key]["status"] != 0:
-            match contingencies_dict[key]["status"]:
-                case 1:
-                    error_contg[key] = "Divergence"
-                case 2:
-                    error_contg[key] = "Generic fail"
-                case 3:
-                    error_contg[key] = "No computation"
-                case 4:
-                    error_contg[key] = "Interrupted"
-                case 5:
-                    error_contg[key] = "No output"
-                case 6:
-                    error_contg[key] = "Nonrealistic solution"
-                case 7:
-                    error_contg[key] = "Power balance fail"
-                case 8:
-                    error_contg[key] = "Timeout"
-                case _:
-                    error_contg[key] = "Final state unknown"
+            if contingencies_dict[key]["status"] == 1:
+                error_contg[key] = "Divergence"
+            elif contingencies_dict[key]["status"] == 2:
+                error_contg[key] = "Generic fail"
+            elif contingencies_dict[key]["status"] == 3:
+                error_contg[key] = "No computation"
+            elif contingencies_dict[key]["status"] == 4:
+                error_contg[key] = "Interrupted"
+            elif contingencies_dict[key]["status"] == 5:
+                error_contg[key] = "No output"
+            elif contingencies_dict[key]["status"] == 6:
+                error_contg[key] = "Nonrealistic solution"
+            elif contingencies_dict[key]["status"] == 7:
+                error_contg[key] = "Power balance fail"
+            elif contingencies_dict[key]["status"] == 8:
+                error_contg[key] = "Timeout"
+            else:
+                error_contg[key] = "Final state unknown"
 
     return pd.DataFrame.from_dict(contingencies_df, orient="columns").set_index("NUM"), error_contg
 

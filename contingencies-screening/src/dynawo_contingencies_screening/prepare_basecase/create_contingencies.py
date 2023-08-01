@@ -36,16 +36,15 @@ def generate_branch_contingency(root, element_name, disconnection_mode):
         exit("Error: Branch with the provided name does not exist")
 
     # Disconnect the specified branch side or both
-    match disconnection_mode:
-        case "FROM":
-            hades_branch.set("nor", "-1")
-        case "TO":
-            hades_branch.set("nex", "-1")
-        case "BOTH":
-            hades_branch.set("nex", "-1")
-            hades_branch.set("nor", "-1")
-        case _:
-            exit("Error: Wrong disconnection mode specified")
+    if disconnection_mode == "FROM":
+        hades_branch.set("nor", "-1")
+    elif disconnection_mode == "TO":
+        hades_branch.set("nex", "-1")
+    elif disconnection_mode == "BOTH":
+        hades_branch.set("nex", "-1")
+        hades_branch.set("nor", "-1")
+    else:
+        exit("Error: Wrong disconnection mode specified")
 
 
 def generate_generator_contingency(root, element_name):
@@ -124,22 +123,21 @@ def generate_contingency(
 
     root = hades_original_file_parsed.getroot()
     # Add the contingency according to its type
-    match contingency_element_type:
+    if contingency_element_type == 1:
         # Branch contingency
-        case 1:
-            generate_branch_contingency(root, contingency_element_name, disconnection_mode)
+        generate_branch_contingency(root, contingency_element_name, disconnection_mode)
+    elif contingency_element_type == 2:
         # Generator contingency
-        case 2:
-            generate_generator_contingency(root, contingency_element_name)
+        generate_generator_contingency(root, contingency_element_name)
+    elif contingency_element_type == 3:
         # Load contingency
-        case 3:
-            generate_load_contingency(root, contingency_element_name)
+        generate_load_contingency(root, contingency_element_name)
+    elif contingency_element_type == 4:
         # Shunt contingency
-        case 4:
-            generate_shunt_contingency(root, contingency_element_name)
+        generate_shunt_contingency(root, contingency_element_name)
+    else:
         # Default case: Not a valid element type provided
-        case _:
-            exit("Error: Invalid value for the contingency element type provided")
+        exit("Error: Invalid value for the contingency element type provided")
 
     # Save the modified xml
     etree.indent(hades_original_file_parsed)
@@ -430,16 +428,15 @@ def generate_dynawo_branch_contingency(
     )
     open_F = "true"
     open_T = "true"
-    match disconnection_mode:
-        case "FROM":
-            open_T = "false"
-        case "TO":
-            open_F = "false"
-        case "BOTH":
-            open_F = "false"
-            open_T = "false"
-        case _:
-            exit("Error: Wrong disconnection mode specified")
+    if disconnection_mode == "FROM":
+        open_T = "false"
+    elif disconnection_mode == "TO":
+        open_F = "false"
+    elif disconnection_mode == "BOTH":
+        open_F = "false"
+        open_T = "false"
+    else:
+        exit("Error: Wrong disconnection mode specified")
 
     new_parset.append(
         etree.Element("{%s}par" % ns, type="BOOL", name="event_disconnectOrigin", value=open_F)
@@ -991,49 +988,52 @@ def generate_dynawo_contingency(
     dydContFile_path = PurePath(dynawo_job_file.absolute()).parent / dydFile_contg
 
     # Add the contingency according to its type
-    match contingency_element_type:
+    if contingency_element_type == 1:
         # Branch contingency
-        case 1:
-            generate_dynawo_branch_contingency(
-                dydContFile_path,
-                dynawo_output_folder,
-                crvFile_contg,
-                iidm_file,
-                contingency_element_name,
-                disconnection_mode,
-            )
+        generate_dynawo_branch_contingency(
+            dydContFile_path,
+            dynawo_output_folder,
+            crvFile_contg,
+            iidm_file,
+            contingency_element_name,
+            disconnection_mode,
+        )
+
+    elif contingency_element_type == 2:
         # Generator contingency
-        case 2:
-            generate_dynawo_generator_contingency(
-                dydContFile_path,
-                dynawo_output_folder,
-                crvFile_contg,
-                iidm_file,
-                contingency_element_name,
-                dyd_file,
-            )
+        generate_dynawo_generator_contingency(
+            dydContFile_path,
+            dynawo_output_folder,
+            crvFile_contg,
+            iidm_file,
+            contingency_element_name,
+            dyd_file,
+        )
+
+    elif contingency_element_type == 3:
         # Load contingency
-        case 3:
-            generate_dynawo_load_contingency(
-                dydContFile_path,
-                dynawo_output_folder,
-                crvFile_contg,
-                iidm_file,
-                contingency_element_name,
-                dyd_file,
-            )
+        generate_dynawo_load_contingency(
+            dydContFile_path,
+            dynawo_output_folder,
+            crvFile_contg,
+            iidm_file,
+            contingency_element_name,
+            dyd_file,
+        )
+
+    elif contingency_element_type == 4:
         # Shunt contingency
-        case 4:
-            generate_dynawo_shunt_contingency(
-                dydContFile_path,
-                dynawo_output_folder,
-                crvFile_contg,
-                iidm_file,
-                contingency_element_name,
-            )
+        generate_dynawo_shunt_contingency(
+            dydContFile_path,
+            dynawo_output_folder,
+            crvFile_contg,
+            iidm_file,
+            contingency_element_name,
+        )
+
+    else:
         # Default case: Not a valid element type provided
-        case _:
-            exit("Error: Invalid value for the contingency element type provided")
+        exit("Error: Invalid value for the contingency element type provided")
 
 
 def create_dynawo_SA(
@@ -1094,33 +1094,32 @@ def create_dynawo_SA(
 
     # Replay the contingencies
     for replay_cont in replay_contgs:
-        match dict_types_cont[replay_cont]:
-            case 1:
-                if replay_cont not in matched_branches.keys():
-                    print("Contingency " + replay_cont + " not matched in Dynawo.")
-                    continue
-                else:
-                    if matched_branches[replay_cont] == "Line":
-                        type_cont = "LINE"
-                    elif matched_branches[replay_cont] in ["Transformer", "PhaseShitfer"]:
-                        type_cont = "TWO_WINDINGS_TRANSFORMER"
-            case 2:
-                type_cont = "GENERATOR"
-                if replay_cont not in matched_generators:
-                    print("Contingency " + replay_cont + " not matched in Dynawo.")
-                    continue
-            case 3:
-                type_cont = "LOAD"
-                if replay_cont not in matched_loads:
-                    print("Contingency " + replay_cont + " not matched in Dynawo.")
-                    continue
-            case 4:
-                type_cont = "SHUNT_COMPENSATOR"
-                if replay_cont not in matched_shunts:
-                    print("Contingency " + replay_cont + " not matched in Dynawo.")
-                    continue
-            case _:
+        if dict_types_cont[replay_cont] == 1:
+            if replay_cont not in matched_branches.keys():
+                print("Contingency " + replay_cont + " not matched in Dynawo.")
                 continue
+            else:
+                if matched_branches[replay_cont] == "Line":
+                    type_cont = "LINE"
+                elif matched_branches[replay_cont] in ["Transformer", "PhaseShitfer"]:
+                    type_cont = "TWO_WINDINGS_TRANSFORMER"
+        elif dict_types_cont[replay_cont] == 2:
+            type_cont = "GENERATOR"
+            if replay_cont not in matched_generators:
+                print("Contingency " + replay_cont + " not matched in Dynawo.")
+                continue
+        elif dict_types_cont[replay_cont] == 3:
+            type_cont = "LOAD"
+            if replay_cont not in matched_loads:
+                print("Contingency " + replay_cont + " not matched in Dynawo.")
+                continue
+        elif dict_types_cont[replay_cont] == 4:
+            type_cont = "SHUNT_COMPENSATOR"
+            if replay_cont not in matched_shunts:
+                print("Contingency " + replay_cont + " not matched in Dynawo.")
+                continue
+        else:
+            continue
 
         contng_dict["contingencies"].append(
             {"id": replay_cont, "elements": [{"id": replay_cont, "type": type_cont}]}

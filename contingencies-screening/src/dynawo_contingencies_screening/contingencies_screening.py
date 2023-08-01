@@ -219,17 +219,16 @@ def create_contingencies_ranking_code(
     )
 
     # Analyze Hades results
-    match score_type:
-        case 1:
-            hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
-                hades_contingencies_dict, hades_elements_dict
-            )
-        case 2:
-            hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-                hades_contingencies_dict, hades_elements_dict, tap_changers
-            )
-        case _:
-            exit("There is no defined score for the indicated option")
+    if score_type == 1:
+        hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
+            hades_contingencies_dict, hades_elements_dict
+        )
+    elif score_type == 2:
+        hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
+            hades_contingencies_dict, hades_elements_dict, tap_changers
+        )
+    else:
+        exit("There is no defined score for the indicated option")
 
     # Used to temporarily store dataframes, in order to use them for ML
     df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(

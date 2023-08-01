@@ -144,11 +144,10 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
             total_tap_value = 0
             if "tap_changers" in contingencies_dict[key].keys():
                 for tap in contingencies_dict[key]["tap_changers"]:
-                    match int(tap["stopper"]):
-                        case 0:
-                            total_tap_value += abs(tap["diff_value"]) * w_tap
-                        case 1 | 2 | 3:
-                            total_tap_value += STD_TAP_VALUE * w_tap
+                    if int(tap["stopper"]) == 0:
+                        total_tap_value += abs(tap["diff_value"]) * w_tap
+                    else:
+                        total_tap_value += STD_TAP_VALUE * w_tap
 
             contingencies_dict[key]["final_score"] = round(
                 (
@@ -168,24 +167,23 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
                 4,
             )
         else:
-            match contingencies_dict[key]["status"]:
-                case 1:
-                    contingencies_dict[key]["final_score"] = "Divergence"
-                case 2:
-                    contingencies_dict[key]["final_score"] = "Generic fail"
-                case 3:
-                    contingencies_dict[key]["final_score"] = "No computation"
-                case 4:
-                    contingencies_dict[key]["final_score"] = "Interrupted"
-                case 5:
-                    contingencies_dict[key]["final_score"] = "No output"
-                case 6:
-                    contingencies_dict[key]["final_score"] = "Nonrealistic solution"
-                case 7:
-                    contingencies_dict[key]["final_score"] = "Power balance fail"
-                case 8:
-                    contingencies_dict[key]["final_score"] = "Timeout"
-                case _:
-                    contingencies_dict[key]["final_score"] = "Final state unknown"
+            if contingencies_dict[key]["status"] == 1:
+                contingencies_dict[key]["final_score"] = "Divergence"
+            elif contingencies_dict[key]["status"] == 2:
+                contingencies_dict[key]["final_score"] = "Generic fail"
+            elif contingencies_dict[key]["status"] == 3:
+                contingencies_dict[key]["final_score"] = "No computation"
+            elif contingencies_dict[key]["status"] == 4:
+                contingencies_dict[key]["final_score"] = "Interrupted"
+            elif contingencies_dict[key]["status"] == 5:
+                contingencies_dict[key]["final_score"] = "No output"
+            elif contingencies_dict[key]["status"] == 6:
+                contingencies_dict[key]["final_score"] = "Nonrealistic solution"
+            elif contingencies_dict[key]["status"] == 7:
+                contingencies_dict[key]["final_score"] = "Power balance fail"
+            elif contingencies_dict[key]["status"] == 8:
+                contingencies_dict[key]["final_score"] = "Timeout"
+            else:
+                contingencies_dict[key]["final_score"] = "Final state unknown"
 
     return contingencies_dict
