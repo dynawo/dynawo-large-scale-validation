@@ -190,10 +190,7 @@ def run_hades_contingencies_code(
 
 def sort_ranking(elem):
     if type(elem[1]["final_score"]) == str:
-        if elem[1]["final_score"] == "Divergence":
-            return 999999999
-        else:
-            return 0
+        return 0
     else:
         return elem[1]["final_score"]
 
