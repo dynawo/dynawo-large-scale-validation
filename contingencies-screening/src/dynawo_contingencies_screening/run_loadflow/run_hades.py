@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 from lxml import etree
@@ -31,7 +32,14 @@ def activate_tap_changers(hades_file, activate_taps, multithreading):
     )
 
 
-def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers, multithreading):
+def run_hades(
+    hades_input_file,
+    hades_output_file,
+    hades_launcher,
+    tap_changers,
+    multithreading,
+    calc_contingencies,
+):
     # Get the output folder (using hades_output_file parent folder) to be able to
     # copy the input file into the outputs folder, and with this last file (copy of
     # the input located in the output folder), run hades through Python with the
@@ -40,22 +48,28 @@ def run_hades(hades_input_file, hades_output_file, hades_launcher, tap_changers,
     # We obtain the output folder path
     # and copy the input file there
     output_folder = hades_output_file.parent
-    if output_folder != hades_input_file.parent:
-        shutil.copy(hades_input_file, output_folder)
 
-    # Activate tap changers if needed
-    activate_tap_changers(output_folder / hades_input_file.name, tap_changers, multithreading)
+    if not calc_contingencies:
+        if output_folder != hades_input_file.parent:
+            shutil.copy(hades_input_file, output_folder)
 
-    # Run the simulation on the specified hades launcher
-    subprocess.run(
-        "cd "
-        + str(output_folder)
-        + " && "
-        + str(hades_launcher)
-        + " "
-        + str(output_folder / hades_input_file.name)
-        + " "
-        + str(hades_output_file),
-        shell=True,
-        check=True,
-    )
+        # Activate tap changers if needed
+        activate_tap_changers(output_folder / hades_input_file.name, tap_changers, multithreading)
+
+        # Run the simulation on the specified hades launcher
+        subprocess.run(
+            "cd "
+            + str(output_folder)
+            + " && "
+            + str(hades_launcher)
+            + " "
+            + str(output_folder / hades_input_file.name)
+            + " "
+            + str(hades_output_file),
+            shell=True,
+            check=True,
+        )
+
+    else:
+        if output_folder != hades_input_file.parent:
+            os.system("ln -sf " + str(hades_input_file.parent) + "/* " + str(output_folder) + "/")

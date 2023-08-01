@@ -120,6 +120,14 @@ def argument_parser(command_list):
             action="store_true",
         )
 
+    if "calc_contingencies" in command_list:
+        p.add_argument(
+            "-c",
+            "--calc_contingencies",
+            help="the input files have the contingencies calculated previously",
+            action="store_true",
+        )
+
     args = p.parse_args()
     return args
 
@@ -153,7 +161,12 @@ def solve_launcher(launcher):
 
 
 def run_hades_contingencies_code(
-    hades_input_folder, hades_output_folder, hades_launcher, tap_changers, multithreading
+    hades_input_folder,
+    hades_output_folder,
+    hades_launcher,
+    tap_changers,
+    multithreading,
+    calc_contingencies,
 ):
     # Find hades input file
     hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
@@ -164,7 +177,12 @@ def run_hades_contingencies_code(
     # Run hades file (assuming all contingencies are run through the security analysis
     # in a single run)
     run_hades.run_hades(
-        hades_input_file, hades_output_file, hades_launcher, tap_changers, multithreading
+        hades_input_file,
+        hades_output_file,
+        hades_launcher,
+        tap_changers,
+        multithreading,
+        calc_contingencies,
     )
 
     return hades_input_file, hades_output_file
@@ -373,13 +391,27 @@ def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
 
 
 def run_dynawo_contingencies_SA_code(
-    input_dir, output_dir, dynawo_launcher, config_file, contng_file
+    input_dir,
+    output_dir,
+    dynawo_launcher,
+    config_file,
+    contng_file,
+    calc_contingencies,
+    matching_contng_dict,
 ):
     # Create output dir
     os.makedirs(output_dir, exist_ok=True)
 
     # Run the BASECASE with the specified Dynawo launcher
-    run_dynawo.run_dynaflow_SA(input_dir, output_dir, dynawo_launcher, config_file, contng_file)
+    run_dynawo.run_dynaflow_SA(
+        input_dir,
+        output_dir,
+        dynawo_launcher,
+        config_file,
+        contng_file,
+        calc_contingencies,
+        matching_contng_dict,
+    )
 
 
 def extract_dynawo_results(dynawo_output_folder):
@@ -553,6 +585,7 @@ def run_contingencies_screening():
             "score_type",
             "dynamic_database",
             "multithreading",
+            "calc_contingencies",
         ]
     )
     input_dir_path = Path(args.input_dir).absolute()
@@ -595,13 +628,19 @@ def run_contingencies_screening():
                         DYNAWO_FOLDER,
                     )
 
+                    if args.calc_contingencies:
+                        time_dir_hades = time_dir / HADES_FOLDER
+                    else:
+                        time_dir_hades = time_dir
+
                     # Run the contingencies with the specified hades launcher
                     hades_input_file, hades_output_file = run_hades_contingencies_code(
-                        time_dir,
+                        time_dir_hades,
                         output_dir_final_path / HADES_FOLDER,
                         hades_launcher_solved,
                         args.tap_changers,
                         args.multithreading,
+                        args.calc_contingencies,
                     )
 
                     # Rank all contingencies based of the hades simulation results
@@ -620,7 +659,10 @@ def run_contingencies_screening():
 
                     # If selected, replay the worst contingencies with Dynawo systematic analysis
                     if args.replay_dynawo:
-                        dynawo_input_dir = time_dir
+                        if args.calc_contingencies:
+                            dynawo_input_dir = time_dir / DYNAWO_FOLDER
+                        else:
+                            dynawo_input_dir = time_dir
                         dynawo_output_dir = output_dir_final_path / DYNAWO_FOLDER
 
                         if args.dynamic_database is not None:
@@ -646,6 +688,8 @@ def run_contingencies_screening():
                             dynawo_launcher_solved,
                             config_file,
                             contng_file,
+                            args.calc_contingencies,
+                            matching_contng_dict,
                         )
 
                         # Extract dynawo results data
@@ -698,4 +742,5 @@ def run_contingencies_screening():
                                 hades_launcher_solved,
                                 args.tap_changers,
                                 args.multithreading,
+                                False,
                             )
