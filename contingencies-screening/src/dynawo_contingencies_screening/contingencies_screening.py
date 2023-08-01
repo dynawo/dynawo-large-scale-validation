@@ -631,7 +631,12 @@ def run_contingencies_screening():
                     if args.calc_contingencies:
                         time_dir_hades = time_dir / HADES_FOLDER
                     else:
-                        time_dir_hades = time_dir
+                        if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
+                            set([i.name for i in time_dir.iterdir()])
+                        ):
+                            time_dir_hades = time_dir / HADES_FOLDER
+                        else:
+                            time_dir_hades = time_dir
 
                     # Run the contingencies with the specified hades launcher
                     hades_input_file, hades_output_file = run_hades_contingencies_code(
@@ -662,7 +667,12 @@ def run_contingencies_screening():
                         if args.calc_contingencies:
                             dynawo_input_dir = time_dir / DYNAWO_FOLDER
                         else:
-                            dynawo_input_dir = time_dir
+                            if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
+                                set([i.name for i in time_dir.iterdir()])
+                            ):
+                                dynawo_input_dir = time_dir / DYNAWO_FOLDER
+                            else:
+                                dynawo_input_dir = time_dir
                         dynawo_output_dir = output_dir_final_path / DYNAWO_FOLDER
 
                         if args.dynamic_database is not None:
