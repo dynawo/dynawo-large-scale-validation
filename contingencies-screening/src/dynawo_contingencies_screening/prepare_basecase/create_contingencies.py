@@ -1045,8 +1045,14 @@ def create_dynawo_SA(
     matched_generators,
     matched_loads,
     matched_shunts,
+    multithreading,
 ):
     # Check if a dynamic database is going to be used and create the needed JSON files
+    if multithreading:
+        n_threads = manage_files.N_THREADS
+    else:
+        n_threads = 1
+
     if dynamic_database is not None:
         setting_xml = list(dynamic_database.glob("*setting*.xml"))[0]
         assembling_xml = list(dynamic_database.glob("*assembling*.xml"))[0]
@@ -1057,6 +1063,9 @@ def create_dynawo_SA(
                 "SettingPath": str(setting_xml),
                 "AssemblingPath": str(assembling_xml),
                 "ChosenOutputs": ["STEADYSTATE", "LOSTEQ", "TIMELINE", "CONSTRAINTS"],
+                "sa": {
+                    "NumberOfThreads": n_threads,
+                },
             }
         }
         contng_dict = {
@@ -1069,6 +1078,9 @@ def create_dynawo_SA(
             "dfl-config": {
                 "OutputDir": str(dynawo_output_folder),
                 "ChosenOutputs": ["STEADYSTATE", "LOSTEQ", "TIMELINE", "CONSTRAINTS"],
+                "sa": {
+                    "NumberOfThreads": n_threads,
+                },
             }
         }
         contng_dict = {

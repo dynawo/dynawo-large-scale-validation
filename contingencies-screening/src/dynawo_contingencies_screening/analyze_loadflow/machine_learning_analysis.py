@@ -194,7 +194,7 @@ def train_test_loadflow_results():
     contingencies_df = contingencies_df.drop(["STATUS"], axis=1)
     contingencies_df = contingencies_df.dropna()
 
-    y = contingencies_df.pop("DIFF_SCORE")
+    y = contingencies_df.pop("REAL_SCORE")
     X = contingencies_df.drop("NAME", axis=1)
 
     model_GBR = GradientBoostingRegressor()

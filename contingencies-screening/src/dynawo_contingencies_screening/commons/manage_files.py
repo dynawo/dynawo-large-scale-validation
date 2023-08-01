@@ -1,4 +1,7 @@
 from lxml import etree
+import os
+
+N_THREADS = 8
 
 
 def parse_xml_file(xml_file):
@@ -8,3 +11,16 @@ def parse_xml_file(xml_file):
     parsed_xml = etree.parse(xml, parser)
 
     return parsed_xml
+
+
+def create_output_dir(
+    input_dir_path, output_dir_path, time_dir, replay_dynawo, hades_folder, dynawo_folder
+):
+    # Create the specified output dir
+    structure_path = time_dir.relative_to(input_dir_path)
+    os.makedirs(output_dir_path / structure_path / hades_folder, exist_ok=True)
+
+    if replay_dynawo:
+        os.makedirs(output_dir_path / structure_path / dynawo_folder, exist_ok=True)
+
+    return output_dir_path / structure_path
