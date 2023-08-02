@@ -253,7 +253,8 @@ def prepare_hades_contingencies(
     replay_contgs = [
         [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
     ]
-    replay_contgs = replay_contgs[:number_pos_replay]
+    if number_pos_replay != -1:
+        replay_contgs = replay_contgs[:number_pos_replay]
 
     hades_output_list = []
 
@@ -300,7 +301,9 @@ def prepare_dynawo_SA(
 ):
     # Create the worst contingencies with JSON in order to replay it with Dynawo launcher
     replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
-    replay_contgs = replay_contgs[:number_pos_replay]
+
+    if number_pos_replay != -1:
+        replay_contgs = replay_contgs[:number_pos_replay]
 
     iidm_file = list(dynawo_input_folder.glob("*.*iidm"))[0]
 
@@ -337,7 +340,8 @@ def prepare_dynawo_contingencies(
     replay_contgs = [
         [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
     ]
-    replay_contgs = replay_contgs[:number_pos_replay]
+    if number_pos_replay != -1:
+        replay_contgs = replay_contgs[:number_pos_replay]
 
     dynawo_output_list = []
 
@@ -666,14 +670,22 @@ def run_contingencies_screening_thread_loop(
             # Sort by REAL_SCORE column and save to csv file
             df_contg = df_contg.sort_values("REAL_SCORE", ascending=False)
 
-            rmse = calc_rmse(df_contg.head(args.n_replay))
-            print()
-            print(
-                "RMSE of the "
-                + str(args.n_replay)
-                + " most interesting contingencies (predicted vs real diff score without divergence cases):\n"
-                + str(rmse)
-            )
+            if args.n_replay != -1:
+                rmse = calc_rmse(df_contg.head(args.n_replay))
+                print()
+                print(
+                    "RMSE of the "
+                    + str(args.n_replay)
+                    + " most interesting contingencies (predicted vs real diff score without divergence cases):\n"
+                    + str(rmse)
+                )
+            else:
+                rmse = calc_rmse(df_contg)
+                print()
+                print(
+                    "RMSE of the all the contingencies (predicted vs real diff score without divergence cases):\n"
+                    + str(rmse)
+                )
 
             df_contg.to_csv(output_dir_final_path / "contg_df.csv", index=False, sep=";")
 
