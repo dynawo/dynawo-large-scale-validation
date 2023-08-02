@@ -2,6 +2,7 @@ import os
 import shutil
 import copy
 import argparse
+import multiprocessing
 import pandas as pd
 import math
 import numpy as np
@@ -557,6 +558,147 @@ def calc_rmse(df_contg):
     return rmse
 
 
+def run_contingencies_screening_thread_loop(
+    args, time_dir, input_dir_path, output_dir_path, hades_launcher_solved, dynawo_launcher_solved
+):
+    if not time_dir.is_file():
+        print("\n################################################################")
+        print("Running the " + time_dir.name + " case")
+        print("################################################################\n")
+
+        output_dir_final_path = manage_files.create_output_dir(
+            input_dir_path,
+            output_dir_path,
+            time_dir,
+            args.replay_dynawo,
+            HADES_FOLDER,
+            DYNAWO_FOLDER,
+        )
+
+        if args.calc_contingencies:
+            time_dir_hades = time_dir / HADES_FOLDER
+        else:
+            if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
+                set([i.name for i in time_dir.iterdir()])
+            ):
+                time_dir_hades = time_dir / HADES_FOLDER
+            else:
+                time_dir_hades = time_dir
+
+        # Run the contingencies with the specified hades launcher
+        hades_input_file, hades_output_file = run_hades_contingencies_code(
+            time_dir_hades,
+            output_dir_final_path / HADES_FOLDER,
+            hades_launcher_solved,
+            args.tap_changers,
+            args.multithreading,
+            args.calc_contingencies,
+        )
+
+        # Rank all contingencies based of the hades simulation results
+        sorted_loadflow_score_list = create_contingencies_ranking_code(
+            hades_input_file,
+            hades_output_file,
+            output_dir_final_path,
+            args.score_type,
+            args.tap_changers,
+        )
+
+        # Show the ranking results
+        display_results_table(output_dir_final_path, sorted_loadflow_score_list, args.tap_changers)
+
+        # If selected, replay the worst contingencies with Dynawo systematic analysis
+        if args.replay_dynawo:
+            if args.calc_contingencies:
+                dynawo_input_dir = time_dir / DYNAWO_FOLDER
+            else:
+                if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
+                    set([i.name for i in time_dir.iterdir()])
+                ):
+                    dynawo_input_dir = time_dir / DYNAWO_FOLDER
+                else:
+                    dynawo_input_dir = time_dir
+            dynawo_output_dir = output_dir_final_path / DYNAWO_FOLDER
+
+            if args.dynamic_database is not None:
+                dynamic_database = Path(args.dynamic_database).absolute()
+            else:
+                dynamic_database = None
+
+            # Prepare the necessary files
+            config_file, contng_file, matching_contng_dict = prepare_dynawo_SA(
+                hades_input_file,
+                sorted_loadflow_score_list,
+                dynawo_input_dir,
+                dynawo_output_dir,
+                args.n_replay,
+                dynamic_database,
+                args.multithreading,
+            )
+
+            # Run the contingencies again
+            run_dynawo_contingencies_SA_code(
+                dynawo_input_dir,
+                dynawo_output_dir,
+                dynawo_launcher_solved,
+                config_file,
+                contng_file,
+                args.calc_contingencies,
+                matching_contng_dict,
+            )
+
+            # Extract dynawo results data
+            dynawo_contingency_data = extract_dynawo_results(dynawo_output_dir)
+
+            # Calc diffs between dynawo and hades
+            df_diffs = calculate_case_differences(
+                sorted_loadflow_score_list,
+                dynawo_contingency_data,
+                matching_contng_dict,
+            )
+
+            # Add new df_diffs columns to main contingencies DataFrame
+            df_contg = pd.read_csv(
+                output_dir_final_path / "contg_df.csv", sep=";", index_col="NUM"
+            )
+            df_contg = pd.merge(df_contg, df_diffs, how="left", on="NAME")
+
+            # Sort by REAL_SCORE column and save to csv file
+            df_contg = df_contg.sort_values("REAL_SCORE", ascending=False)
+
+            rmse = calc_rmse(df_contg.head(args.n_replay))
+            print()
+            print(
+                "RMSE of the "
+                + str(args.n_replay)
+                + " most interesting contingencies (predicted vs real diff score without divergence cases):\n"
+                + str(rmse)
+            )
+
+            df_contg.to_csv(output_dir_final_path / "contg_df.csv", index=False, sep=";")
+
+        # If selected, replay the worst contingencies with Hades one by one
+        if args.replay_hades_obo:
+            # Prepare the necessary files
+            replay_hades_paths = prepare_hades_contingencies(
+                sorted_loadflow_score_list,
+                hades_input_file,
+                hades_output_file.parent,
+                args.n_replay,
+            )
+
+            # Run the contingencies again
+            for replay_hades_path in replay_hades_paths:
+                hades_input_file, hades_output_file = run_hades_contingencies_code(
+                    replay_hades_path,
+                    replay_hades_path,
+                    hades_launcher_solved,
+                    args.tap_changers,
+                    args.multithreading,
+                    False,
+                )
+
+
 # From here:
 # command line executables
 
@@ -607,146 +749,39 @@ def run_contingencies_screening():
             for day_dir in month_dir.iterdir():
                 if day_dir.is_file():
                     continue
-                for time_dir in day_dir.iterdir():
-                    if time_dir.is_file():
-                        continue
-
-                    print("\n################################################################")
-                    print("Running the " + time_dir.name + " case")
-                    print("################################################################\n")
-
-                    output_dir_final_path = manage_files.create_output_dir(
-                        input_dir_path,
-                        output_dir_path,
-                        time_dir,
-                        args.replay_dynawo,
-                        HADES_FOLDER,
-                        DYNAWO_FOLDER,
-                    )
-
-                    if args.calc_contingencies:
-                        time_dir_hades = time_dir / HADES_FOLDER
-                    else:
-                        if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
-                            set([i.name for i in time_dir.iterdir()])
-                        ):
-                            time_dir_hades = time_dir / HADES_FOLDER
-                        else:
-                            time_dir_hades = time_dir
-
-                    # Run the contingencies with the specified hades launcher
-                    hades_input_file, hades_output_file = run_hades_contingencies_code(
-                        time_dir_hades,
-                        output_dir_final_path / HADES_FOLDER,
-                        hades_launcher_solved,
-                        args.tap_changers,
-                        args.multithreading,
-                        args.calc_contingencies,
-                    )
-
-                    # Rank all contingencies based of the hades simulation results
-                    sorted_loadflow_score_list = create_contingencies_ranking_code(
-                        hades_input_file,
-                        hades_output_file,
-                        output_dir_final_path,
-                        args.score_type,
-                        args.tap_changers,
-                    )
-
-                    # Show the ranking results
-                    display_results_table(
-                        output_dir_final_path, sorted_loadflow_score_list, args.tap_changers
-                    )
-
-                    # If selected, replay the worst contingencies with Dynawo systematic analysis
-                    if args.replay_dynawo:
-                        if args.calc_contingencies:
-                            dynawo_input_dir = time_dir / DYNAWO_FOLDER
-                        else:
-                            if set([HADES_FOLDER, DYNAWO_FOLDER]).issubset(
-                                set([i.name for i in time_dir.iterdir()])
-                            ):
-                                dynawo_input_dir = time_dir / DYNAWO_FOLDER
-                            else:
-                                dynawo_input_dir = time_dir
-                        dynawo_output_dir = output_dir_final_path / DYNAWO_FOLDER
-
-                        if args.dynamic_database is not None:
-                            dynamic_database = Path(args.dynamic_database).absolute()
-                        else:
-                            dynamic_database = None
-
-                        # Prepare the necessary files
-                        config_file, contng_file, matching_contng_dict = prepare_dynawo_SA(
-                            hades_input_file,
-                            sorted_loadflow_score_list,
-                            dynawo_input_dir,
-                            dynawo_output_dir,
-                            args.n_replay,
-                            dynamic_database,
-                            args.multithreading,
-                        )
-
-                        # Run the contingencies again
-                        run_dynawo_contingencies_SA_code(
-                            dynawo_input_dir,
-                            dynawo_output_dir,
-                            dynawo_launcher_solved,
-                            config_file,
-                            contng_file,
-                            args.calc_contingencies,
-                            matching_contng_dict,
-                        )
-
-                        # Extract dynawo results data
-                        dynawo_contingency_data = extract_dynawo_results(dynawo_output_dir)
-
-                        # Calc diffs between dynawo and hades
-                        df_diffs = calculate_case_differences(
-                            sorted_loadflow_score_list,
-                            dynawo_contingency_data,
-                            matching_contng_dict,
-                        )
-
-                        # Add new df_diffs columns to main contingencies DataFrame
-                        df_contg = pd.read_csv(
-                            output_dir_final_path / "contg_df.csv", sep=";", index_col="NUM"
-                        )
-                        df_contg = pd.merge(df_contg, df_diffs, how="left", on="NAME")
-
-                        # Sort by REAL_SCORE column and save to csv file
-                        df_contg = df_contg.sort_values("REAL_SCORE", ascending=False)
-
-                        rmse = calc_rmse(df_contg.head(args.n_replay))
-                        print()
-                        print(
-                            "RMSE of the "
-                            + str(args.n_replay)
-                            + " most interesting contingencies (predicted vs real diff score without divergence cases):\n"
-                            + str(rmse)
-                        )
-
-                        df_contg.to_csv(
-                            output_dir_final_path / "contg_df.csv", index=False, sep=";"
-                        )
-
-                    # If selected, replay the worst contingencies with Hades one by one
-                    if args.replay_hades_obo:
-                        # Prepare the necessary files
-                        replay_hades_paths = prepare_hades_contingencies(
-                            sorted_loadflow_score_list,
-                            hades_input_file,
-                            hades_output_file.parent,
-                            args.n_replay,
-                        )
-
-                        # Run the contingencies again
-                        for replay_hades_path in replay_hades_paths:
-                            hades_input_file, hades_output_file = run_hades_contingencies_code(
-                                replay_hades_path,
-                                replay_hades_path,
+                if args.multithreading:
+                    arguments_list = []
+                    for time_dir in day_dir.iterdir():
+                        arguments_list.append(
+                            (
+                                args,
+                                time_dir,
+                                input_dir_path,
+                                output_dir_path,
                                 hades_launcher_solved,
-                                args.tap_changers,
-                                args.multithreading,
-                                False,
+                                dynawo_launcher_solved,
                             )
+                        )
+
+                    # Create a multiprocessing pool with the specified number of threads
+                    pool = multiprocessing.Pool(processes=manage_files.N_THREADS_SNAPSHOT)
+
+                    # Use starmap to call the function with different arguments in parallel
+                    pool.starmap(run_contingencies_screening_thread_loop, arguments_list)
+
+                    # Close the pool to prevent further tasks from being submitted
+                    pool.close()
+
+                    # Wait for all processes to finish
+                    pool.join()
+
+                else:
+                    for time_dir in day_dir.iterdir():
+                        run_contingencies_screening_thread_loop(
+                            args,
+                            time_dir,
+                            input_dir_path,
+                            output_dir_path,
+                            hades_launcher_solved,
+                            dynawo_launcher_solved,
+                        )

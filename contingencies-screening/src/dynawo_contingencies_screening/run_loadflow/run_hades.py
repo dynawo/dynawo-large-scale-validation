@@ -21,7 +21,7 @@ def activate_tap_changers(hades_file, activate_taps, multithreading):
         if not multithreading:
             paramHades.set("nbThreads", "1")
         else:
-            paramHades.set("nbThreads", str(manage_files.N_THREADS))
+            paramHades.set("nbThreads", str(manage_files.N_THREADS_LAUNCHER))
 
     hades_tree.write(
         hades_file,

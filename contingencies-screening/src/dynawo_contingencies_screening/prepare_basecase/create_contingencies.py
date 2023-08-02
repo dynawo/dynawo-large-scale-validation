@@ -1049,7 +1049,7 @@ def create_dynawo_SA(
 ):
     # Check if a dynamic database is going to be used and create the needed JSON files
     if multithreading:
-        n_threads = manage_files.N_THREADS
+        n_threads = manage_files.N_THREADS_LAUNCHER
     else:
         n_threads = 1
 
