@@ -576,9 +576,7 @@ def calc_rmse(df_contg):
     return rmse
 
 
-def clean_data(
-    dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay, calc_contingencies
-):
+def clean_data(dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay):
 
     replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
     if number_pos_replay != -1:
@@ -755,7 +753,6 @@ def run_contingencies_screening_thread_loop(
                     dynawo_output_dir,
                     sorted_loadflow_score_list,
                     args.n_replay,
-                    args.calc_contingencies,
                 )
 
             # Extract dynawo results data
@@ -819,7 +816,7 @@ def run_contingencies_screening_thread_loop(
                     False,
                 )
 
-        if args.compress_results and not args.calc_contingencies:
+        if args.compress_results:
             compress_results(output_dir_final_path)
 
 

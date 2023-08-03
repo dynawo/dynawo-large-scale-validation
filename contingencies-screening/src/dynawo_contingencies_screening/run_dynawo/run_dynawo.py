@@ -55,7 +55,13 @@ def run_dynaflow_SA(
     if calc_contingencies:
         replay_dynawo = check_calculated_contg(input_dir, matching_contng_dict)
         if not replay_dynawo:
-            os.system("ln -sf " + str(input_dir) + "/* " + str(output_dir) + "/")
+            os.system(
+                "find "
+                + str(input_dir)
+                + " -mindepth 1 -maxdepth 1 -exec ln -sf '{}' "
+                + str(output_dir)
+                + "/ \;"
+            )
 
     if replay_dynawo:
         iidm_file = list(input_dir.glob("*.*iidm"))[0]
