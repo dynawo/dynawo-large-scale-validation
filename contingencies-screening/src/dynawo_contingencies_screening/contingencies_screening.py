@@ -129,6 +129,14 @@ def argument_parser(command_list):
             action="store_true",
         )
 
+    if "compress_results" in command_list:
+        p.add_argument(
+            "-z",
+            "--compress_results",
+            help="clean and compress the results",
+            action="store_true",
+        )
+
     args = p.parse_args()
     return args
 
@@ -415,16 +423,22 @@ def run_dynawo_contingencies_SA_code(
     )
 
 
-def extract_dynawo_results(dynawo_output_folder):
+def extract_dynawo_results(dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay):
     # Parse the results of the contingencies
     dynawo_output_file = dynawo_output_folder / "outputs" / "finalState" / "outputIIDM.xml"
     parsed_output_file = manage_files.parse_xml_file(dynawo_output_file)
     dynawo_aggregated_xml = dynawo_output_folder / "aggregatedResults.xml"
     parsed_aggregated_file = manage_files.parse_xml_file(dynawo_aggregated_xml)
 
+    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
+    if number_pos_replay != -1:
+        replay_contgs = replay_contgs[:number_pos_replay]
+
+    contg_set = set(replay_contgs)
+
     # Collect the dynawo contingencies data
     dynawo_contingency_data, dynawo_tap_data = extract_results_data.collect_dynawo_results(
-        parsed_output_file, parsed_aggregated_file, dynawo_output_folder
+        parsed_output_file, parsed_aggregated_file, dynawo_output_folder, contg_set
     )
 
     return dynawo_contingency_data
@@ -562,6 +576,91 @@ def calc_rmse(df_contg):
     return rmse
 
 
+def clean_data(
+    dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay, calc_contingencies
+):
+
+    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
+    if number_pos_replay != -1:
+        replay_contgs = replay_contgs[:number_pos_replay]
+
+    retain_files = ["aggregatedResults.xml"] + [list(dynawo_output_folder.glob("*.*iidm"))[0].name]
+
+    retain_folders = ["outputs", "constraints", "timeLine"]
+    retain_folders_contg = replay_contgs
+
+    retain_common_files = ["constraints_" + contg + ".xml" for contg in replay_contgs] + [
+        "timeline_" + contg + ".xml" for contg in replay_contgs
+    ]
+
+    for elem_dir in dynawo_output_folder.iterdir():
+        if elem_dir.is_file():
+            if elem_dir.name not in retain_files:
+                if os.path.islink(elem_dir):
+                    os.unlink(elem_dir)
+                else:
+                    os.remove(elem_dir)
+        else:
+            if elem_dir.name not in retain_folders and elem_dir.name not in retain_folders_contg:
+                if os.path.islink(elem_dir):
+                    os.unlink(elem_dir)
+                else:
+                    shutil.rmtree(elem_dir)
+            elif elem_dir.name in retain_folders_contg:
+                for elem_contg_dir in elem_dir.iterdir():
+                    if elem_contg_dir.is_file():
+                        if os.path.islink(elem_contg_dir):
+                            os.unlink(elem_contg_dir)
+                        else:
+                            os.remove(elem_contg_dir)
+                    else:
+                        if elem_contg_dir.name != "outputs":
+                            if os.path.islink(elem_contg_dir):
+                                os.unlink(elem_contg_dir)
+                            else:
+                                shutil.rmtree(elem_contg_dir)
+                        else:
+                            for output_dir in elem_contg_dir.iterdir():
+                                if output_dir.is_file():
+                                    if os.path.islink(output_dir):
+                                        os.unlink(output_dir)
+                                    else:
+                                        os.remove(output_dir)
+                                else:
+                                    if output_dir.name != "finalState":
+                                        if os.path.islink(output_dir):
+                                            os.unlink(output_dir)
+                                        else:
+                                            shutil.rmtree(output_dir)
+            elif elem_dir.name in retain_folders:
+                if elem_dir.name == "outputs":
+                    for elem_dir_out in elem_dir.iterdir():
+                        if elem_dir_out.is_file():
+                            if os.path.islink(elem_dir_out):
+                                os.unlink(elem_dir_out)
+                            else:
+                                os.remove(elem_dir_out)
+                        else:
+                            if elem_dir_out.name != "finalState":
+                                if os.path.islink(elem_dir_out):
+                                    os.unlink(elem_dir_out)
+                                else:
+                                    shutil.rmtree(elem_dir_out)
+
+
+def compress_results(path):
+    os.system(
+        "cd "
+        + str(path.parent)
+        + " && tar zcf "
+        + str(path.name)
+        + ".tar.gz "
+        + str(path.name)
+        + " && rm -rf "
+        + str(path.name)
+    )
+
+
 def run_contingencies_screening_thread_loop(
     args, time_dir, input_dir_path, output_dir_path, hades_launcher_solved, dynawo_launcher_solved
 ):
@@ -651,8 +750,18 @@ def run_contingencies_screening_thread_loop(
                 matching_contng_dict,
             )
 
+            if args.compress_results:
+                clean_data(
+                    dynawo_output_dir,
+                    sorted_loadflow_score_list,
+                    args.n_replay,
+                    args.calc_contingencies,
+                )
+
             # Extract dynawo results data
-            dynawo_contingency_data = extract_dynawo_results(dynawo_output_dir)
+            dynawo_contingency_data = extract_dynawo_results(
+                dynawo_output_dir, sorted_loadflow_score_list, args.n_replay
+            )
 
             # Calc diffs between dynawo and hades
             df_diffs = calculate_case_differences(
@@ -710,6 +819,9 @@ def run_contingencies_screening_thread_loop(
                     False,
                 )
 
+        if args.compress_results and not args.calc_contingencies:
+            compress_results(output_dir_final_path)
+
 
 # From here:
 # command line executables
@@ -736,6 +848,7 @@ def run_contingencies_screening():
             "dynamic_database",
             "multithreading",
             "calc_contingencies",
+            "compress_results",
         ]
     )
     input_dir_path = Path(args.input_dir).absolute()

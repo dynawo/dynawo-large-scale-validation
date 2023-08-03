@@ -1,7 +1,7 @@
 from lxml import etree
 import os
 
-N_THREADS_LAUNCHER = 1
+N_THREADS_LAUNCHER = 8
 
 N_THREADS_SNAPSHOT = 8
 

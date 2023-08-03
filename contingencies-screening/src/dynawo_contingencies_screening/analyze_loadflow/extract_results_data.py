@@ -375,12 +375,13 @@ def collect_hades_results(
     return elements_dict, contingencies_dict
 
 
-def get_dynawo_contingencies(dynawo_xml_root, ns):
+def get_dynawo_contingencies(dynawo_xml_root, ns, contg_set):
     contingencies_dict = {}
 
     for contg in dynawo_xml_root.iter("{%s}scenarioResults" % ns):
         contg_id = contg.attrib["id"]
-        contingencies_dict[contg_id] = {"status": contg.attrib["status"], "constraints": []}
+        if contg_id in contg_set:
+            contingencies_dict[contg_id] = {"status": contg.attrib["status"], "constraints": []}
 
     return contingencies_dict
 
@@ -583,7 +584,7 @@ def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, con
     dynawo_contingencies_dict[contingency_name]["tap_diffs"] = tap_diff_dict
 
 
-def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, dynawo_output_dir):
+def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, dynawo_output_dir, contg_set):
     # Get the root and the namespacing of the output file without contingencies
     root = parsed_output_xml.getroot()
     ns = etree.QName(root).namespace
@@ -596,7 +597,7 @@ def collect_dynawo_results(parsed_output_xml, parsed_aggregated_xml, dynawo_outp
     ns = etree.QName(root).namespace
 
     # Create the contingencies dictionary
-    dynawo_contingencies_dict = get_dynawo_contingencies(root, ns)
+    dynawo_contingencies_dict = get_dynawo_contingencies(root, ns, contg_set)
 
     # Extract all the contingencies data
     get_dynawo_contingency_data(
