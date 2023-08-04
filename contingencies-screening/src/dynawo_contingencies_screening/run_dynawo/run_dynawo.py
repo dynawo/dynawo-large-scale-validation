@@ -70,15 +70,20 @@ def run_dynaflow_SA(
         shutil.copy2(iidm_file, output_dir)
 
         # Run the simulation on the specified dynawo launcher
-        subprocess.run(
-            str(dynawo_launcher)
-            + " launch --network "
-            + str(output_dir / iidm_file.name)
-            + " --config "
-            + str(config_file)
-            + " --contingencies "
-            + str(contng_file)
-            + " --nsa",
-            shell=True,
-            check=True,
-        )
+        try:
+            subprocess.run(
+                str(dynawo_launcher)
+                + " launch --network "
+                + str(output_dir / iidm_file.name)
+                + " --config "
+                + str(config_file)
+                + " --contingencies "
+                + str(contng_file)
+                + " --nsa",
+                shell=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            return 1
+
+    return 0

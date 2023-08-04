@@ -185,7 +185,7 @@ def run_hades_contingencies_code(
 
     # Run hades file (assuming all contingencies are run through the security analysis
     # in a single run)
-    run_hades.run_hades(
+    status = run_hades.run_hades(
         hades_input_file,
         hades_output_file,
         hades_launcher,
@@ -194,7 +194,7 @@ def run_hades_contingencies_code(
         calc_contingencies,
     )
 
-    return hades_input_file, hades_output_file
+    return hades_input_file, hades_output_file, status
 
 
 def sort_ranking(elem):
@@ -412,7 +412,7 @@ def run_dynawo_contingencies_SA_code(
     os.makedirs(output_dir, exist_ok=True)
 
     # Run the BASECASE with the specified Dynawo launcher
-    run_dynawo.run_dynaflow_SA(
+    status = run_dynawo.run_dynaflow_SA(
         input_dir,
         output_dir,
         dynawo_launcher,
@@ -421,6 +421,8 @@ def run_dynawo_contingencies_SA_code(
         calc_contingencies,
         matching_contng_dict,
     )
+
+    return status
 
 
 def extract_dynawo_results(dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay):
@@ -687,7 +689,7 @@ def run_contingencies_screening_thread_loop(
                 time_dir_hades = time_dir
 
         # Run the contingencies with the specified hades launcher
-        hades_input_file, hades_output_file = run_hades_contingencies_code(
+        hades_input_file, hades_output_file, status = run_hades_contingencies_code(
             time_dir_hades,
             output_dir_final_path / HADES_FOLDER,
             hades_launcher_solved,
@@ -695,6 +697,9 @@ def run_contingencies_screening_thread_loop(
             args.multithreading,
             args.calc_contingencies,
         )
+
+        if status == 1:
+            return
 
         # Rank all contingencies based of the hades simulation results
         sorted_loadflow_score_list = create_contingencies_ranking_code(
@@ -738,7 +743,7 @@ def run_contingencies_screening_thread_loop(
             )
 
             # Run the contingencies again
-            run_dynawo_contingencies_SA_code(
+            status = run_dynawo_contingencies_SA_code(
                 dynawo_input_dir,
                 dynawo_output_dir,
                 dynawo_launcher_solved,
@@ -747,6 +752,9 @@ def run_contingencies_screening_thread_loop(
                 args.calc_contingencies,
                 matching_contng_dict,
             )
+
+            if status == 1:
+                return
 
             if args.compress_results:
                 clean_data(
@@ -807,7 +815,7 @@ def run_contingencies_screening_thread_loop(
 
             # Run the contingencies again
             for replay_hades_path in replay_hades_paths:
-                hades_input_file, hades_output_file = run_hades_contingencies_code(
+                hades_input_file, hades_output_file, status = run_hades_contingencies_code(
                     replay_hades_path,
                     replay_hades_path,
                     hades_launcher_solved,

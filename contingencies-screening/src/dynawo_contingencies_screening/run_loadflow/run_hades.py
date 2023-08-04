@@ -57,19 +57,25 @@ def run_hades(
         activate_tap_changers(output_folder / hades_input_file.name, tap_changers, multithreading)
 
         # Run the simulation on the specified hades launcher
-        subprocess.run(
-            "cd "
-            + str(output_folder)
-            + " && "
-            + str(hades_launcher)
-            + " "
-            + str(output_folder / hades_input_file.name)
-            + " "
-            + str(hades_output_file),
-            shell=True,
-            check=True,
-        )
+        try:
+            subprocess.run(
+                "cd "
+                + str(output_folder)
+                + " && "
+                + str(hades_launcher)
+                + " "
+                + str(output_folder / hades_input_file.name)
+                + " "
+                + str(hades_output_file),
+                shell=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as e:
+            return 1
+
+        return 0
 
     else:
         if output_folder != hades_input_file.parent:
             os.system("ln -sf " + str(hades_input_file.parent) + "/* " + str(output_folder) + "/")
+        return 0
