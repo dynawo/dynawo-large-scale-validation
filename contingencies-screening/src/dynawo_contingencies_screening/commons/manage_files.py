@@ -3,7 +3,7 @@ import os
 
 N_THREADS_LAUNCHER = 1
 
-N_THREADS_SNAPSHOT = 8
+N_THREADS_SNAPSHOT = 24
 
 
 def parse_xml_file(xml_file):

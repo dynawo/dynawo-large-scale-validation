@@ -319,7 +319,13 @@ def collect_hades_results(
     root = parsed_hades_output_file.getroot()
     ns = etree.QName(root).namespace
 
+    # Check that there are contingencies in the output file
+    if len(list(root.iter("{%s}defaut" % ns))) == 0:
+        print("No contingencies executed")
+        return "", "", 1
+
     # Collect the voltages data and its contingencies
+
     min_voltages_dict, max_voltages_dict, poste_node_volt_dict = get_max_min_voltages(
         root, ns, list(contingencies_dict.keys())
     )
@@ -372,7 +378,7 @@ def collect_hades_results(
         if tap_changers:
             contingencies_dict[key]["tap_changers"] = tap_changers_dict[key]
 
-    return elements_dict, contingencies_dict
+    return elements_dict, contingencies_dict, 0
 
 
 def get_dynawo_contingencies(dynawo_xml_root, ns, contg_set):

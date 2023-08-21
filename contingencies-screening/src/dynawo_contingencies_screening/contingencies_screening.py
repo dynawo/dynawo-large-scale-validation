@@ -178,7 +178,12 @@ def run_hades_contingencies_code(
     calc_contingencies,
 ):
     # Find hades input file
-    hades_input_file = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))[0]
+    hades_input_list = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))
+
+    if len(hades_input_list) == 0:
+        return "", "", 1
+    else:
+        hades_input_file = hades_input_list[0]
 
     # Define hades output file
     hades_output_file = hades_output_folder / "hadesOut.xml"
@@ -220,9 +225,16 @@ def create_contingencies_ranking_code(
     hades_contingencies_dict = extract_results_data.get_contingencies_dict(parsed_hades_input_file)
 
     # Collect Hades results in dict format
-    hades_elements_dict, hades_contingencies_dict = extract_results_data.collect_hades_results(
+    (
+        hades_elements_dict,
+        hades_contingencies_dict,
+        status,
+    ) = extract_results_data.collect_hades_results(
         hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file, tap_changers
     )
+
+    if status == 1:
+        return hades_contingencies_dict, 1
 
     # Analyze Hades results
     if score_type == 1:
@@ -251,7 +263,7 @@ def create_contingencies_ranking_code(
     # Save the DF as a csv file
     df_temp.to_csv(output_dir_path / "contg_df.csv", sep=";")
 
-    return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True)
+    return sorted(hades_contingencies_dict.items(), key=sort_ranking, reverse=True), 0
 
 
 def prepare_hades_contingencies(
@@ -702,13 +714,16 @@ def run_contingencies_screening_thread_loop(
             return
 
         # Rank all contingencies based of the hades simulation results
-        sorted_loadflow_score_list = create_contingencies_ranking_code(
+        sorted_loadflow_score_list, status = create_contingencies_ranking_code(
             hades_input_file,
             hades_output_file,
             output_dir_final_path,
             args.score_type,
             args.tap_changers,
         )
+
+        if status == 1:
+            return
 
         # Show the ranking results
         display_results_table(output_dir_final_path, sorted_loadflow_score_list, args.tap_changers)
