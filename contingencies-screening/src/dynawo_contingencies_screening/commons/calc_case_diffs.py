@@ -1,4 +1,5 @@
 def get_hades_id(case, sorted_loadflow_score_list):
+    # Get the contingency id of Hades
     for i in range(len(sorted_loadflow_score_list)):
         if case == sorted_loadflow_score_list[i][1]["name"]:
             return i
@@ -6,6 +7,7 @@ def get_hades_id(case, sorted_loadflow_score_list):
 
 
 def compare_status(hades_status, dynawo_status):
+    # Compare the final state of the two loadflows
     if hades_status == 0 and dynawo_status == "CONVERGENCE":
         return "BOTH"
     elif hades_status != 0 and dynawo_status == "CONVERGENCE":
@@ -32,6 +34,7 @@ def match_3_dictionaries(keys1, keys2, keys3):
 
 
 def get_tap_score_diff(tap1_diff, tap2_diff, lim1, lim2, block1, block2):
+    # Calculate the difference between two taps
 
     diff_score = 0
     weight_diff = 10
@@ -91,13 +94,13 @@ def get_tap_score_diff(tap1_diff, tap2_diff, lim1, lim2, block1, block2):
 
 
 def compare_taps(hades_taps, dwo_taps):
+    # Calculate the differences between the final states of all the taps of the two loadflows
 
-    # Matching of the contingencies and their names to later get a score based
-    # on the changes they have undergone
     final_tap_score = 0
 
     set_phase_taps = set(dwo_taps["phase_taps"].keys())
     set_ratio_taps = set(dwo_taps["ratio_taps"].keys())
+    # Match the different taps of the two snapshots
     (
         matching_keys,
         keys_hades_not_matching,
@@ -109,6 +112,7 @@ def compare_taps(hades_taps, dwo_taps):
         set_ratio_taps,
     )
 
+    # Calculate scores for matched taps
     for matching_key in matching_keys:
         if matching_key in dwo_taps["phase_taps"]:
             dwo_diff = dwo_taps["phase_taps"][matching_key]
@@ -132,6 +136,7 @@ def compare_taps(hades_taps, dwo_taps):
         # TODO: get block and lim dwo
         final_tap_score += get_tap_score_diff(hds_diff, dwo_diff, lim_hds, False, block_hds, False)
 
+    # Calculate scores for taps found only in Hades
     for hades_key in keys_hades_not_matching:
         hds_tap = {}
         for hds_tap_ent in hades_taps:
@@ -149,6 +154,7 @@ def compare_taps(hades_taps, dwo_taps):
 
         final_tap_score += get_tap_score_diff(hds_diff, 0, lim_hds, False, block_hds, False)
 
+    # Calculate the scores for the taps that are only found in Dynawo
     for dwo_key in keys_phase_not_matching:
         dwo_diff = dwo_taps["phase_taps"][dwo_key]
 
@@ -165,10 +171,11 @@ def compare_taps(hades_taps, dwo_taps):
 
 
 def calc_volt_constr(matched_volt_constr, unique_constr_hds, unique_constr_dwo):
+    # Calculate the REAL difference between the final values of the loadflows of the corresponding
+    # variable
     diff_score_volt = 0
 
     # TODO: Check double constraints
-    # TODO: Evaluate other options
     for case_diffs_list in matched_volt_constr.values():
         for case_diffs in case_diffs_list:
             if int(case_diffs[0]["threshType"]) == 1 and case_diffs[1]["kind"] == "UInfUmin":
@@ -191,10 +198,11 @@ def calc_volt_constr(matched_volt_constr, unique_constr_hds, unique_constr_dwo):
 
 
 def calc_flow_constr(matched_flow_constr, unique_constr_hds, unique_constr_dwo):
+    # Calculate the REAL difference between the final values of the loadflows of the corresponding
+    # variable
     diff_score_flow = 0
 
     # TODO: Check double constraints
-    # TODO: Evaluate other options
     for case_diffs_list in matched_flow_constr.values():
         for case_diffs in case_diffs_list:
             if case_diffs[1]["kind"] == "PATL" or case_diffs[1]["kind"] == "OverloadUp":
@@ -213,10 +221,11 @@ def calc_flow_constr(matched_flow_constr, unique_constr_hds, unique_constr_dwo):
 
 
 def calc_gen_Q_constr(matched_gen_Q_constr, unique_constr_hds, unique_constr_dwo):
+    # Calculate the REAL difference between the final values of the loadflows of the corresponding
+    # variable
     diff_score_gen_Q = 0
 
     # TODO: Check double constraints
-    # TODO: Evaluate other options
     for case_diffs_list in matched_gen_Q_constr.values():
         for case_diffs in case_diffs_list:
             if int(case_diffs[0]["typeLim"]) == 1 and case_diffs[1]["kind"] == "QInfQMin":
@@ -239,12 +248,15 @@ def calc_gen_Q_constr(matched_gen_Q_constr, unique_constr_hds, unique_constr_dwo
 
 
 def calc_gen_U_constr(matched_gen_U_constr, unique_constr_hds, unique_constr_dwo):
+    # Calculate the REAL difference between the final values of the loadflows of the corresponding
+    # variable
     diff_score_gen_U = 0
     # TODO: Implement it
     return diff_score_gen_U
 
 
 def match_constraints(hades_constr, dwo_constraints):
+    # Get the constraints shared between Hades and Dynawo
     matched_constr = {}
 
     for constr_hds in hades_constr:
@@ -259,6 +271,7 @@ def match_constraints(hades_constr, dwo_constraints):
 
 
 def get_unmatched_constr(hades_constr, dwo_constraints, matched_constr):
+    # Get the constraints not shared between Hades and Dynawo
 
     unique_constr_hds = []
     unique_constr_dwo = []
@@ -277,6 +290,8 @@ def get_unmatched_constr(hades_constr, dwo_constraints, matched_constr):
 def compare_constraints(
     hades_constr_volt, hades_constr_flow, hades_constr_gen_Q, hades_constr_gen_U, dwo_constraints
 ):
+    # Calculate the final REAL value of the differences between the constraints obtained in Dynawo
+    # and in Hades
     # Separe dynawo constraints
     dwo_volt_constraints = []
     dwo_gen_Q_constraints = []
@@ -347,6 +362,8 @@ def compare_constraints(
 
 
 def calculate_diffs_hades_dynawo(hades_info, dwo_info):
+    # Execution pipeline prepared to call the different functions that calculate the real
+    # differences between Hades and Dynawo and gather all the results
 
     dict_diffs = {}
     # Compare status status
@@ -378,3 +395,16 @@ def calculate_diffs_hades_dynawo(hades_info, dwo_info):
         dict_diffs["diff_value"] = abs(taps_diff) + abs(constraints_diffs)
 
     return [hades_info[1]["name"], dict_diffs["conv_status"], dict_diffs["diff_value"]]
+
+
+def calc_rmse(df_contg):
+    # Calculation of the RMSE between the prediction and the real score
+    df_contg = df_contg.loc[df_contg["STATUS"] == "BOTH"]
+
+    mse = np.square(
+        np.subtract(
+            df_contg["REAL_SCORE"].astype("float"), df_contg["PREDICTED_SCORE"].astype("float")
+        )
+    ).mean()
+    rmse = math.sqrt(mse)
+    return rmse

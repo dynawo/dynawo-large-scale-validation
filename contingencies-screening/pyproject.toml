@@ -62,7 +62,6 @@ dependencies = [
 
 # Entry points and automatic script creation:
 [project.scripts]
-check_basecase_dir = "dynawo_contingencies_screening.contingencies_screening:check_basecase_dir"
 run_contingencies_screening = "dynawo_contingencies_screening.contingencies_screening:run_contingencies_screening"
 train_test_loadflow_results = "dynawo_contingencies_screening.analyze_loadflow.machine_learning_analysis:train_test_loadflow_results"
 

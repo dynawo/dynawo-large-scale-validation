@@ -6,7 +6,7 @@ from dynawo_contingencies_screening.commons import manage_files
 
 
 def activate_tap_changers(hades_file, activate_taps, multithreading):
-    # Modify the input file in order to activate the tap changers
+    # Modify the input file in order to activate the tap changers and the number of threads
     if activate_taps:
         activate_taps_str = "true"
     else:

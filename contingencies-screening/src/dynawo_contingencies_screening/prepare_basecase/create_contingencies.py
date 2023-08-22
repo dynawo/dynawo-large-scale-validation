@@ -151,6 +151,7 @@ def generate_contingency(
 
 
 def get_types_cont(hades_input_file):
+    # Get a dictionary with the different types of Hades contingencies
     parsed_hades = manage_files.parse_xml_file(hades_input_file)
     root = parsed_hades.getroot()
     ns = etree.QName(root).namespace
@@ -175,6 +176,7 @@ def get_types_cont(hades_input_file):
 def create_hades_contingency_n_1(
     hades_input_file, hades_input_file_parsed, hades_output_folder, replay_cont, dict_types_cont
 ):
+    # Create the Hades contingencies one by one, in order to get the full loadflows
     # Contingencies (N-1)
 
     # Find the contingency type
@@ -203,6 +205,7 @@ def create_hades_contingency_n_1(
 
 
 def get_dynawo_types_cont(dynawo_input_file):
+    # Get a dictionary with the different types of Dynawo contingencies
     parsed_iidm = manage_files.parse_xml_file(dynawo_input_file)
     root = parsed_iidm.getroot()
     ns = etree.QName(root).namespace
@@ -1047,6 +1050,10 @@ def create_dynawo_SA(
     matched_shunts,
     multithreading,
 ):
+    # Create all the necessary files to be able to carry out the Dynawo SA, taking advantage of
+    # the opportunities offered by dynaflow-launcher, without having to manually create the
+    # contingencies one by one.
+
     # Check if a dynamic database is going to be used and create the needed JSON files
     if multithreading:
         n_threads = manage_files.N_THREADS_LAUNCHER

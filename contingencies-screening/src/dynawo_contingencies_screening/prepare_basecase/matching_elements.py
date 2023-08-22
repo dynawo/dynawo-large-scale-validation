@@ -4,6 +4,7 @@ from dynawo_contingencies_screening.prepare_basecase import create_contingencies
 
 
 def get_dynawo_branches(dynawo_iidm_root, ns):
+    # Get the branches of Dynawo in the form of a dictionary
     dynawo_branches = {}
 
     # Get all the connected branches' name
@@ -40,6 +41,7 @@ def get_dynawo_branches(dynawo_iidm_root, ns):
 
 
 def get_hades_branches(hades_root):
+    # Get the branches of Hades in the form of a set
     hades_branches = set()  # For faster matching
 
     reseau = hades_root.find("./reseau", hades_root.nsmap)
@@ -67,6 +69,7 @@ def extract_matching_branches(hades_root, dynawo_iidm_root):
 
 
 def get_dynawo_generators(dynawo_iidm_root, ns):
+    # Get all Dynawo generators
     dynawo_generators = []
 
     # Get all the connected generators' name
@@ -92,6 +95,7 @@ def get_dynawo_generators(dynawo_iidm_root, ns):
 
 
 def get_hades_generators(hades_root):
+    # Get all Hades generators
     hades_generators = set()  # For faster matching
 
     reseau = hades_root.find("./reseau", hades_root.nsmap)
@@ -120,6 +124,7 @@ def extract_matching_generators(hades_root, dynawo_iidm_root):
 
 
 def get_dynawo_loads(dynawo_iidm_root):
+    # Get all Dynawo loads
     dynawo_loads = []
 
     # Get all the connected loads' name
@@ -143,6 +148,7 @@ def get_dynawo_loads(dynawo_iidm_root):
 
 
 def get_hades_loads(hades_root):
+    # Get all Hades loads
     hades_loads = set()  # For faster matching
 
     reseau = hades_root.find("./reseau", hades_root.nsmap)
@@ -168,6 +174,7 @@ def extract_matching_loads(hades_root, dynawo_iidm_root):
 
 
 def get_dynawo_shunts(dynawo_iidm_root, ns):
+    # Get all Dynawo shunts
     dynawo_shunts = []
 
     # We enumerate all shunts and extract their properties
@@ -180,6 +187,7 @@ def get_dynawo_shunts(dynawo_iidm_root, ns):
 
 
 def get_hades_shunts(hades_root):
+    # Get all Hades shunts
     hades_shunts = set()  # For faster matching
 
     reseau = hades_root.find("./reseau", hades_root.nsmap)
@@ -206,6 +214,7 @@ def extract_matching_shunts(hades_root, dynawo_iidm_root):
 
 
 def matching_elements(hades_input_file, iidm_file_path):
+    # Get all matching elements between Hades and Dynawo
     # Parse the necessary files
     hades_input_file_parsed = manage_files.parse_xml_file(hades_input_file)
     hades_root = hades_input_file_parsed.getroot()

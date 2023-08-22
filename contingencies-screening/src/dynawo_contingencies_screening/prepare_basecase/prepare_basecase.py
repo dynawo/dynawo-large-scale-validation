@@ -1,7 +1,7 @@
 from pathlib import PurePath
 import warnings
 
-
+# TODO: Old version, it is not working with the new directory structure
 def check_basecase_dir(input_dir):
     # Check input has both directories
     if not (input_dir / "dynawo").is_dir():

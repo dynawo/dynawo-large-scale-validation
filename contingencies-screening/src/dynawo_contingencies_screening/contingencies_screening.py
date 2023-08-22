@@ -180,7 +180,9 @@ def run_hades_contingencies_code(
     # Find hades input file
     hades_input_list = list(hades_input_folder.glob("donneesEntreeHADES2*.xml"))
 
+    # Check if the file exists
     if len(hades_input_list) == 0:
+        print("Hades input file not found")
         return "", "", 1
     else:
         hades_input_file = hades_input_list[0]
@@ -203,6 +205,7 @@ def run_hades_contingencies_code(
 
 
 def sort_ranking(elem):
+    # Criterion to define and order the ranking of contingencies
     if type(elem[1]["final_score"]) == str:
         return 0
     else:
@@ -218,7 +221,7 @@ def create_contingencies_ranking_code(
     # Parse hades xml output file
     parsed_hades_output_file = manage_files.parse_xml_file(hades_output_file)
 
-    # Get dict of all contingencies
+    # Get dict of all elements
     hades_elements_dict = extract_results_data.get_elements_dict(parsed_hades_input_file)
 
     # Get dict of all contingencies
@@ -233,10 +236,12 @@ def create_contingencies_ranking_code(
         hades_elements_dict, hades_contingencies_dict, parsed_hades_output_file, tap_changers
     )
 
+    # Check if the results of the contingencies have been found within the output of hades
     if status == 1:
         return hades_contingencies_dict, 1
 
-    # Analyze Hades results
+    # Analyze the results of hades based on the type of scoring that has been chosen, be it
+    # human analysis (LR) or AI
     if score_type == 1:
         hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
             hades_contingencies_dict, hades_elements_dict
@@ -248,17 +253,13 @@ def create_contingencies_ranking_code(
     else:
         exit("There is no defined score for the indicated option")
 
-    # Used to temporarily store dataframes, in order to use them for ML
+    # Used to store dataframes, in order to use them for ML or results analysis
     df_temp, error_contg = machine_learning_analysis.convert_dict_to_df(
         hades_contingencies_dict,
         hades_elements_dict,
         tap_changers,
         True,
     )
-
-    # if (Path(os.getcwd()) / "contg_df.csv").is_file():
-    #     df_ant = pd.read_csv(Path(os.getcwd()) / "contg_df.csv", sep=";", index_col="NUM")
-    #     df_temp = pd.concat([df_ant, df_temp], ignore_index=False)
 
     # Save the DF as a csv file
     df_temp.to_csv(output_dir_path / "contg_df.csv", sep=";")
@@ -273,6 +274,8 @@ def prepare_hades_contingencies(
     replay_contgs = [
         [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
     ]
+
+    # If the number -1 has been provided, all contingencies will be replayed
     if number_pos_replay != -1:
         replay_contgs = replay_contgs[:number_pos_replay]
 
@@ -319,14 +322,23 @@ def prepare_dynawo_SA(
     dynamic_database,
     multithreading,
 ):
-    # Create the worst contingencies with JSON in order to replay it with Dynawo launcher
+    # Create the worst contingencies with JSON in order to replay it with Dynaflow launcher
     replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
 
+    # If the number -1 has been provided, all contingencies will be replayed
     if number_pos_replay != -1:
         replay_contgs = replay_contgs[:number_pos_replay]
 
-    iidm_file = list(dynawo_input_folder.glob("*.*iidm"))[0]
+    iidm_list = list(dynawo_input_folder.glob("*.*iidm"))[0]
 
+    # Check if the file exists
+    if len(iidm_list) == 0:
+        print("Dynawo input file not found")
+        return "", "", "", 1
+    else:
+        iidm_file = iidm_list[0]
+
+    # Match elements between Hades and Dynawo
     (
         matched_branches,
         matched_generators,
@@ -350,9 +362,10 @@ def prepare_dynawo_SA(
         multithreading,
     )
 
-    return config_file, contng_file, contng_dict
+    return config_file, contng_file, contng_dict, 0
 
 
+# TODO: Remove this function
 def prepare_dynawo_contingencies(
     sorted_loadflow_score_list, dynawo_input_folder, dynawo_output_folder, number_pos_replay
 ):
@@ -403,6 +416,7 @@ def prepare_dynawo_contingencies(
     return dynawo_output_list
 
 
+# TODO: Remove this function
 def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
     # Create output dir
     os.makedirs(output_dir, exist_ok=True)
@@ -445,6 +459,7 @@ def extract_dynawo_results(dynawo_output_folder, sorted_loadflow_score_list, num
     parsed_aggregated_file = manage_files.parse_xml_file(dynawo_aggregated_xml)
 
     replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
+    # If the number -1 has been provided, all contingencies will be replayed
     if number_pos_replay != -1:
         replay_contgs = replay_contgs[:number_pos_replay]
 
@@ -461,6 +476,7 @@ def extract_dynawo_results(dynawo_output_folder, sorted_loadflow_score_list, num
 def calculate_case_differences(
     sorted_loadflow_score_list, dynawo_contingency_data, matching_contingencies_dict
 ):
+    # Calculate the differences for each of the contingencies executed in both loadflows
     dict_diffs = {}
     for case in matching_contingencies_dict["contingencies"]:
         hades_key = calc_case_diffs.get_hades_id(case["id"], sorted_loadflow_score_list)
@@ -478,6 +494,8 @@ def calculate_case_differences(
 
 
 def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
+    # Display the results table through the console depending on whether tap changers
+    # have been used or not
     if tap_changers:
         str_table = (
             "{:<7} {:<7} {:<14} {:<14} {:<7} {:<10} {:<10} {:<10} {:<13} "
@@ -573,114 +591,24 @@ def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
 
     print(str_table)
 
+    # Save the results table in a txt
     text_file = open(output_dir / "results_table.txt", "w")
     text_file.write(str_table)
     text_file.close()
 
 
-def calc_rmse(df_contg):
-    df_contg = df_contg.loc[df_contg["STATUS"] == "BOTH"]
-
-    mse = np.square(
-        np.subtract(
-            df_contg["REAL_SCORE"].astype("float"), df_contg["PREDICTED_SCORE"].astype("float")
-        )
-    ).mean()
-    rmse = math.sqrt(mse)
-    return rmse
-
-
-def clean_data(dynawo_output_folder, sorted_loadflow_score_list, number_pos_replay):
-
-    replay_contgs = [elem_list[1]["name"] for elem_list in sorted_loadflow_score_list]
-    if number_pos_replay != -1:
-        replay_contgs = replay_contgs[:number_pos_replay]
-
-    retain_files = ["aggregatedResults.xml"] + [list(dynawo_output_folder.glob("*.*iidm"))[0].name]
-
-    retain_folders = ["outputs", "constraints", "timeLine"]
-    retain_folders_contg = replay_contgs
-
-    retain_common_files = ["constraints_" + contg + ".xml" for contg in replay_contgs] + [
-        "timeline_" + contg + ".xml" for contg in replay_contgs
-    ]
-
-    for elem_dir in dynawo_output_folder.iterdir():
-        if elem_dir.is_file():
-            if elem_dir.name not in retain_files:
-                if os.path.islink(elem_dir):
-                    os.unlink(elem_dir)
-                else:
-                    os.remove(elem_dir)
-        else:
-            if elem_dir.name not in retain_folders and elem_dir.name not in retain_folders_contg:
-                if os.path.islink(elem_dir):
-                    os.unlink(elem_dir)
-                else:
-                    shutil.rmtree(elem_dir)
-            elif elem_dir.name in retain_folders_contg:
-                for elem_contg_dir in elem_dir.iterdir():
-                    if elem_contg_dir.is_file():
-                        if os.path.islink(elem_contg_dir):
-                            os.unlink(elem_contg_dir)
-                        else:
-                            os.remove(elem_contg_dir)
-                    else:
-                        if elem_contg_dir.name != "outputs":
-                            if os.path.islink(elem_contg_dir):
-                                os.unlink(elem_contg_dir)
-                            else:
-                                shutil.rmtree(elem_contg_dir)
-                        else:
-                            for output_dir in elem_contg_dir.iterdir():
-                                if output_dir.is_file():
-                                    if os.path.islink(output_dir):
-                                        os.unlink(output_dir)
-                                    else:
-                                        os.remove(output_dir)
-                                else:
-                                    if output_dir.name != "finalState":
-                                        if os.path.islink(output_dir):
-                                            os.unlink(output_dir)
-                                        else:
-                                            shutil.rmtree(output_dir)
-            elif elem_dir.name in retain_folders:
-                if elem_dir.name == "outputs":
-                    for elem_dir_out in elem_dir.iterdir():
-                        if elem_dir_out.is_file():
-                            if os.path.islink(elem_dir_out):
-                                os.unlink(elem_dir_out)
-                            else:
-                                os.remove(elem_dir_out)
-                        else:
-                            if elem_dir_out.name != "finalState":
-                                if os.path.islink(elem_dir_out):
-                                    os.unlink(elem_dir_out)
-                                else:
-                                    shutil.rmtree(elem_dir_out)
-
-
-def compress_results(path):
-    os.system(
-        "cd "
-        + str(path.parent)
-        + " && tar zcf "
-        + str(path.name)
-        + ".tar.gz "
-        + str(path.name)
-        + " && rm -rf "
-        + str(path.name)
-    )
-
-
 def run_contingencies_screening_thread_loop(
     args, time_dir, input_dir_path, output_dir_path, hades_launcher_solved, dynawo_launcher_solved
 ):
+    # Main function for each of the snapshots, which carries out the entire process of execution,
+    # analysis and comparison
+
     if not time_dir.is_file():
         print("\n################################################################")
         print("Running the " + time_dir.name + " case")
         print("################################################################\n")
 
+        # Create the corresponding directories
         output_dir_final_path = manage_files.create_output_dir(
             input_dir_path,
             output_dir_path,
@@ -690,6 +618,8 @@ def run_contingencies_screening_thread_loop(
             DYNAWO_FOLDER,
         )
 
+        # Define if there will be the last "folder level" depending on whether the execution is reused
+        # or if a new one has to be done.
         if args.calc_contingencies:
             time_dir_hades = time_dir / HADES_FOLDER
         else:
@@ -710,6 +640,7 @@ def run_contingencies_screening_thread_loop(
             args.calc_contingencies,
         )
 
+        # If the above function fails, exit the snapshot iteration without terminating execution.
         if status == 1:
             return
 
@@ -722,6 +653,7 @@ def run_contingencies_screening_thread_loop(
             args.tap_changers,
         )
 
+        # If the above function fails, exit the snapshot iteration without terminating execution.
         if status == 1:
             return
 
@@ -730,6 +662,8 @@ def run_contingencies_screening_thread_loop(
 
         # If selected, replay the worst contingencies with Dynawo systematic analysis
         if args.replay_dynawo:
+            # Define if there will be the last "folder level" depending on whether the execution is
+            # reused or if a new one has to be done.
             if args.calc_contingencies:
                 dynawo_input_dir = time_dir / DYNAWO_FOLDER
             else:
@@ -741,13 +675,14 @@ def run_contingencies_screening_thread_loop(
                     dynawo_input_dir = time_dir
             dynawo_output_dir = output_dir_final_path / DYNAWO_FOLDER
 
+            # Create the path to the dynamic database if provided
             if args.dynamic_database is not None:
                 dynamic_database = Path(args.dynamic_database).absolute()
             else:
                 dynamic_database = None
 
             # Prepare the necessary files
-            config_file, contng_file, matching_contng_dict = prepare_dynawo_SA(
+            config_file, contng_file, matching_contng_dict, status = prepare_dynawo_SA(
                 hades_input_file,
                 sorted_loadflow_score_list,
                 dynawo_input_dir,
@@ -756,6 +691,10 @@ def run_contingencies_screening_thread_loop(
                 dynamic_database,
                 args.multithreading,
             )
+
+            # If the above function fails, exit the snapshot iteration without terminating execution.
+            if status == 1:
+                return
 
             # Run the contingencies again
             status = run_dynawo_contingencies_SA_code(
@@ -768,11 +707,14 @@ def run_contingencies_screening_thread_loop(
                 matching_contng_dict,
             )
 
+            # If the above function fails, exit the snapshot iteration without terminating execution.
             if status == 1:
                 return
 
+            # Clean Dynawo output results to save space, taking into account that mass executions will
+            # be done and keeping all the information for a possible replay.
             if args.compress_results:
-                clean_data(
+                manage_files.clean_data(
                     dynawo_output_dir,
                     sorted_loadflow_score_list,
                     args.n_replay,
@@ -800,7 +742,7 @@ def run_contingencies_screening_thread_loop(
             df_contg = df_contg.sort_values("REAL_SCORE", ascending=False)
 
             if args.n_replay != -1:
-                rmse = calc_rmse(df_contg.head(args.n_replay))
+                rmse = calc_case_diffs.calc_rmse(df_contg.head(args.n_replay))
                 print()
                 print(
                     "RMSE of the "
@@ -809,7 +751,7 @@ def run_contingencies_screening_thread_loop(
                     + str(rmse)
                 )
             else:
-                rmse = calc_rmse(df_contg)
+                rmse = calc_case_diffs.calc_rmse(df_contg)
                 print()
                 print(
                     "RMSE of the all the contingencies (predicted vs real diff score without divergence cases):\n"
@@ -839,17 +781,14 @@ def run_contingencies_screening_thread_loop(
                     False,
                 )
 
+        # If the option is selected and the execution has finished successfully, compress the results
+        # to save space
         if args.compress_results:
-            compress_results(output_dir_final_path)
+            manage_files.compress_results(output_dir_final_path)
 
 
-# From here:
+# FROM HERE:
 # command line executables
-
-
-def check_basecase_dir(input_dir):
-    # Run the BASECASE directory check
-    prepare_basecase.check_basecase_dir(Path(input_dir).absolute())
 
 
 def run_contingencies_screening():
@@ -877,14 +816,12 @@ def run_contingencies_screening():
     # Check the existence of the input and output directories
     dir_exists(input_dir_path, output_dir_path)
 
-    # TODO: Modify function for new dir structure
-    # Check if input directory has the required format and files
-    # prepare_basecase.check_basecase_dir(input_dir_path)
-
     # Check if specified launchers are files in the system path or directories to files
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
     dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
 
+    # Iterate through the different directories to execute all the cases provided, following
+    # the structure of YEAR -> MONTH -> DAY -> HOUR
     for year_dir in input_dir_path.iterdir():
         if year_dir.is_file():
             continue
@@ -894,6 +831,7 @@ def run_contingencies_screening():
             for day_dir in month_dir.iterdir():
                 if day_dir.is_file():
                     continue
+                # Use or not multithreading depending on the selected option
                 if args.multithreading:
                     arguments_list = []
                     for time_dir in day_dir.iterdir():

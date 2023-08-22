@@ -12,6 +12,9 @@ from dynawo_contingencies_screening.analyze_loadflow import human_analysis
 
 
 def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicted_score=False):
+    # Convert and compute the result dictionaries to a usable dataframe for training and
+    # predicting with the machine learning model.
+
     contingencies_df = {
         "NUM": [],
         "NAME": [],
@@ -112,6 +115,8 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicte
 
 
 def predict_scores(contingencies_df, model_filename):
+    # Predict with the machine learning model
+
     model = pickle.load(open(model_filename, "rb"))
     contg_scores = {}
 
@@ -122,7 +127,10 @@ def predict_scores(contingencies_df, model_filename):
 
 
 def analyze_loadflow_results(contingencies_dict, elements_dict, tap_changers):
-    # Analyze the loadflow results through machine learning models
+    # Predict the difference between Hades and Dynamo load flow resolution using only Hades
+    # resolution. For this, a previously trained model is used, which can be found in the same
+    # folder as this script, and which varies depending on whether the tap changers are active or
+    # not.
 
     contingencies_df, error_contg = convert_dict_to_df(
         contingencies_dict, elements_dict, tap_changers
@@ -176,7 +184,14 @@ def argument_parser(command_list):
     return args
 
 
+# FROM HERE:
+# command line executables
+
+
 def train_test_loadflow_results():
+    # Function to train and test different machine learning models in order to compare them and
+    # get the best one to include it in the package and make the predictions
+
     pd.options.mode.chained_assignment = None  # default='warn'
     args = argument_parser(["df_path", "model_path"])
 

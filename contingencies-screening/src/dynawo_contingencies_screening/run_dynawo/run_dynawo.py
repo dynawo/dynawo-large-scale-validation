@@ -7,7 +7,7 @@ from lxml import etree
 
 def run_dynaflow(input_dir, output_dir, dynawo_launcher):
     # From the data specified in the input directory,
-    # run the simulation in the desired Dynawo launcher
+    # run the simulation with the desired Dynawo launcher
 
     # We obtain the output folder path
     # and copy the input file there
@@ -23,6 +23,9 @@ def run_dynaflow(input_dir, output_dir, dynawo_launcher):
 
 
 def check_calculated_contg(input_dir, matching_contng_dict):
+    # Check if a contingency is in the files of contingencies already executed, in order to know if it
+    # can be reused or not (eg contingencies executed 1,2,3,4. 2 and 4 are wanted, therefore it can be
+    # reused. If 2,4,5 were needed, it would not be possible)
 
     parsed_file = manage_files.parse_xml_file(input_dir / "aggregatedResults.xml")
 
@@ -48,8 +51,8 @@ def run_dynaflow_SA(
     calc_contingencies,
     matching_contng_dict,
 ):
-    # From the data specified in the input directory,
-    # run the simulation in the desired Dynawo launcher
+    # From the data specified in the input directory, run the simulation in the desired Dynawo
+    # launcher or reuse the data provided.
 
     replay_dynawo = True
     if calc_contingencies:

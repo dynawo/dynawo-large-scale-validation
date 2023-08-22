@@ -1,7 +1,6 @@
-STD_TAP_VALUE = 20
-
-
 def calc_diff_volt(contingency_values, loadflow_values):
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
     sum_diffs = len(contingency_values)
 
     for poste_v in contingency_values:
@@ -11,7 +10,9 @@ def calc_diff_volt(contingency_values, loadflow_values):
 
 
 def calc_diff_max_flow(list_values):
-    # TODO: Check with JL the concept of max flow and if the calc is okay
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
+
     sum_diffs = len(list_values)
 
     for max_flow in list_values:
@@ -21,7 +22,8 @@ def calc_diff_max_flow(list_values):
 
 
 def calc_constr_gen_Q(contingency_values, elem_dict):
-    # TODO: Check if it is okay for JL
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
 
     score_constr = len(contingency_values)
     for constr in contingency_values:
@@ -33,7 +35,9 @@ def calc_constr_gen_Q(contingency_values, elem_dict):
 
 
 def calc_constr_gen_U(contingency_values, elem_dict):
-    # TODO: Check if it is okay for JL
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
+
     score_constr = len(contingency_values)
     for constr in contingency_values:
         score_constr += abs(float(constr["after"]) - float(constr["before"])) * (
@@ -44,7 +48,9 @@ def calc_constr_gen_U(contingency_values, elem_dict):
 
 
 def calc_constr_volt(contingency_values, elem_dict):
-    # TODO: Check if it is okay for JL
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
+
     final_value = 0
 
     for volt_constr in contingency_values:
@@ -63,7 +69,9 @@ def calc_constr_volt(contingency_values, elem_dict):
 
 
 def calc_constr_flow(contingency_values, elem_dict):
-    # TODO: Check if it is okay for JL
+    # Calculate the value of the metric to be able to predict if there will be a difference
+    # between Hades and Dynawo
+
     final_value = 0
 
     for flow_constr in contingency_values:
@@ -78,24 +86,18 @@ def calc_constr_flow(contingency_values, elem_dict):
 
             final_value += value * (1 + elem_dict[flow_constr["elem_num"]]["volt_level"] / 10)
 
-    """
-    final_value = 0
-    for volt_constr in contingency_values:
-        tempo = int(volt_constr["tempo"])
-        if tempo == 99999 or tempo == 9999:
-            final_value += 10
-        else:
-            tempo = tempo / 100
-            final_value += (1 / (tempo * tempo)) * 10000
-
-    """
-
     return final_value
 
 
+STD_TAP_VALUE = 20
+
+
 def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
-    # TODO: Explain what should be done
-    # TODO: Implement it
+    # Predict the difference between Hades and Dynawo's loadflow resolution using only Hades'
+    # resolution. Each of the attributes has an assigned weight that shows its importance over
+    # the final value.
+
+    # TODO: Define different weights depending on tap changers use
 
     w_volt_min = 0.48453439427510003
     w_volt_max = -0.054528360371039364
@@ -110,12 +112,6 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
     w_flow = 0.6367911705557392
     w_coefreport = 0.2262723051576275
     independent_term = 3919.8977272417924
-
-    # dict_keys(['coef_report'])
-
-    # TODO: Investigate if the 'calc_duration' can be interesting
-
-    # TODO: Finished here, it remains to apply the new value of voltage level from the dictionary of elements dict to the calculations of the constraints
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:

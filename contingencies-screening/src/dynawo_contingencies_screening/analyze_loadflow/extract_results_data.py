@@ -123,6 +123,8 @@ def get_contingencies_dict(parsed_hades_input_file):
 
 
 def get_max_min_voltages(root, ns, contingencies_list):
+    # Create the dictionaries to make a "voting system" for the maximum and
+    # minimum voltages of the SA results of Hades
     # Create the dictionaries where the data will be stored
     max_voltages_dict = {key: [] for key in contingencies_list}
     min_voltages_dict = {key: [] for key in contingencies_list}
@@ -167,6 +169,9 @@ def get_poste_node_voltages(root, ns, elements_dict, poste_node_volt_dict):
 
 
 def get_line_flows(root, ns, contingencies_dict):
+    # Obtain the maximum flows of the lines and assign them to which contingency has
+    # caused them
+
     invert_dict = {}
 
     for contg in contingencies_dict.keys():
@@ -187,6 +192,8 @@ def get_line_flows(root, ns, contingencies_dict):
 
 
 def get_fault_data(root, ns, contingencies_list):
+    # Obtain all the information provided by the fault entry for each of the
+    # contingencies in Hades
     # Create the dictionaries where we will store the data
     status_dict = {}
     cause_dict = {}
@@ -382,6 +389,7 @@ def collect_hades_results(
 
 
 def get_dynawo_contingencies(dynawo_xml_root, ns, contg_set):
+    # Get a dictionary with all the Dynawo contingencies
     contingencies_dict = {}
 
     for contg in dynawo_xml_root.iter("{%s}scenarioResults" % ns):
@@ -393,6 +401,9 @@ def get_dynawo_contingencies(dynawo_xml_root, ns, contg_set):
 
 
 def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
+    # Get all the timeline events taking into account that an event after another can make the
+    # first one obsolete. Example: saturate a generator and then return to normal mode (this
+    # example should not be included in the dictionary).
     # Reverse the timeline events
     timeline = root.findall("{%s}event" % ns)
     timeline = list(reversed(timeline))
@@ -433,6 +444,7 @@ def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
 def get_dynawo_contingency_data(
     dynawo_contingencies_dict, dynawo_nocontg_tap_dict, dynawo_output_folder
 ):
+    # Obtain the data of each of Dynawo's contingencies
     # Check results of all the contingencies
     for contg in dynawo_contingencies_dict.keys():
         # Get the contingency data from converged contingencies
@@ -489,6 +501,7 @@ def get_dynawo_contingency_data(
 
 
 def get_dynawo_tap_data(output_file_root, ns):
+    # Obtain the taps' data of each of Dynawo's contingencies
     # Create the tap data dictionary
     dynawo_taps_dict = {"phase_taps": {}, "ratio_taps": {}}
 
@@ -503,19 +516,6 @@ def get_dynawo_tap_data(output_file_root, ns):
         # Add the tap attributes
         phase_tap_dict.update(phase_tap.attrib)
 
-        """
-        # Get all nested data
-        phase_tap_dict["step"] = []
-        for element in phase_tap.iter():
-            # Skip element if it is the root
-            if element is not phase_tap:
-                # Watch for elements different from step
-                if element.tag != "{%s}step" % ns:
-                    phase_tap_dict["terminalRef"] = element.attrib
-                else:
-                    phase_tap_dict["step"].append(element.attrib)
-        """
-
         # Add entry to main dictionary
         dynawo_taps_dict["phase_taps"][phase_tap_transformer_id] = phase_tap_dict
 
@@ -529,19 +529,6 @@ def get_dynawo_tap_data(output_file_root, ns):
         # Add the tap attributes
         ratio_tap_dict.update(ratio_tap.attrib)
 
-        """
-        # Get all nested data
-        ratio_tap_dict["step"] = []
-        for element in ratio_tap.iter():
-            # Skip element if it is the root
-            if element is not ratio_tap:
-                # Watch for elements different from step
-                if element.tag != "{%s}step" % ns:
-                    ratio_tap_dict["terminalRef"] = element.attrib
-                else:
-                    ratio_tap_dict["step"].append(element.attrib)
-        """
-
         # Add entry to main dictionary
         dynawo_taps_dict["ratio_taps"][ratio_tap_transformer_id] = ratio_tap_dict
 
@@ -549,6 +536,10 @@ def get_dynawo_tap_data(output_file_root, ns):
 
 
 def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, contingency_name):
+
+    # Obtain the movements of Dynawo's taps by comparing the result of the loadflow without
+    # contingency vs. with contingency
+
     tap_diff_dict = {"phase_taps": {}, "ratio_taps": {}}
 
     # Differences between phase_taps
