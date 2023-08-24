@@ -1,3 +1,7 @@
+import numpy as np
+import math
+
+
 def get_hades_id(case, sorted_loadflow_score_list):
     # Get the contingency id of Hades
     for i in range(len(sorted_loadflow_score_list)):

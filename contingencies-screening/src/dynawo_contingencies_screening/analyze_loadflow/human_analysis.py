@@ -92,26 +92,39 @@ def calc_constr_flow(contingency_values, elem_dict):
 STD_TAP_VALUE = 20
 
 
-def analyze_loadflow_results_continuous(contingencies_dict, elements_dict):
+def analyze_loadflow_results_continuous(contingencies_dict, elements_dict, tap_changers):
     # Predict the difference between Hades and Dynawo's loadflow resolution using only Hades'
     # resolution. Each of the attributes has an assigned weight that shows its importance over
     # the final value.
 
-    # TODO: Define different weights depending on tap changers use
-
-    w_volt_min = 0.48453439427510003
-    w_volt_max = -0.054528360371039364
-    w_iter = 58.49003508266973
-    w_poste = 11.40520295890738
-    w_constr_gen_Q = 6.5659622388617755
-    w_constr_gen_U = 6.963318810448982e-13
-    w_constr_volt = -2.2173873238553075
-    w_constr_flow = 17.40705542826712
-    w_node = 554.1470097201553
-    w_tap = 1.1482761323898152
-    w_flow = 0.6367911705557392
-    w_coefreport = 0.2262723051576275
-    independent_term = 3919.8977272417924
+    if tap_changers:
+        w_volt_min = 0.8709585643521689
+        w_volt_max = 0.32995161908167936
+        w_iter = 81.43358920208493
+        w_poste = 11.007921745505888
+        w_constr_gen_Q = 3.4593465451214
+        w_constr_gen_U = 0
+        w_constr_volt = 10.988360889527888
+        w_constr_flow = 4.591743423281762
+        w_node = -195.45290455853078
+        w_tap = -2.351895683336903
+        w_flow = 0.6039847425477087
+        w_coefreport = -0.12145763111045368
+        independent_term = 4081.3883262812024
+    else:
+        w_volt_min = 0.48453439427510003
+        w_volt_max = -0.054528360371039364
+        w_iter = 58.49003508266973
+        w_poste = 11.40520295890738
+        w_constr_gen_Q = 6.5659622388617755
+        w_constr_gen_U = 6.963318810448982e-13
+        w_constr_volt = -2.2173873238553075
+        w_constr_flow = 17.40705542826712
+        w_node = 554.1470097201553
+        w_tap = 0
+        w_flow = 0.6367911705557392
+        w_coefreport = 0.2262723051576275
+        independent_term = 3919.8977272417924
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:

@@ -244,7 +244,7 @@ def create_contingencies_ranking_code(
     # human analysis (LR) or AI
     if score_type == 1:
         hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
-            hades_contingencies_dict, hades_elements_dict
+            hades_contingencies_dict, hades_elements_dict, tap_changers
         )
     elif score_type == 2:
         hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
@@ -329,7 +329,7 @@ def prepare_dynawo_SA(
     if number_pos_replay != -1:
         replay_contgs = replay_contgs[:number_pos_replay]
 
-    iidm_list = list(dynawo_input_folder.glob("*.*iidm"))[0]
+    iidm_list = list(dynawo_input_folder.glob("*.*iidm"))
 
     # Check if the file exists
     if len(iidm_list) == 0:

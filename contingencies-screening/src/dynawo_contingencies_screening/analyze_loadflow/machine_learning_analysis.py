@@ -2,13 +2,16 @@ import os
 import argparse
 from pathlib import Path
 import pandas as pd
+import numpy as np
 import pickle
 from numpy import mean, std
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import KFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
+
+STD_TAP_VALUE = 20
 
 
 def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicted_score=False):
@@ -66,7 +69,6 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicte
 
         value_tap_changer = 0
         if tap_changers:
-            STD_TAP_VALUE = 20
             for tap in contingencies_dict[key]["tap_changers"]:
                 if int(tap["stopper"]) == 0:
                     value_tap_changer += abs(tap["diff_value"])
@@ -207,37 +209,46 @@ def train_test_loadflow_results():
     contingencies_df = contingencies_df.drop(["STATUS"], axis=1)
     contingencies_df = contingencies_df.dropna()
 
+    contingencies_df = contingencies_df.sample(frac=1)
+
     y = contingencies_df.pop("REAL_SCORE")
     X = contingencies_df.drop("NAME", axis=1)
 
-    model_GBR = GradientBoostingRegressor()
-    model_RF = RandomForestRegressor(max_depth=3, random_state=0)
+    # model_GBR = GradientBoostingRegressor(learning_rate=0.1104, n_estimators=700, max_depth=12)
+    model_GBR = GradientBoostingRegressor(learning_rate=0.11, n_estimators=700, max_depth=12)
     model_LR = LinearRegression()
 
-    cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=0)
+    cv = KFold(n_splits=5)
 
     n_scores_GBR = cross_val_score(
-        model_GBR, X, y, scoring="neg_mean_absolute_error", cv=cv, n_jobs=-1, error_score="raise"
-    )
-    n_scores_RF = cross_val_score(
-        model_RF, X, y, scoring="neg_mean_absolute_error", cv=cv, n_jobs=-1, error_score="raise"
-    )
-    n_scores_LR = cross_val_score(
-        model_LR, X, y, scoring="neg_mean_absolute_error", cv=cv, n_jobs=-1, error_score="raise"
+        model_GBR,
+        X,
+        y,
+        scoring="neg_mean_absolute_error",
+        cv=cv,
+        n_jobs=-1,
+        error_score="raise",
+        verbose=3,
     )
 
     print("MAE GBR: %.3f (%.3f)" % (mean(n_scores_GBR), std(n_scores_GBR)))
 
-    print("MAE RF: %.3f (%.3f)" % (mean(n_scores_RF), std(n_scores_RF)))
+    n_scores_LR = cross_val_score(
+        model_LR,
+        X,
+        y,
+        scoring="neg_mean_absolute_error",
+        cv=cv,
+        n_jobs=-1,
+        error_score="raise",
+        verbose=3,
+    )
 
     print("MAE LR: %.3f (%.3f)" % (mean(n_scores_LR), std(n_scores_LR)))
 
     # fit the model on the whole dataset
-    model_GBR = GradientBoostingRegressor()
+    model_GBR = GradientBoostingRegressor(learning_rate=0.11, n_estimators=700, max_depth=12)
     model_GBR.fit(X, y)
-
-    model_RF = RandomForestRegressor(max_depth=3, random_state=0)
-    model_RF.fit(X, y)
 
     model_LR = LinearRegression()
     model_LR.fit(X, y)
@@ -251,7 +262,36 @@ def train_test_loadflow_results():
         print(cols[i], coefs[i])
 
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
-    pickle.dump(model_RF, open(model_path / "RF_model.pkl", "wb"))
     pickle.dump(model_LR, open(model_path / "LR_model.pkl", "wb"))
 
     print("Models saved")
+
+    # Search for the best hyperparameters
+    """
+    from skopt import BayesSearchCV
+    from skopt.space import Real, Integer
+    np.int = np.int64
+    parameters = {
+        "learning_rate": Real(0.08, 0.4, prior="log-uniform"),
+        "n_estimators": Integer(400, 800),
+        "max_depth": Integer(4, 12),
+    }
+    model_GBR = GradientBoostingRegressor()
+
+    clf = BayesSearchCV(
+        estimator=model_GBR,
+        search_spaces=parameters,
+        scoring="neg_mean_absolute_error",
+        cv=5,
+        verbose=5,
+        n_jobs=8,
+        random_state=0,
+        n_iter=50,
+    )
+    clf.fit(X, y)
+
+    print(clf.cv_results_)
+    pd.DataFrame.from_dict(clf.cv_results_, orient="columns").to_csv(
+        model_path / "BayesSearchCV.csv", index=False
+    )
+    """
