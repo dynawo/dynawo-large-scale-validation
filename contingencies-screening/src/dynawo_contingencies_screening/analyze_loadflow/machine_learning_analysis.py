@@ -186,6 +186,17 @@ def argument_parser(command_list):
     return args
 
 
+def normalize_LR(X, coefs):
+    # Get the median of all values to normalize the weights of LR and view the most important ones
+    coefs_norm = []
+    
+    cols = list(X.columns)
+
+    for i in range(len(cols)):
+        coefs_norm.append(X[cols[i]].mean() * coefs[i])
+
+    return coefs_norm
+
 # FROM HERE:
 # command line executables
 
@@ -260,6 +271,16 @@ def train_test_loadflow_results():
     print("INTERCEPTION", model_LR.intercept_)
     for i in range(len(cols)):
         print(cols[i], coefs[i])
+    
+
+    print()
+    print("LR weights normalized")
+    print("INTERCEPTION", model_LR.intercept_)
+    
+    coefs_norm = normalize_LR(X, coefs)
+    
+    for i in range(len(cols)):
+        print(cols[i], coefs_norm[i])
 
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
     pickle.dump(model_LR, open(model_path / "LR_model.pkl", "wb"))
