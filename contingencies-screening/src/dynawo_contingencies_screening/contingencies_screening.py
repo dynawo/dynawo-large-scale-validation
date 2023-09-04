@@ -365,66 +365,6 @@ def prepare_dynawo_SA(
     return config_file, contng_file, contng_dict, 0
 
 
-# TODO: Remove this function
-def prepare_dynawo_contingencies(
-    sorted_loadflow_score_list, dynawo_input_folder, dynawo_output_folder, number_pos_replay
-):
-    # Create the worst contingencies manually in order to replay it with Dynawo launcher
-    replay_contgs = [
-        [elem_list[1]["name"], elem_list[1]["type"]] for elem_list in sorted_loadflow_score_list
-    ]
-    if number_pos_replay != -1:
-        replay_contgs = replay_contgs[:number_pos_replay]
-
-    dynawo_output_list = []
-
-    # Get the JOB file path
-    dynawo_job_file = dynawo_input_folder / "JOB.xml"
-
-    # Parse the JOB file
-    parsed_input_xml = manage_files.parse_xml_file(dynawo_job_file)
-    root = parsed_input_xml.getroot()
-    ns = etree.QName(root).namespace
-
-    # Get the .iidm filename
-    jobs = root.findall("{%s}job" % ns)
-    last_job = jobs[-1]  # contemplate only the *last* job, in case there are several
-    modeler = last_job.find("{%s}modeler" % ns)
-    network = modeler.find("{%s}network" % ns)
-    iidm_file = network.get("iidmFile")
-
-    dict_types_cont = create_contingencies.get_dynawo_types_cont(dynawo_input_folder / iidm_file)
-
-    for replay_cont in replay_contgs:
-        if replay_cont[1] == 0:
-            # Contingencies (N-1)
-            # Generate the fist N(number_pos_replay) contingencies
-            dynawo_output_file = create_contingencies.create_dynawo_contingency_n_1(
-                dynawo_input_folder,
-                dynawo_output_folder,
-                replay_cont[0],
-                dict_types_cont,
-            )
-
-            if dynawo_output_file != -1:
-                dynawo_output_list.append(dynawo_output_file)
-        else:
-            print(
-                "Due to the nature of Hades SA, this program does not support non-N-1 contingencies. How for example, N - k."
-            )
-
-    return dynawo_output_list
-
-
-# TODO: Remove this function
-def run_dynawo_contingencies_code(input_dir, output_dir, dynawo_launcher):
-    # Create output dir
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Run the BASECASE with the specified Dynawo launcher
-    run_dynawo.run_dynaflow(input_dir, output_dir, dynawo_launcher)
-
-
 def run_dynawo_contingencies_SA_code(
     input_dir,
     output_dir,

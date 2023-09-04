@@ -1,5 +1,6 @@
 from lxml import etree
 import os
+import shutil
 
 # Define the number of threads with which you want to configure the different execution launchers
 # (eg N contingencies at the same time within a snapshot) and define the number of threads you
