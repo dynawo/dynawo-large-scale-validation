@@ -10,9 +10,8 @@ the dictionaries will be described separately below.
 
 ## Hades contingencies dictionary
 
-This dictionary has its key values represent the number of the contingency, and
-its value contains another dictionary with the data regarding said contingency.
-e.g.
+This dictionary has its keys represent the number of the contingency, and its 
+values contain another dictionary with the data regarding said contingency. e.g.
 
 ```
     {contingency_number: {contingency_data}}
@@ -28,10 +27,13 @@ by the contingency.
 originates from.
 * **min_voltages**: List of tuples where each entry contains firstly the number of the 
 network bus that, during the execution of this contingency, has achieved its minimum voltage 
-value from all the contingencies, and secondly said minimum voltage value.
+value compared to the rest of contingencies, and secondly said minimum voltage value.
 * **max_voltages**: List of tuples where each entry contains firstly the number of the 
 network bus that, during the execution of this contingency, has achieved its maximum voltage 
-value from all the contingencies, and secondly said maximum voltage value.
+value compared to the rest of contingencies, and secondly said maximum voltage value.
+* **max_flow**: List of tuples where each entry contains firstly the number of the network
+line that, during the execution of this contingency, has achieved its maximum flow 
+value compared to the rest of contingencies, and secondly said maximum flow value.
 * **status**: Numerical value that represents the final state of the contingency simulation. 
 Possible values can be as follows:
   * 0: Simulation final state is 'Convergence'.
@@ -97,7 +99,7 @@ simulation.
 * **tap_changers**: List of dictionaries containing the tap changers data generated from the 
 contingency simulation. *Note: this entry will not be present in the dictionary if the 
 'tap_changers' option is not activated (see the 
-[Tutorial](/contingencies-screening/src/dynawo_contingencies_screening/doc/Tutorial.md)
+[Tutorial](Tutorial.md)
 document for further information).* The dictionary has the following entries:
   * *quadripole_num*
   * *quadripole_name*
@@ -111,9 +113,8 @@ cannot converge, or a numerical value representing its severity.
 
 ## Dynawo continegncies dictionary
 
-This dictionary has the contingencies' name as key values, and another 
-dictionary that contains that specific contingency data as its value.
-e.g.
+This dictionary has the contingencies' name as keys, and its values are another 
+dictionary that contains the specific contingency data. e.g.
 
 ```
     {contingency_name: {contingency_data}}
@@ -139,7 +140,7 @@ The element dictionary data contains the following elements:
 * **tap_changers**: Dictionary containing the resulting data of the tap changers that 
 have been activated during the simulation. This dictionary splits the tap changers into 
 two types:
-  * *phase taps*: Dictionary that has as key values the ID of the transformers which the 
+  * *phase taps*: Dictionary that has as keys the ID of the transformers which the 
   different phase taps are connected to, and as value another dictionary containing the following 
   phase tap data:
     * *lowTapPosition*
@@ -150,7 +151,7 @@ two types:
     * *regulating*
     * *step*: Array of dictionaries containing the data originated from every step the tap has taken
     during the simulation.
-  * *ratio taps*: Dictionary that has as key values the ID of the transformers which the 
+  * *ratio taps*: Dictionary that has as keys the ID of the transformers which the 
   different ratio taps are connected to, and as value another dictionary containing the following 
   ratio tap data (*Note: Not every entry of the ratio taps dictionary will contain all the following
   ratio tap data attributes*):
@@ -165,7 +166,7 @@ two types:
 * **tap_diffs**: Dictionary containing the resulting data from the difference in tap changers between 
 the specific contingency simulation and the no contingency simulation. This dictionary splits the 
 tap changers into two types:
-  * *phase taps*: Dictionary that has as key values the ID of the transformers which the 
+  * *phase taps*: Dictionary that has as keys the ID of the transformers which the 
   different phase taps are connected to and are different between the results of the contingency 
   and the no contingency simulations, and as value another dictionary containing the differences 
   in the following phase tap data:
@@ -175,7 +176,7 @@ tap changers into two types:
     * *targetV*
     * *loadTapChangingCapabilities*
     * *regulating*
-  * *ratio taps*: Dictionary that has as key values the ID of the transformers which the 
+  * *ratio taps*: Dictionary that has as keys the ID of the transformers which the 
   different ratio taps are connected to and are different between the results of the contingency 
   and the no contingency simulations, and as value another dictionary containing the differences 
   in the following ratio tap data:

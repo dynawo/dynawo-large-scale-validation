@@ -40,5 +40,5 @@ contingencies-screening/
 The main pipeline can be used by running the command run_contingencies_screening with the required
 arguments in the command line after installing and activating the provided virtual environment. 
 For more information, please consult the
-[Tutorial.md](src/dynawo_contingencies_screening/doc/Tutorial.md)
+[Tutorial](src/dynawo_contingencies_screening/doc/Tutorial.md)
 under the general doc folder.
