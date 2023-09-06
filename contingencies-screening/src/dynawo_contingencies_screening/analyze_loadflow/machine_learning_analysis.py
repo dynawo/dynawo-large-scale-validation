@@ -2,7 +2,6 @@ import os
 import argparse
 from pathlib import Path
 import pandas as pd
-import numpy as np
 import pickle
 from numpy import mean, std
 from sklearn.ensemble import GradientBoostingRegressor
@@ -10,8 +9,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
-
-STD_TAP_VALUE = 20
 
 
 def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicted_score=False):
@@ -73,7 +70,7 @@ def convert_dict_to_df(contingencies_dict, elements_dict, tap_changers, predicte
                 if int(tap["stopper"]) == 0:
                     value_tap_changer += abs(tap["diff_value"])
                 else:
-                    value_tap_changer += STD_TAP_VALUE
+                    value_tap_changer += human_analysis.STD_TAP_VALUE
 
         contingencies_df["NUM"].append(key)
         contingencies_df["NAME"].append(contingencies_dict[key]["name"])

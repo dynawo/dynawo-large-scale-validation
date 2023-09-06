@@ -83,6 +83,7 @@ def get_elements_dict(parsed_hades_input_file):
             else None,
         }
 
+    # Group all dictionaries into one
     elements_dict["poste"] = poste_dict
     elements_dict["noeud"] = noeud_dict
     elements_dict["groupe"] = groupe_dict
@@ -199,10 +200,9 @@ def get_fault_data(root, ns, contingencies_list):
     cause_dict = {}
     iter_number_dict = {}
     calc_duration_dict = {}
-    constraint_dict = {}
-    constraint_dict["contrTransit"] = {key: [] for key in contingencies_list}
-    constraint_dict["contrTension"] = {key: [] for key in contingencies_list}
-    constraint_dict["contrGroupe"] = {key: [] for key in contingencies_list}
+    constraint_dict = {"contrTransit": {key: [] for key in contingencies_list},
+                       "contrTension": {key: [] for key in contingencies_list},
+                       "contrGroupe": {key: [] for key in contingencies_list}}
     coef_report_dict = {key: [] for key in contingencies_list}
     res_node_dict = {key: [] for key in contingencies_list}
     tap_changers_dict = {key: [] for key in contingencies_list}
@@ -332,7 +332,6 @@ def collect_hades_results(
         return "", "", 1
 
     # Collect the voltages data and its contingencies
-
     min_voltages_dict, max_voltages_dict, poste_node_volt_dict = get_max_min_voltages(
         root, ns, list(contingencies_dict.keys())
     )
@@ -355,6 +354,7 @@ def collect_hades_results(
         tap_changers_dict,
     ) = get_fault_data(root, ns, list(contingencies_dict.keys()))
 
+    # Group all the data into the same dictionary
     for key in contingencies_dict.keys():
         contingencies_dict[key]["min_voltages"] = min_voltages_dict[key]
         contingencies_dict[key]["max_voltages"] = max_voltages_dict[key]
@@ -421,9 +421,7 @@ def get_dynawo_timeline_constraints(root, ns, dwo_constraint_list):
             if (entry.attrib["message"] == "Generator : minimum reactive power limit reached") or (
                 entry.attrib["message"] == "Generator : maximum reactive power limit reached"
             ):
-                limit_constr = {}
-
-                limit_constr["modelName"] = entry.attrib["modelName"]
+                limit_constr = {"modelName": entry.attrib["modelName"]}
 
                 # Create the description from the timelimit message
                 if "minimum" in entry.attrib["message"]:
@@ -536,7 +534,6 @@ def get_dynawo_tap_data(output_file_root, ns):
 
 
 def get_dynawo_tap_diffs(dynawo_contingencies_dict, dynawo_nocontg_tap_dict, contingency_name):
-
     # Obtain the movements of Dynawo's taps by comparing the result of the loadflow without
     # contingency vs. with contingency
 

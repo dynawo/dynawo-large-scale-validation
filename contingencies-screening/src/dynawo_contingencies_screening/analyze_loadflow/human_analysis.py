@@ -1,6 +1,7 @@
 def calc_diff_volt(contingency_values, loadflow_values):
     # Calculate the value of the metric to be able to predict if there will be a difference
     # between Hades and Dynawo
+
     sum_diffs = len(contingency_values)
 
     for poste_v in contingency_values:

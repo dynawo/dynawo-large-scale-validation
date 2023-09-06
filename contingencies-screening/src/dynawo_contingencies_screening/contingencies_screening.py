@@ -4,8 +4,6 @@ import copy
 import argparse
 import multiprocessing
 import pandas as pd
-import math
-import numpy as np
 from pathlib import Path
 from lxml import etree
 from dynawo_contingencies_screening.run_loadflow import run_hades
@@ -15,7 +13,6 @@ from dynawo_contingencies_screening.analyze_loadflow import (
     machine_learning_analysis,
 )
 from dynawo_contingencies_screening.prepare_basecase import (
-    prepare_basecase,
     create_contingencies,
     matching_elements,
 )
@@ -307,7 +304,8 @@ def prepare_hades_contingencies(
                 hades_output_list.append(hades_output_file)
         else:
             print(
-                "Due to the nature of Hades SA, this program does not support non-N-1 contingencies. How for example, N - k."
+                "Due to the nature of Hades SA, this program does not "
+                "support non-N-1 contingencies. How for example, N - k."
             )
 
     return hades_output_list

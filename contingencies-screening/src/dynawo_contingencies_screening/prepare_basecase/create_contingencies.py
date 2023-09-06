@@ -255,12 +255,13 @@ def create_dynawo_SA(
     # the opportunities offered by dynaflow-launcher, without having to manually create the
     # contingencies one by one.
 
-    # Check if a dynamic database is going to be used and create the needed JSON files
+    # Set up the number of execution threads
     if multithreading:
         n_threads = manage_files.N_THREADS_LAUNCHER
     else:
         n_threads = 1
 
+    # Check if a dynamic database is going to be used and create the needed JSON files
     if dynamic_database is not None:
         setting_xml = list(dynamic_database.glob("*setting*.xml"))[0]
         assembling_xml = list(dynamic_database.glob("*assembling*.xml"))[0]
