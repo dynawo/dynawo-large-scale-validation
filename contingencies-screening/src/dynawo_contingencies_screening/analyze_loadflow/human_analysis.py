@@ -104,9 +104,9 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict, tap_c
         w_poste = 11.220861426449641
         w_constr_gen_Q = 3.87026569307372
         w_constr_gen_U = 0
-        w_constr_volt = 5.887908003334723 
-        w_constr_flow = 3.3842814175737255 
-        w_node = -26.293937456294575 
+        w_constr_volt = 5.887908003334723
+        w_constr_flow = 3.3842814175737255
+        w_node = -26.293937456294575
         w_tap = 6.961564970553012
         w_flow = 0.7611468164569183
         w_coefreport = -0.11762852831221761
