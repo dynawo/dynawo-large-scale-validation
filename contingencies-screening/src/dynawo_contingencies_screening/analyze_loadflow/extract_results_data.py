@@ -200,9 +200,11 @@ def get_fault_data(root, ns, contingencies_list):
     cause_dict = {}
     iter_number_dict = {}
     calc_duration_dict = {}
-    constraint_dict = {"contrTransit": {key: [] for key in contingencies_list},
-                       "contrTension": {key: [] for key in contingencies_list},
-                       "contrGroupe": {key: [] for key in contingencies_list}}
+    constraint_dict = {
+        "contrTransit": {key: [] for key in contingencies_list},
+        "contrTension": {key: [] for key in contingencies_list},
+        "contrGroupe": {key: [] for key in contingencies_list},
+    }
     coef_report_dict = {key: [] for key in contingencies_list}
     res_node_dict = {key: [] for key in contingencies_list}
     tap_changers_dict = {key: [] for key in contingencies_list}
