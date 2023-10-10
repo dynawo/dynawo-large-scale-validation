@@ -99,19 +99,19 @@ def analyze_loadflow_results_continuous(contingencies_dict, elements_dict, tap_c
     # the final value.
 
     if tap_changers:
-        w_volt_min = 0.8709585643521689
-        w_volt_max = 0.32995161908167936
-        w_iter = 81.43358920208493
-        w_poste = 11.007921745505888
-        w_constr_gen_Q = 3.4593465451214
+        w_volt_min = 0.2457220478556516
+        w_volt_max = 0.14780728237909546
+        w_iter = 75.25148015117998
+        w_poste = 11.220861426449641
+        w_constr_gen_Q = 3.87026569307372
         w_constr_gen_U = 0
-        w_constr_volt = 10.988360889527888
-        w_constr_flow = 4.591743423281762
-        w_node = -195.45290455853078
-        w_tap = -2.351895683336903
-        w_flow = 0.6039847425477087
-        w_coefreport = -0.12145763111045368
-        independent_term = 4081.3883262812024
+        w_constr_volt = 5.887908003334723
+        w_constr_flow = 3.3842814175737255
+        w_node = -26.293937456294575
+        w_tap = 6.961564970553012
+        w_flow = 0.7611468164569183
+        w_coefreport = -0.11762852831221761
+        independent_term = 3766.254006133779
     else:
         w_volt_min = 0.48453439427510003
         w_volt_max = -0.054528360371039364
