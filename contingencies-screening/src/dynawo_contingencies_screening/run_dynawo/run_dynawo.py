@@ -24,7 +24,7 @@ def run_dynaflow(input_dir, output_dir, dynawo_launcher):
 
 def check_calculated_contg(input_dir, matching_contng_dict):
     # Check if a contingency is in the files of contingencies already executed, in order to know if it
-    # can be reused or not (eg contingencies executed 1,2,3,4. 2 and 4 are wanted, therefore it can be
+    # can be reused or not (e.g. contingencies executed 1,2,3,4. 2 and 4 are wanted, therefore it can be
     # reused. If 2,4,5 were needed, it would not be possible)
 
     parsed_file = manage_files.parse_xml_file(input_dir / "aggregatedResults.xml")

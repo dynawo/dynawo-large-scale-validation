@@ -3,7 +3,7 @@
 
 ## Prepare the basecase
 
-0. Make sure that all the necessary files for running both the simulators have 
+0. Make sure that all the necessary files for running both simulators have 
 already been prepared, with their corresponding format and directory structure.
 
 ## Setting up the virtual environment
@@ -19,38 +19,44 @@ in order to update all packages.
 
 ## Run the pipeline
 
-3. Now everything should be ready to run the pipeline with the virtual environment 
-activated through the command line with the command run_contingencies_screening.
-This provides us with several options mentioned below:
+3. Now everything should be ready to run the pipeline in the active virtual environment 
+with the command `run_contingencies_screening`. This provides us with several options mentioned below:
 
-        usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] input_dir output_dir hades_launcher dynawo_launcher
 
-        positional arguments:
-          input_dir             enter the path to the folder containing the case files
-          output_dir            enter the path to the folder containing the case files
-          hades_launcher        define the Hades launcher
-          dynawo_launcher       define the Dynawo launcher
-        
-        options:
-          -h, --help            show this help message and exit
-          -t, --tap_changers    run the simulations with activated tap changers
-          -a, --replay_hades    replay the worst contingencies with Hades
-          -d, --replay_dynawo   replay the worst contingencies with Dynawo
-          -n N_REPLAY, --n_replay N_REPLAY
-                                define the number of worst contingencies to replay (FROM, TO, BOTH)
-          -s SCORE_TYPE, --score_type SCORE_TYPE
-                        Define the type of scoring used in the ranking (1 = discrete human made, 2 = continuous human made, 3 = machine learning disc, 4 = machine learning cont
-          -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
-                        Path to obtain a different dynamic database when using Dynawo
+         usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] input_dir output_dir hades_launcher dynawo_launcher
+         
+         positional arguments:
+           input_dir             enter the path to the folder containing the case files
+           output_dir            enter the path to the output folder
+           hades_launcher        define the Hades launcher
+           dynawo_launcher       define the Dynawo launcher
+         
+         options:
+           -h, --help            show this help message and exit
+           -t, --tap_changers    run the simulations with activated tap changers
+           -a, --replay_hades_obo
+                                 replay the most interesting contingencies with Hades one by one
+           -d, --replay_dynawo   replay the most interesting contingencies with Dynawo
+           -n N_REPLAY, --n_replay N_REPLAY
+                                 define the number of most interesting contingencies to replay (default = 25)
+           -s SCORE_TYPE, --score_type SCORE_TYPE
+                                 define the type of scoring used in the ranking (1 = human made, 2 = machine learning)
+           -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
+                                 path to use a standalone dynamic database when running Dynawo
+           -m, --multithreading  enable multithreading executions in Hades
+           -c, --calc_contingencies
+                                 the input files have the contingencies calculated previously
+           -z, --compress_results
+                                 clean and compress the results
 
 
 ### input_dir (required)
 
-The directory that contains the BASECASE. Either as an absolute path, or a relative one.
+The directory that contains the input case files to be used. Either as an absolute path, or a relative one.
 
 ### output_dir (required)
 
-The directory that will store the results, either as an absolute path, or a relative one.
+The directory that will store the execution results. Either as an absolute path, or a relative one.
 
 ### hades_launcher (required)
 
@@ -64,25 +70,38 @@ or make sure it is on your $PATH.
 
 ### -t, --tap_changers
 
-Enable the activation of tap changers in the simulation of the contingencies.
+Enable the activation of tap changers during the simulation of the contingencies.
 
-### -a, --replay_hades
+### -a, --replay_hades_obo
 
-Enable the replay of the top N_REPLAY worst contingencies with Hades simulator.
+Enable the replay one by one of the most interesting N_REPLAY contingencies with the Hades simulator.
 
 ### -d, --replay_dynawo
 
-Enable the replay of the top N_REPLAY worst contingencies with Dynawo simulator.
+Enable the replay of the most interesting N_REPLAY contingencies with the Dynawo simulator.
 
 ### -n N_REPLAY, --n_replay N_REPLAY (default value: 25)
 
-Set the number for the top X contingencies to be replayed.
+Set the number for the top N contingencies to be replayed.
 
-### -s, --score_type
+### -s SCORE_TYPE, --score_type SCORE_TYPE (default value: 1)
 
 Define the type of scoring used in the ranking. Possible values are: 
-[1 (discrete human made), 2 (continuous human made), 3 (machine learning discrete), 4 (machine learning continuous)]
+[(1 = human made, 2 = machine learning)]
 
-### -d, --dynamic_database
+### -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
 
-Path for a custom Dynamo model database to be used in the Dynawo simulations. 
+Path for a custom Dynawo model database to be used in the Dynawo simulations. 
+
+### -m, --multithreading
+
+Enable multithreading executions for the Hades simulations.
+
+### -c, --calc_contingencies
+
+Enable the usage of input files that have the contingencies calculated previously.
+
+### -z, --compress_results
+
+Enable the automatic cleaning of all unnecessary data generated from the Dynawo simulations and 
+the compression of the output folder to a tar.gz file.

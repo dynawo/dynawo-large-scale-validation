@@ -1,5 +1,6 @@
 from lxml import etree
 import os
+import shutil
 
 # Define the number of threads with which you want to configure the different execution launchers
 # (eg N contingencies at the same time within a snapshot) and define the number of threads you
@@ -42,10 +43,6 @@ def clean_data(dynawo_output_folder, sorted_loadflow_score_list, number_pos_repl
 
     retain_folders = ["outputs", "constraints", "timeLine"]
     retain_folders_contg = replay_contgs
-
-    retain_common_files = ["constraints_" + contg + ".xml" for contg in replay_contgs] + [
-        "timeline_" + contg + ".xml" for contg in replay_contgs
-    ]
 
     for elem_dir in dynawo_output_folder.iterdir():
         if elem_dir.is_file():
