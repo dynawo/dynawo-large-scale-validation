@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 from numpy import mean, std
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, TheilSenRegressor
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from dynawo_contingencies_screening.analyze_loadflow import human_analysis
@@ -225,7 +225,8 @@ def train_test_loadflow_results():
 
     # model_GBR = GradientBoostingRegressor(learning_rate=0.1104, n_estimators=700, max_depth=12)
     model_GBR = GradientBoostingRegressor(learning_rate=0.11, n_estimators=700, max_depth=12)
-    model_LR = LinearRegression()
+    model_LR_Mean = LinearRegression()
+    model_LR_Median = TheilSenRegressor()
 
     cv = KFold(n_splits=5)
 
@@ -243,7 +244,7 @@ def train_test_loadflow_results():
     print("MAE GBR: %.3f (%.3f)" % (mean(n_scores_GBR), std(n_scores_GBR)))
 
     n_scores_LR = cross_val_score(
-        model_LR,
+        model_LR_Mean,
         X,
         y,
         scoring="neg_mean_absolute_error",
@@ -253,26 +254,59 @@ def train_test_loadflow_results():
         verbose=3,
     )
 
-    print("MAE LR: %.3f (%.3f)" % (mean(n_scores_LR), std(n_scores_LR)))
+    print("MAE LR Mean: %.3f (%.3f)" % (mean(n_scores_LR), std(n_scores_LR)))
+
+    n_scores_LR = cross_val_score(
+        model_LR_Median,
+        X,
+        y,
+        scoring="neg_mean_absolute_error",
+        cv=cv,
+        n_jobs=1,
+        error_score="raise",
+        verbose=3,
+    )
+
+    print("MAE LR Median: %.3f (%.3f)" % (mean(n_scores_LR), std(n_scores_LR)))
 
     # fit the model on the whole dataset
     model_GBR = GradientBoostingRegressor(learning_rate=0.11, n_estimators=700, max_depth=12)
     model_GBR.fit(X, y)
 
-    model_LR = LinearRegression()
-    model_LR.fit(X, y)
+    model_LR_Mean = LinearRegression()
+    model_LR_Mean.fit(X, y)
 
     cols = list(X.columns)
-    coefs = list(model_LR.coef_)
+    coefs = list(model_LR_Mean.coef_)
     print()
-    print("LR weights")
-    print("INTERCEPTION", model_LR.intercept_)
+    print("LR Mean weights")
+    print("INTERCEPTION", model_LR_Mean.intercept_)
     for i in range(len(cols)):
         print(cols[i], coefs[i])
 
     print()
-    print("LR weights normalized")
-    print("INTERCEPTION", model_LR.intercept_)
+    print("LR Mean weights normalized")
+    print("INTERCEPTION", model_LR_Mean.intercept_)
+
+    coefs_norm = normalize_LR(X, coefs)
+
+    for i in range(len(cols)):
+        print(cols[i], coefs_norm[i])
+
+    model_LR_Median = TheilSenRegressor()
+    model_LR_Median.fit(X, y)
+
+    cols = list(X.columns)
+    coefs = list(model_LR_Median.coef_)
+    print()
+    print("LR Median weights")
+    print("INTERCEPTION", model_LR_Median.intercept_)
+    for i in range(len(cols)):
+        print(cols[i], coefs[i])
+
+    print()
+    print("LR Median weights normalized")
+    print("INTERCEPTION", model_LR_Median.intercept_)
 
     coefs_norm = normalize_LR(X, coefs)
 
@@ -280,7 +314,8 @@ def train_test_loadflow_results():
         print(cols[i], coefs_norm[i])
 
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
-    pickle.dump(model_LR, open(model_path / "LR_model.pkl", "wb"))
+    pickle.dump(model_LR_Mean, open(model_path / "LR_model_Mean.pkl", "wb"))
+    pickle.dump(model_LR_Median, open(model_path / "LR_model_Median.pkl", "wb"))
 
     print("Models saved")
 
