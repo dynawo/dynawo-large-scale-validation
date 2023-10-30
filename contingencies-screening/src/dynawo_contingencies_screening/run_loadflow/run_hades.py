@@ -71,7 +71,7 @@ def run_hades(
                 shell=True,
                 check=True,
             )
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             return 1
 
         return 0
