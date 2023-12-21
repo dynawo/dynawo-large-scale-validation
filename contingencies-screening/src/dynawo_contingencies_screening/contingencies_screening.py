@@ -114,7 +114,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-m",
             "--multithreading",
-            help="enable multithreading executions in Hades",
+            help="enable multithreading executions",
             action="store_true",
         )
 
@@ -122,7 +122,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-c",
             "--calc_contingencies",
-            help="the input files have the contingencies calculated previously",
+            help="define the input folder that have the contingencies calculated previously",
             action="store_true",
         )
 
