@@ -21,31 +21,31 @@ in order to update all packages.
 3. Now everything should be ready to run the pipeline in the active virtual environment 
 with the command `run_contingencies_screening`. This provides us with several options mentioned below:
 ```
-         usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] input_dir output_dir hades_launcher dynawo_launcher
-         
-         positional arguments:
-           input_dir             enter the path to the folder containing the case files
-           output_dir            enter the path to the output folder
-           hades_launcher        define the Hades launcher
-           dynawo_launcher       define the Dynawo launcher
-         
-         options:
-           -h, --help            show this help message and exit
-           -t, --tap_changers    run the simulations with activated tap changers
-           -a, --replay_hades_obo
-                                 replay the most interesting contingencies with Hades one by one
-           -d, --replay_dynawo   replay the most interesting contingencies with Dynawo
-           -n N_REPLAY, --n_replay N_REPLAY
-                                 define the number of most interesting contingencies to replay (default = 25)
-           -s SCORE_TYPE, --score_type SCORE_TYPE
-                                 define the type of scoring used in the ranking (1 = human made, 2 = machine learning)
-           -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
-                                 path to use a standalone dynamic database when running Dynawo
-           -m, --multithreading  enable multithreading executions in Hades
-           -c, --calc_contingencies
-                                 define the input folder that have the contingencies calculated previously
-           -z, --compress_results
-                                 clean and compress the results
+usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] input_dir output_dir hades_launcher dynawo_launcher
+
+positional arguments:
+  input_dir             enter the path to the folder containing the case files
+  output_dir            enter the path to the output folder
+  hades_launcher        define the Hades launcher
+  dynawo_launcher       define the Dynawo launcher
+
+options:
+  -h, --help            show this help message and exit
+  -t, --tap_changers    run the simulations with activated tap changers
+  -a, --replay_hades_obo
+                        replay the most interesting contingencies with Hades one by one
+  -d, --replay_dynawo   replay the most interesting contingencies with Dynawo
+  -n N_REPLAY, --n_replay N_REPLAY
+                        define the number of most interesting contingencies to replay (default = 25)
+  -s SCORE_TYPE, --score_type SCORE_TYPE
+                        define the type of scoring used in the ranking (1 = human made, 2 = machine learning)
+  -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
+                        path to use a standalone dynamic database when running Dynawo
+  -m, --multithreading  enable multithreading executions in Hades
+  -c, --calc_contingencies
+                        define the input folder that have the contingencies calculated previously
+  -z, --compress_results
+                        clean and compress the results
 ```
 
 ### input_dir (required)
