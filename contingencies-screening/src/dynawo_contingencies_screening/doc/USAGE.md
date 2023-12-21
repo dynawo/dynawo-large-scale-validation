@@ -13,7 +13,6 @@ This will automatically create the virtual environment and install all the
 packages necessary to use the tool. The script can also be re-run at any time 
 in order to update all packages.
 
-
 2. Activate the virtual environment you just created with the previous script: 
 `source /path/to/the/virtual/environment/bin/activate`
 
@@ -21,8 +20,7 @@ in order to update all packages.
 
 3. Now everything should be ready to run the pipeline in the active virtual environment 
 with the command `run_contingencies_screening`. This provides us with several options mentioned below:
-
-
+```
          usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] input_dir output_dir hades_launcher dynawo_launcher
          
          positional arguments:
@@ -45,10 +43,10 @@ with the command `run_contingencies_screening`. This provides us with several op
                                  path to use a standalone dynamic database when running Dynawo
            -m, --multithreading  enable multithreading executions in Hades
            -c, --calc_contingencies
-                                 the input files have the contingencies calculated previously
+                                 define the input folder that have the contingencies calculated previously
            -z, --compress_results
                                  clean and compress the results
-
+```
 
 ### input_dir (required)
 
@@ -99,9 +97,38 @@ Enable multithreading executions for the Hades simulations.
 
 ### -c, --calc_contingencies
 
-Enable the usage of input files that have the contingencies calculated previously.
+Enable the usage of input files that have the contingencies calculated previously (path of output from another execution).
 
 ### -z, --compress_results
 
 Enable the automatic cleaning of all unnecessary data generated from the Dynawo simulations and 
 the compression of the output folder to a tar.gz file.
+
+## Usage
+
+The input directory must follow the defined structure below:
+
+```
+data/
+└── 2023
+    └── 01
+        └── 02
+            ├── unique_name_1
+            │   ├── donneesEntreeHADES2_ANALYSE_SECU.xml
+            │   └── recollement-auto-20230102-0000-enrichi.xiidm
+            └── unique_name_2
+                ├── donneesEntreeHADES2_ANALYSE_SECU.xml
+                └── recollement-auto-20230102-0100-enrichi.xiidm
+```
+                
+Under the main directory, the folders represent the years, months, and days of the snapshots, and there can be as many as desired at each level.
+
+If you choose to reuse previously calculated contingencies (-c option), the files must come from a previous run of this same pipeline, and you should provide the overall resulting folder, not only a specific part.
+
+When using the compression option to save space, a significant number of unnecessary files for the analysis will inevitably be deleted.
+
+The following line provides an example of usage:
+```
+run_contingencies_screening -z -d -n -1 -s 2 -b dyndb -m data Results_no_taps hades2-V6.9.0.2/hades2.sh dynaflow-launcher_master_DynaflowLauncher_master_Release/dynaflow-launcher/dynaflow-launcher.sh
+```
+
