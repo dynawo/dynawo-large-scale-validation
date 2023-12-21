@@ -122,7 +122,7 @@ def argument_parser(command_list):
         p.add_argument(
             "-c",
             "--calc_contingencies",
-            help="define the input folder that have the contingencies calculated previously",
+            help="define the input folder that have the contingencies calculated previously (path of output from another execution)",
             action="store_true",
         )
 
