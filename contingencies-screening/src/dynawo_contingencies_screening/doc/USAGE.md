@@ -89,7 +89,7 @@ Define the type of scoring used in the ranking. Possible values are:
 
 ### -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
 
-Path for a custom Dynawo model database to be used in the Dynawo simulations. 
+Path for a custom Dynawo model database to be used in the Dynawo simulations. This should have a file named assembling.xml and another named setting.xml.
 
 ### -m, --multithreading
 
