@@ -33,7 +33,7 @@ by different means. The software currently implements two modeling approaches:
     each predictor variable. Modifications and tweaks can be done directly, too. For
     instance, if an expert judges that certain variable should _not_ have any influence
     but appears in the regression with some weight (which may happen when the
-    regresssion overfits to the data), its weight may be manually set to zero in the
+    regression overfits to the data), its weight may be manually set to zero in the
     model.
 
   * A Gradient Boosting model, using GBM. This model is more of a black-box, although
@@ -53,12 +53,12 @@ the screened ones.
 
 The software in this repository is therefore used in two modes:
 
-  * **Model Training:** this will be done occassionally, once every few weeks (or
+  * **Model Training:** this will be done occasionally, once every few weeks (or
     months), to retrain the model in order to prevent data drift / model drift.
 
   * **Screening:** this can be done on every Security Analysis. After all contingencies
   have been calculated with the Hades SA, the software obtains their predicted score
-  (model evaluation) and they are then ranked. Those avove a chosen threshold (i.e.,
+  (model evaluation) and they are then ranked. Those above a chosen threshold (i.e.,
   those that the model predicts to be more different) can be re-run using DynaFlow.
 
 There are also companion Notebooks for the analysis and exploration of results.
