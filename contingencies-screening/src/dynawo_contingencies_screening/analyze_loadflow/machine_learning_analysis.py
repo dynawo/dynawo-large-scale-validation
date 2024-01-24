@@ -161,9 +161,9 @@ def argument_parser(command_list):
 
     p = argparse.ArgumentParser()
 
-    if "df_path" in command_list:
+    if "output_path" in command_list:
         p.add_argument(
-            "df_path",
+            "output_path",
             help="enter the path to the training dataframe",
         )
 
@@ -195,6 +195,29 @@ def normalize_LR(X, coefs):
     return coefs_norm
 
 
+def load_df(path):
+    path = Path(path)
+    first_df = True
+    for year_dir in path.iterdir():
+        if year_dir.is_file():
+            continue
+        for month_dir in year_dir.iterdir():
+            if month_dir.is_file():
+                continue
+            for day_dir in month_dir.iterdir():
+                if day_dir.is_file():
+                    continue
+                for time_dir in day_dir.iterdir():
+                    if os.path.isfile(time_dir / "contg_df.csv"):
+                        if first_df:
+                            first_df = False
+                            df_contg = pd.read_csv(time_dir / "contg_df.csv", sep=";")
+                        else:
+                            df_new = pd.read_csv(time_dir / "contg_df.csv", sep=";")
+                            df_contg = pd.concat([df_contg, df_new], axis=0, ignore_index=False)
+    
+    return df_contg.dropna()
+
 # FROM HERE:
 # command line executables
 
@@ -204,13 +227,13 @@ def train_test_loadflow_results():
     # get the best one to include it in the package and make the predictions
 
     pd.options.mode.chained_assignment = None  # default='warn'
-    args = argument_parser(["df_path", "model_path"])
+    args = argument_parser(["output_path", "model_path"])
 
-    df_path = Path(args.df_path)
+    output_path = Path(args.output_path)
     model_path = Path(args.model_path)
 
     # Analyze the loadflow results through machine learning models
-    contingencies_df = pd.read_csv(df_path, sep=";")
+    contingencies_df = load_df(output_path)
 
     # contingencies_df = contingencies_df.drop(["NUM"], axis=1)
     contingencies_df = contingencies_df.drop(["PREDICTED_SCORE"], axis=1)
