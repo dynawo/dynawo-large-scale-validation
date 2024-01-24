@@ -61,6 +61,6 @@ recollement-auto-20230615-0500-replay
 ```
 
 To run the notebook, all you have to do is define the path to output execution
-files (Hades --> `output.xml`, Dynaflow --> `outputs/finalState/outputIIDM.xml`)
+files (Hades --> `output.xml`, DynaFlow --> `outputs/finalState/outputIIDM.xml`)
 and execute all the notebook cells in order.
 
