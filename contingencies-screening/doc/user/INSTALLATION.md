@@ -100,9 +100,9 @@ Anyway, for the benefit of developers, we make these steps explicit here:
   0. You first need to install pip & friends in your venv:  
      `pip install --upgrade pip wheel setuptools build`  
      (Note 1: it's important to upgrade `pip`, since the version installed in the
-     Operating System is very likely too old.)  
+     Operating System is likely to be too old.)  
      (Note 2: with more recent versions of `build`, it is redundant to explicitly
-     require the installation of `wheeel` and `setuptools`.)
+     require the installation of `wheel` and `setuptools`.)
 
   1. Clone the repo and move to contingencies-screening branch:
 	 `git clone https://github.com/dynawo/dynawo-large-scale-validation`  
@@ -117,7 +117,7 @@ Anyway, for the benefit of developers, we make these steps explicit here:
 
 Now everything should be ready to run the software in the active virtual environment.
 Test that the installation was successful by invoking the command
-`run_contingencies_screening` with the help option.  You should obtain the foillowing
+`run_contingencies_screening` with the help option.  You should obtain the following
 output:
 
 ```
