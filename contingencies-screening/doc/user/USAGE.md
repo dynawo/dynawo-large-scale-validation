@@ -61,7 +61,7 @@ file names must be respected in their entirety
 
 
 
-## Run the pipeline
+## Running the pipeline
 
 Make sure to have activated the Python virtual environment in which you have
 installed the software: `source /path/to/the/virtual/environment/bin/activate`
@@ -144,13 +144,13 @@ option, run the (predicted) top N most different contingencies using DynaFlow
 Launcher, in order to calculate their actual score (i.e. the actual value of the
 metric that measures the "distance" between Hades and DynaFlow results). These
 actual scores are then _added_ to the results dataframe. This allows one to
-check how well) or badly) the prediction os working.
+check how well (or badly) the prediction is working.
 
 ### -n N_REPLAY, --n_replay N_REPLAY (default value: 25)
 
 Set the number for the top N contingencies to be replayed.  
 **IMPORTANT:** This option is used with the "magic" value **-1** when we want to
-geneerate a dataset for training models. What it does in this case is running
+generate a dataset for training models. What it does in this case is running
 **all** contingencies under DynaFlow as well as Hades, so that thee resulting
 dataframe contains the actual score (in the last column), that is, the target
 variable for the predictive model training stage. This output dataframe is
