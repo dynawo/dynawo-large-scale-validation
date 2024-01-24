@@ -89,17 +89,19 @@ contingencies-screening/
 
 The documentation is located under the `doc` folder. The main contents are:
 
-  * [USAGE](src/dynawo_contingencies_screening/doc/USAGE.md): covers the installation of
-    the Python package and usage of the main components, `run_contingencies_screening`
-    (the main screening pipeline) and `train_test_loadflow_results` (for training
-    models).
+  * [INSTALLATION](doc/user/INSTALLATION.md): covers the installation of
+    the Python package and all of its required dependencies.
 
-  * [ANALYSIS](src/dynawo_contingencies_screening/doc/ANALYSIS.md): covers how to
+  * [USAGE](doc/user/USAGE.md): covers the usage of the main components,
+    `run_contingencies_screening` (the main screening pipeline) and
+    `train_test_loadflow_results` (for training models).
+
+  * [ANALYSIS](doc/user/ANALYSIS.md): covers how to
     prepare the cases and use the Jupyter notebooks for analyzing results, both global
     (model performance, contingency rankings, etc.) and individual (exploring the result
     of a particular contingency case).
 
-  * [SUMMARY_CONCLUSIONS](src/dynawo_contingencies_screening/doc/SUMMARY_CONCLUSIONS.md):
+  * [SUMMARY_CONCLUSIONS](doc/user/SUMMARY_CONCLUSIONS.md):
     offers general conclusions we have drawn from the modeling results obtained on the
     January+February+June 2023 dataset (see also the paper to be submitted soon).
 
