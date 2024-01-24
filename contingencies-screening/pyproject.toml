@@ -51,6 +51,7 @@ dependencies = [
     "tqdm>=4.65.2",
     "seaborn>=0.13.0",
     "shap>=0.43.0",
+    "jupyter>=1.0.0",
 ]
 
 
