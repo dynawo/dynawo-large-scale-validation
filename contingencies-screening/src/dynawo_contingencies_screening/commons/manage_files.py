@@ -19,14 +19,35 @@ def parse_xml_file(xml_file):
     return parsed_xml
 
 
+def dir_exists(input_dir, output_dir):
+    # Check if exists output dir
+    if output_dir.exists():
+        remove_dir = input("The output directory exists " + str(output_dir) + ", do you want to remove it? [y/N] ")
+        if remove_dir == "y" or remove_dir == "Y":
+            # Check if output directory is the same as the input, or input
+            # directory is subdirectory of the specified output directory
+            if (output_dir == input_dir) or (output_dir in input_dir.parents):
+                exit(
+                    "Error: specified input directory is the same or a subdirectory "
+                    "of the specified output directory."
+                )
+            else:
+                shutil.rmtree(output_dir)
+        else:
+            exit()
+
+
 def create_output_dir(
     input_dir_path, output_dir_path, time_dir, replay_dynawo, hades_folder, dynawo_folder
 ):
     # Create the specified output dir
     structure_path = time_dir.relative_to(input_dir_path)
+
+    dir_exists(input_dir_path, output_dir_path / structure_path / hades_folder)
     os.makedirs(output_dir_path / structure_path / hades_folder, exist_ok=True)
 
     if replay_dynawo:
+        dir_exists(input_dir_path, output_dir_path / structure_path / dynawo_folder)
         os.makedirs(output_dir_path / structure_path / dynawo_folder, exist_ok=True)
 
     return output_dir_path / structure_path

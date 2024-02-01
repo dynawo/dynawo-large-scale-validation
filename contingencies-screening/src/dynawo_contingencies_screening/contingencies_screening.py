@@ -132,24 +132,6 @@ def argument_parser(command_list):
     return args
 
 
-def dir_exists(input_dir, output_dir):
-    # Check if exists output dir
-    if output_dir.exists():
-        remove_dir = input("The output directory exists, do you want to remove it? [y/N] ")
-        if remove_dir == "y" or remove_dir == "Y":
-            # Check if output directory is the same as the input, or input
-            # directory is subdirectory of the specified output directory
-            if (output_dir == input_dir) or (output_dir in input_dir.parents):
-                exit(
-                    "Error: specified input directory is the same or a subdirectory "
-                    "of the specified output directory."
-                )
-            else:
-                shutil.rmtree(output_dir)
-        else:
-            exit()
-
-
 def solve_launcher(launcher):
     # Check if it is a file in the system path or a directory to a file
     if launcher.is_file():
@@ -746,7 +728,7 @@ def run_contingencies_screening():
     output_dir_path = Path(args.output_dir).absolute()
 
     # Check the existence of the input and output directories
-    dir_exists(input_dir_path, output_dir_path)
+    # manage_files.dir_exists(input_dir_path, output_dir_path)
 
     # Check if specified launchers are files in the system path or directories to files
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
