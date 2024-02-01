@@ -1,3 +1,8 @@
+import json
+import os
+from pathlib import Path
+
+
 def calc_diff_volt(contingency_values, loadflow_values):
     # Calculate the value of the metric to be able to predict if there will be a difference
     # between Hades and Dynawo
@@ -93,39 +98,43 @@ def calc_constr_flow(contingency_values, elem_dict):
 STD_TAP_VALUE = 20
 
 
-def analyze_loadflow_results_continuous(contingencies_dict, elements_dict, tap_changers):
+def analyze_loadflow_results_continuous(
+    contingencies_dict, elements_dict, tap_changers, model_path
+):
     # Predict the difference between Hades and Dynawo's loadflow resolution using only Hades'
     # resolution. Each of the attributes has an assigned weight that shows its importance over
     # the final value.
 
+    print(
+        "\nWARNING: Remember that if you have selected the human analysis option, you must provide the path of a LR in JSON format that matches (has been trained) the option selected on the taps (activated or not activated).\n"
+    )
+
+    if model_path is None:
+        model_path = Path(os.path.dirname(os.path.realpath(__file__)))
+        if tap_changers:
+            model_path = model_path / "LR_taps.json"
+        else:
+            model_path = model_path / "LR_no_taps.json"
+
+    f = open(model_path)
+    data = json.load(f)
+
+    w_volt_min = data["MIN_VOLT"]
+    w_volt_max = data["MAX_VOLT"]
+    w_iter = data["N_ITER"]
+    w_poste = data["AFFECTED_ELEM"]
+    w_constr_gen_Q = data["CONSTR_GEN_Q"]
+    w_constr_gen_U = data["CONSTR_GEN_U"]
+    w_constr_volt = data["CONSTR_VOLT"]
+    w_constr_flow = data["CONSTR_FLOW"]
+    w_node = data["RES_NODE"]
     if tap_changers:
-        w_volt_min = 2.2936811225217584
-        w_volt_max = -2.0410839743387763
-        w_iter = 24.304598095418694
-        w_poste = 5.470081527019836
-        w_constr_gen_Q = 41.49931807092856
-        w_constr_gen_U = 0
-        w_constr_volt = 21.000081754859174
-        w_constr_flow = -1.7880506809471037
-        w_node = -3.607522580214378
-        w_tap = 6.4660595140547645
-        w_flow = 0.9476919290217547
-        w_coefreport = 0.402538223907719
-        independent_term = 3507.465652737348
+        w_tap = data["TAP_CHANGERS"]
     else:
-        w_volt_min = 0.48453439427510003
-        w_volt_max = -0.054528360371039364
-        w_iter = 58.49003508266973
-        w_poste = 11.40520295890738
-        w_constr_gen_Q = 6.5659622388617755
-        w_constr_gen_U = 6.963318810448982e-13
-        w_constr_volt = -2.2173873238553075
-        w_constr_flow = 17.40705542826712
-        w_node = 554.1470097201553
         w_tap = 0
-        w_flow = 0.6367911705557392
-        w_coefreport = 0.2262723051576275
-        independent_term = 3919.8977272417924
+    w_flow = data["MAX_FLOW"]
+    w_coefreport = data["COEF_REPORT"]
+    independent_term = data["INTERCEPTION"]
 
     for key in contingencies_dict.keys():
         if contingencies_dict[key]["status"] == 0:

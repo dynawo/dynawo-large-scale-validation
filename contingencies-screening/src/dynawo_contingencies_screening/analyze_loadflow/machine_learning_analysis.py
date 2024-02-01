@@ -1,4 +1,5 @@
 import os
+import json
 import argparse
 from pathlib import Path
 import pandas as pd
@@ -125,7 +126,7 @@ def predict_scores(contingencies_df, model_filename):
     return contg_scores
 
 
-def analyze_loadflow_results(contingencies_dict, elements_dict, tap_changers):
+def analyze_loadflow_results(contingencies_dict, elements_dict, tap_changers, model_path):
     # Predict the difference between Hades and Dynamo load flow resolution using only Hades
     # resolution. For this, a previously trained model is used, which can be found in the same
     # folder as this script, and which varies depending on whether the tap changers are active or
@@ -135,12 +136,16 @@ def analyze_loadflow_results(contingencies_dict, elements_dict, tap_changers):
         contingencies_dict, elements_dict, tap_changers
     )
 
-    model_path = Path(os.path.dirname(os.path.realpath(__file__)))
+    if model_path is None:
+        model_path = Path(os.path.dirname(os.path.realpath(__file__)))
+        if tap_changers:
+            model_path = model_path / "ML_taps.pkl"
+        else:
+            model_path = model_path / "ML_no_taps.pkl"
 
-    if tap_changers:
-        model_path = model_path / "ML_taps.pkl"
-    else:
-        model_path = model_path / "ML_no_taps.pkl"
+    print(
+        "\nWARNING: Remember that if you have selected the ML option, you must provide the path of a model in PKL format that matches (has been trained) the option selected on the taps (activated or not activated).\n"
+    )
 
     contg_scores = predict_scores(
         contingencies_df,
@@ -337,9 +342,29 @@ def train_test_loadflow_results():
     for i in range(len(cols)):
         print(cols[i], coefs_norm[i])
 
+    os.makedirs(model_path, exist_ok=True)
     pickle.dump(model_GBR, open(model_path / "GBR_model.pkl", "wb"))
-    pickle.dump(model_LR_Mean, open(model_path / "LR_model_Mean.pkl", "wb"))
-    pickle.dump(model_LR_Median, open(model_path / "LR_model_Median.pkl", "wb"))
+
+    model_LR_Mean_dict = {}
+    cols = list(X.columns)
+    coefs = list(model_LR_Mean.coef_)
+    for i in range(len(cols)):
+        model_LR_Mean_dict[cols[i]] = coefs[i]
+    model_LR_Mean_dict["INTERCEPTION"] = model_LR_Mean.intercept_
+
+    model_LR_Median_dict = {}
+    cols = list(X.columns)
+    coefs = list(model_LR_Median.coef_)
+    for i in range(len(cols)):
+        model_LR_Median_dict[cols[i]] = coefs[i]
+    model_LR_Median_dict["INTERCEPTION"] = model_LR_Median.intercept_
+
+    # Convert and write JSON object to file
+    with open(model_path / "LR_model_Mean.json", "w") as outfile:
+        json.dump(model_LR_Mean_dict, outfile)
+
+    with open(model_path / "LR_model_Median.json", "w") as outfile:
+        json.dump(model_LR_Median_dict, outfile)
 
     print("Models saved")
 

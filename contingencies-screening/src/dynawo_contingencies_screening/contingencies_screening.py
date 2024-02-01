@@ -128,6 +128,14 @@ def argument_parser(command_list):
             action="store_true",
         )
 
+    if "model_path" in command_list:
+        p.add_argument(
+            "-l",
+            "--model_path",
+            help="define manually the path to the model that you want to use to make the predictions.",
+            default=None,
+        )
+
     args = p.parse_args()
     return args
 
@@ -186,8 +194,11 @@ def sort_ranking(elem):
 
 
 def create_contingencies_ranking_code(
-    hades_input_file, hades_output_file, output_dir_path, score_type, tap_changers
+    hades_input_file, hades_output_file, output_dir_path, score_type, tap_changers, model_path
 ):
+
+    if model_path is not None:
+        model_path = Path(model_path)
     # Parse hades xml input file
     parsed_hades_input_file = manage_files.parse_xml_file(hades_input_file)
 
@@ -217,11 +228,11 @@ def create_contingencies_ranking_code(
     # human analysis (LR) or AI
     if score_type == 1:
         hades_contingencies_dict = human_analysis.analyze_loadflow_results_continuous(
-            hades_contingencies_dict, hades_elements_dict, tap_changers
+            hades_contingencies_dict, hades_elements_dict, tap_changers, model_path
         )
     elif score_type == 2:
         hades_contingencies_dict = machine_learning_analysis.analyze_loadflow_results(
-            hades_contingencies_dict, hades_elements_dict, tap_changers
+            hades_contingencies_dict, hades_elements_dict, tap_changers, model_path
         )
     else:
         exit("There is no defined score for the indicated option")
@@ -568,6 +579,7 @@ def run_contingencies_screening_thread_loop(
             output_dir_final_path,
             args.score_type,
             args.tap_changers,
+            args.model_path,
         )
 
         # If the above function fails, exit the snapshot iteration without terminating execution.
@@ -724,6 +736,7 @@ def run_contingencies_screening():
             "multithreading",
             "calc_contingencies",
             "compress_results",
+            "model_path",
         ]
     )
     input_dir_path = Path(args.input_dir).absolute()
