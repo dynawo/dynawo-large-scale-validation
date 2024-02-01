@@ -51,12 +51,6 @@ def argument_parser(command_list):
             help="define the Hades launcher",
         )
 
-    if "dynawo_launcher" in command_list:
-        p.add_argument(
-            "dynawo_launcher",
-            help="define the Dynawo launcher",
-        )
-
     if "tap_changers" in command_list:
         p.add_argument(
             "-t",
@@ -77,8 +71,8 @@ def argument_parser(command_list):
         p.add_argument(
             "-d",
             "--replay_dynawo",
-            help="replay the most interesting contingencies with Dynawo",
-            action="store_true",
+            help="replay the most interesting contingencies with Dynawo. Define the Dynaflow launcher",
+            default=None,
         )
 
     if "n_replay" in command_list:
@@ -551,7 +545,7 @@ def run_contingencies_screening_thread_loop(
             input_dir_path,
             output_dir_path,
             time_dir,
-            args.replay_dynawo,
+            (args.replay_dynawo is not None),
             HADES_FOLDER,
             DYNAWO_FOLDER,
         )
@@ -599,7 +593,7 @@ def run_contingencies_screening_thread_loop(
         display_results_table(output_dir_final_path, sorted_loadflow_score_list, args.tap_changers)
 
         # If selected, replay the worst contingencies with Dynawo systematic analysis
-        if args.replay_dynawo:
+        if args.replay_dynawo is not None:
             # Define if there will be the last "folder level" depending on whether the execution is
             # reused or if a new one has to be done.
             if args.calc_contingencies:
@@ -736,7 +730,6 @@ def run_contingencies_screening():
             "input_dir",
             "output_dir",
             "hades_launcher",
-            "dynawo_launcher",
             "tap_changers",
             "replay_hades_obo",
             "replay_dynawo",
@@ -756,7 +749,10 @@ def run_contingencies_screening():
 
     # Check if specified launchers are files in the system path or directories to files
     hades_launcher_solved = solve_launcher(Path(args.hades_launcher))
-    dynawo_launcher_solved = solve_launcher(Path(args.dynawo_launcher))
+    if args.replay_dynawo is not None:
+        dynawo_launcher_solved = solve_launcher(Path(args.replay_dynawo))
+    else:
+        dynawo_launcher_solved = None
 
     # Iterate through the different directories to execute all the cases provided, following
     # the structure of YEAR -> MONTH -> DAY -> HOUR
