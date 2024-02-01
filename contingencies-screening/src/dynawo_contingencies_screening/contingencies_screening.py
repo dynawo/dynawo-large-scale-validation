@@ -521,6 +521,7 @@ def display_results_table(output_dir, sorted_loadflow_score_list, tap_changers):
                 )
             )
 
+    print("\nRANKING OF THE MOST DIFFERENT CONTINGENCIES ACCORDING TO THE PREDICTIONS WITH THEIR SUMMARY SA INFORMATION\n")
     print(str_table)
 
     # Save the results table in a txt

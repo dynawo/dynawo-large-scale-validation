@@ -24,18 +24,19 @@ def load_df(path):
                 if day_dir.is_file():
                     continue
                 for time_dir in day_dir.iterdir():
-                    if first_df:
-                        first_df = False
-                        df_contg = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
-                        time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
-                        df_contg["DATE"] = time_str + "00"
-                        df_contg["DATE"] = pd.to_datetime(df_contg["DATE"], format="%Y%m%d-%H%M%S")
-                    else:
-                        df_new = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
-                        time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
-                        df_new["DATE"] = time_str + "00"
-                        df_new["DATE"] = pd.to_datetime(df_new["DATE"], format="%Y%m%d-%H%M%S")
-                        df_contg = pd.concat([df_contg, df_new], axis=0, ignore_index=False)
+                    if os.path.isfile(time_dir / "contg_df.csv"):
+                        if first_df:
+                            first_df = False
+                            df_contg = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
+                            time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
+                            df_contg["DATE"] = time_str + "00"
+                            df_contg["DATE"] = pd.to_datetime(df_contg["DATE"], format="%Y%m%d-%H%M%S")
+                        else:
+                            df_new = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
+                            time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
+                            df_new["DATE"] = time_str + "00"
+                            df_new["DATE"] = pd.to_datetime(df_new["DATE"], format="%Y%m%d-%H%M%S")
+                            df_contg = pd.concat([df_contg, df_new], axis=0, ignore_index=False)
     
     return df_contg.dropna()
 
