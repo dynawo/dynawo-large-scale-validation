@@ -27,17 +27,31 @@ def load_df(path):
                     if os.path.isfile(time_dir / "contg_df.csv"):
                         if first_df:
                             first_df = False
-                            df_contg = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
-                            time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
+                            df_contg = pd.read_csv(
+                                time_dir / "contg_df.csv", sep=";", index_col="NAME"
+                            )
+                            time_str = (
+                                (time_dir.stem)
+                                .replace("recollement-auto-", "")
+                                .replace("-enrichi", "")
+                            )
                             df_contg["DATE"] = time_str + "00"
-                            df_contg["DATE"] = pd.to_datetime(df_contg["DATE"], format="%Y%m%d-%H%M%S")
+                            df_contg["DATE"] = pd.to_datetime(
+                                df_contg["DATE"], format="%Y%m%d-%H%M%S"
+                            )
                         else:
-                            df_new = pd.read_csv(time_dir / "contg_df.csv", sep=";", index_col="NAME")
-                            time_str = (time_dir.stem).replace("recollement-auto-", "").replace("-enrichi", "")
+                            df_new = pd.read_csv(
+                                time_dir / "contg_df.csv", sep=";", index_col="NAME"
+                            )
+                            time_str = (
+                                (time_dir.stem)
+                                .replace("recollement-auto-", "")
+                                .replace("-enrichi", "")
+                            )
                             df_new["DATE"] = time_str + "00"
                             df_new["DATE"] = pd.to_datetime(df_new["DATE"], format="%Y%m%d-%H%M%S")
                             df_contg = pd.concat([df_contg, df_new], axis=0, ignore_index=False)
-    
+
     return df_contg.dropna()
 
 
@@ -313,24 +327,26 @@ def day_boxplot(df_contg, str_score):
     str_date_2 = "2023-01-31 23:59:59"
     df_contg = df_contg.sort_values(by="DATE", ascending=True)
 
-    mask = (df_contg["DATE"] > datetime.strptime(str_date_1, '%Y-%m-%d %H:%M:%S')) & (df_contg["DATE"] <= datetime.strptime(str_date_2, '%Y-%m-%d %H:%M:%S'))
+    mask = (df_contg["DATE"] > datetime.strptime(str_date_1, "%Y-%m-%d %H:%M:%S")) & (
+        df_contg["DATE"] <= datetime.strptime(str_date_2, "%Y-%m-%d %H:%M:%S")
+    )
 
     df_filtered = df_contg.loc[mask]
 
     df_filtered = df_filtered[df_filtered["STATUS"] == "BOTH"]
 
-    df_filtered['DATE'] = pd.to_datetime(df_filtered['DATE'], format='%Y-%m-%d %H:%M:%S').dt.date
+    df_filtered["DATE"] = pd.to_datetime(df_filtered["DATE"], format="%Y-%m-%d %H:%M:%S").dt.date
 
     # Creating dataset
-    sns.set(rc={"figure.figsize":(10, 3)})
+    sns.set(rc={"figure.figsize": (10, 3)})
     ax = plt.axes()
     ax.set_facecolor("white")
     sns.boxplot(x=df_filtered["DATE"], y=pd.to_numeric(df_filtered[str_score])).set(
-                xlabel='DATE', 
-                ylabel=str_score)
+        xlabel="DATE", ylabel=str_score
+    )
     plt.xticks(rotation=90)
     plt.ylim(2000, 14000)
-    plt.grid(color='grey', linewidth=0.5)
+    plt.grid(color="grey", linewidth=0.5)
 
 
 def score_histogram(df_contg, column_name):

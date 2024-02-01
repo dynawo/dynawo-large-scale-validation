@@ -215,8 +215,9 @@ def load_df(path):
                         else:
                             df_new = pd.read_csv(time_dir / "contg_df.csv", sep=";")
                             df_contg = pd.concat([df_contg, df_new], axis=0, ignore_index=False)
-    
+
     return df_contg.dropna()
+
 
 # FROM HERE:
 # command line executables

@@ -22,7 +22,9 @@ def parse_xml_file(xml_file):
 def dir_exists(input_dir, output_dir):
     # Check if exists output dir
     if output_dir.exists():
-        remove_dir = input("The output directory exists " + str(output_dir) + ", do you want to remove it? [y/N] ")
+        remove_dir = input(
+            "The output directory exists " + str(output_dir) + ", do you want to remove it? [y/N] "
+        )
         if remove_dir == "y" or remove_dir == "Y":
             # Check if output directory is the same as the input, or input
             # directory is subdirectory of the specified output directory
