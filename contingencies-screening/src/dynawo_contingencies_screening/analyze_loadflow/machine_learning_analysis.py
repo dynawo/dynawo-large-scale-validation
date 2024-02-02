@@ -291,7 +291,7 @@ def train_test_loadflow_results():
         y,
         scoring="neg_mean_absolute_error",
         cv=cv,
-        n_jobs=1,
+        n_jobs=-1,
         error_score="raise",
         verbose=3,
     )
