@@ -113,6 +113,10 @@ The directory that will store the execution results. Either as an absolute path,
 or a relative one. The output tree structure will reflect the same structure as
 the input_dir.
 
+There is the option of providing an output folder used in previous executions, with the aim of merging different results in the same directory. If this happens, two options are considered:
+1. The snapshots that are being executed are different from the previous executions, and consequently, the software will be in charge of merging the folders and structuring them without overwriting each other.
+2. Input cases that were already in the previous execution are being provided (same as the reused output folder). The software will ask case by case what you want to do with each one of them, delete it or stop execution to avoid overwriting the data.
+
 ### hades_launcher (required)
 
 Hades executable to be used for the Hades simulations. Either use an absolute
