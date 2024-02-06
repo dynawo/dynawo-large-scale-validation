@@ -68,31 +68,34 @@ installed the software: `source /path/to/the/virtual/environment/bin/activate`
 
 The pipeline is run using  the command `run_contingencies_screening`:
 ```
-usage: run_contingencies_screening [-h] [-t] [-a] [-d] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] input_dir output_dir hades_launcher dynawo_launcher
+usage: run_contingencies_screening [-h] [-t] [-a] [-d REPLAY_DYNAWO] [-n N_REPLAY] [-s SCORE_TYPE] [-b DYNAMIC_DATABASE] [-m] [-c] [-z] [-l MODEL_PATH] input_dir output_dir hades_launcher
 
 positional arguments:
   input_dir             enter the path to the folder containing the case files
   output_dir            enter the path to the output folder
   hades_launcher        define the Hades launcher
-  dynawo_launcher       define the Dynawo launcher
 
 options:
   -h, --help            show this help message and exit
   -t, --tap_changers    run the simulations with activated tap changers
   -a, --replay_hades_obo
                         replay the most interesting contingencies with Hades one by one
-  -d, --replay_dynawo   replay the most interesting contingencies with Dynawo
+  -d REPLAY_DYNAWO, --replay_dynawo REPLAY_DYNAWO
+                        replay the most interesting contingencies with Dynawo. Define the Dynaflow launcher
   -n N_REPLAY, --n_replay N_REPLAY
                         define the number of most interesting contingencies to replay (default = 25)
   -s SCORE_TYPE, --score_type SCORE_TYPE
                         define the type of scoring used in the ranking (1 = human made, 2 = machine learning)
   -b DYNAMIC_DATABASE, --dynamic_database DYNAMIC_DATABASE
                         path to use a standalone dynamic database when running Dynawo
-  -m, --multithreading  enable multithreading executions in Hades
+  -m, --multithreading  enable multithreading executions
   -c, --calc_contingencies
-                        define the input folder that have the contingencies calculated previously
+                        define the input folder that have the contingencies calculated previously (path of output from another execution)
   -z, --compress_results
                         clean and compress the results
+  -l MODEL_PATH, --model_path MODEL_PATH
+                        define manually the path to the model that you want to use to make the predictions.
+
 ```
 
 Let us now see these options in detail.
@@ -113,11 +116,6 @@ the input_dir.
 ### hades_launcher (required)
 
 Hades executable to be used for the Hades simulations. Either use an absolute
-path to the executable, or make sure it is on your $PATH.
-
-### dynawo_launcher (required)
-
-Dynawo executable to be used for the Dynawo simulations. Either use an absolute
 path to the executable, or make sure it is on your $PATH.
 
 ### -t, --tap_changers
@@ -145,6 +143,8 @@ Launcher, in order to calculate their actual score (i.e. the actual value of the
 metric that measures the "distance" between Hades and DynaFlow results). These
 actual scores are then _added_ to the results dataframe. This allows one to
 check how well (or badly) the prediction is working.
+Give Dynawo executable to be used for the Dynawo simulations. Either use an absolute
+path to the executable, or make sure it is on your $PATH.
 
 ### -n N_REPLAY, --n_replay N_REPLAY (default value: 25)
 
@@ -214,8 +214,8 @@ The command to launch this is actually the same as the one used for running the
 screening pipeline, except that one should use the options **`-d -n -1`**:
 
 ```
-run_contingencies_screening -t -d -n -1 -b ../dyndb input_dir output_dir
-hades_launcher dynawo_launcher
+run_contingencies_screening -t -d dynawo_launcher -n -1 -b ../dyndb input_dir output_dir
+hades_launcher
 ```
 
 This will execute, both with Hades and Dynawo, _all_ the contingencies
